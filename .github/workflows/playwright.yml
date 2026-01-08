@@ -30,6 +30,9 @@ jobs:
           npm run start &
           echo "Waiting for server..."
           npx wait-on http://localhost:3000 -t 60000
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy_key
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
@@ -39,3 +42,5 @@ jobs:
         env:
           BASE_URL: http://localhost:3000
           CI: true
+          NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy_key
