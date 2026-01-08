@@ -1,6 +1,7 @@
-'use client';
+"use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { COLORS, TYPO } from '@/lib/designTokens';
 
 export default function Hero() {
@@ -50,6 +51,34 @@ export default function Hero() {
           >
             Become a Creator
           </Link>
+        </div>
+
+        {/* Small preview of citizens (hires images if present, fallback to SVG placeholders) */}
+        <div className="mt-6 flex items-center justify-center gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <picture key={i}>
+              <source
+                type="image/webp"
+                srcSet={`/citizens/variants/illustrated/citizen-${i}--illustrated.webp, /citizens/variants/illustrated/citizen-${i}--illustrated@2x.webp 2x`}
+              />
+              <source
+                type="image/webp"
+                srcSet={`/citizens/hires/citizen-${i}.webp, /citizens/hires/citizen-${i}@2x.webp 2x`}
+              />
+              <img
+                src={`/citizens/hires/citizen-${i}.png`}
+                onError={(e) => {
+                  const t = e.currentTarget as HTMLImageElement;
+                  t.onerror = null;
+                  t.src = `/citizens/citizen-${i}.svg`;
+                }}
+                width={64}
+                height={64}
+                alt={`Citizen ${i}`}
+                className="w-16 h-16 rounded-full object-cover border-2 border-white/10 shadow-sm"
+              />
+            </picture>
+          ))}
         </div>
 
         {/* Decorative floating elements (purely presentational) */}

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 600" width="1600" height="600" role="img" aria-label="Aiverse city foreground">
+  <defs>
+    <radialGradient id="lanternGlow" cx="50%" cy="35%" r="40%">
+      <stop offset="0" stop-color="#00E5FF" stop-opacity="0.26" />
+      <stop offset="1" stop-color="#00E5FF" stop-opacity="0.00" />
+    </radialGradient>
+  </defs>
+
+  <!-- foreground walkway and lantern silhouettes -->
+  <g id="walkway">
+    <path d="M0 420 C200 380 400 420 800 420 C1200 420 1400 380 1600 420 L1600 600 L0 600 Z" fill="#0B1223"/>
+    <rect x="220" y="360" width="48" height="120" rx="8" fill="#0F1726" />
+    <rect x="380" y="360" width="48" height="120" rx="8" fill="#111428" />
+    <rect x="540" y="340" width="64" height="140" rx="10" fill="#0D1322" />
+    <rect x="860" y="320" width="72" height="160" rx="12" fill="#0E1627" />
+    <rect x="1160" y="360" width="48" height="120" rx="8" fill="#0C1221" />
+  </g>
+
+  <!-- lanterns (positions for Lottie targeting) -->
+  <g id="lanterns" fill="#00E5FF" opacity="0.9">
+    <circle id="lantern-1" cx="260" cy="340" r="14" fill="#F4C76E" />
+    <circle id="lantern-2" cx="420" cy="320" r="12" fill="#C7B7FF" />
+    <circle id="lantern-3" cx="600" cy="300" r="16" fill="#00E5FF" />
+    <circle id="lantern-4" cx="880" cy="280" r="14" fill="#F4C76E" />
+    <circle id="lantern-5" cx="1180" cy="320" r="12" fill="#C7B7FF" />
+  </g>
+
+  <!-- soft glows under lanterns -->
+  <g id="lantern-glows" opacity="0.26">
+    <ellipse cx="260" cy="362" rx="48" ry="16" fill="url(#lanternGlow)" />
+    <ellipse cx="420" cy="342" rx="44" ry="14" fill="url(#lanternGlow)" />
+    <ellipse cx="600" cy="322" rx="54" ry="18" fill="url(#lanternGlow)" />
+    <ellipse cx="880" cy="302" rx="48" ry="16" fill="url(#lanternGlow)" />
+    <ellipse cx="1180" cy="342" rx="44" ry="14" fill="url(#lanternGlow)" />
+  </g>
+</svg>

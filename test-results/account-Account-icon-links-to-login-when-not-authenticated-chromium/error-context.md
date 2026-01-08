@@ -1,0 +1,125 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "AI Mall" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e6]
+        - generic [ref=e8]: AI Mall
+      - generic [ref=e9]:
+        - link "Home" [ref=e10] [cursor=pointer]:
+          - /url: /
+          - img [ref=e11]
+          - generic [ref=e14]: Home
+        - link "Explore" [ref=e15] [cursor=pointer]:
+          - /url: /city
+          - img [ref=e16]
+          - generic [ref=e19]: Explore
+        - link "Agents" [ref=e20] [cursor=pointer]:
+          - /url: /agents
+          - img [ref=e21]
+          - generic [ref=e23]: Agents
+        - link "Events" [ref=e24] [cursor=pointer]:
+          - /url: /events
+          - img [ref=e25]
+          - generic [ref=e28]: Events
+        - link "Subscriptions" [ref=e29] [cursor=pointer]:
+          - /url: /subscriptions
+          - img [ref=e30]
+          - generic [ref=e33]: Subscriptions
+        - link "Create" [ref=e34] [cursor=pointer]:
+          - /url: /digital-products
+          - img [ref=e35]
+          - generic [ref=e37]: Create
+        - link "About" [ref=e38] [cursor=pointer]:
+          - /url: /about
+          - generic [ref=e39]: About
+      - generic [ref=e40]:
+        - button "Search" [ref=e41] [cursor=pointer]:
+          - img [ref=e42]
+        - button "Change currency" [ref=e46] [cursor=pointer]:
+          - img [ref=e47]
+          - generic [ref=e50]: $ USD
+        - link "Shopping cart" [ref=e51] [cursor=pointer]:
+          - /url: /cart
+          - img [ref=e52]
+        - button "Account" [ref=e56] [cursor=pointer]:
+          - img [ref=e57]
+  - main [ref=e59]:
+    - generic [ref=e61]:
+      - img [ref=e62]
+      - paragraph [ref=e64]: Awakening the Aiverse...
+  - contentinfo [ref=e65]:
+    - generic [ref=e66]:
+      - generic [ref=e67]:
+        - generic [ref=e68]:
+          - generic [ref=e69]:
+            - img [ref=e70]
+            - generic [ref=e72]: AI Mall
+          - paragraph [ref=e73]: The world's first AI-native marketplace with emotional intelligence
+          - generic [ref=e74]:
+            - img [ref=e75]
+            - generic [ref=e78]: San Francisco, CA
+          - generic [ref=e79]:
+            - img [ref=e80]
+            - generic [ref=e83]: hello@ai-mall.com
+        - generic [ref=e84]:
+          - heading "Company" [level=3] [ref=e85]
+          - list [ref=e86]:
+            - listitem [ref=e87]:
+              - link "About Us" [ref=e88] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e89]:
+              - link "Contact" [ref=e90] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=e91]:
+              - link "Become a Creator" [ref=e92] [cursor=pointer]:
+                - /url: /vendor-registration
+            - listitem [ref=e93]:
+              - link "AI Concierge" [ref=e94] [cursor=pointer]:
+                - /url: /ai-concierge
+        - generic [ref=e95]:
+          - heading "Explore" [level=3] [ref=e96]
+          - list [ref=e97]:
+            - listitem [ref=e98]:
+              - link "City Explorer" [ref=e99] [cursor=pointer]:
+                - /url: /city
+            - listitem [ref=e100]:
+              - link "Districts" [ref=e101] [cursor=pointer]:
+                - /url: /districts
+            - listitem [ref=e102]:
+              - link "Chapels" [ref=e103] [cursor=pointer]:
+                - /url: /chapels
+            - listitem [ref=e104]:
+              - link "Live Events" [ref=e105] [cursor=pointer]:
+                - /url: /live
+        - generic [ref=e106]:
+          - heading "Legal" [level=3] [ref=e107]
+          - list [ref=e108]:
+            - listitem [ref=e109]:
+              - link "Privacy Policy" [ref=e110] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e111]:
+              - link "Terms & Conditions" [ref=e112] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=e113]:
+              - link "Refund Policy" [ref=e114] [cursor=pointer]:
+                - /url: /refunds
+            - listitem [ref=e115]:
+              - link "Cookie Policy" [ref=e116] [cursor=pointer]:
+                - /url: /cookies
+      - generic [ref=e118]:
+        - paragraph [ref=e119]: © 2026 AI-Native Mall. All rights reserved.
+        - generic [ref=e120]:
+          - generic [ref=e121]: 🔒 Secure Payments via Stripe
+          - generic [ref=e122]: 🤖 Powered by AI
+  - button "Ask AI Guide" [ref=e123] [cursor=pointer]:
+    - generic [ref=e124]:
+      - img [ref=e125]
+      - img [ref=e127]
+    - generic [ref=e129]: Ask AI Guide
+  - button "Open chat" [ref=e130] [cursor=pointer]:
+    - img [ref=e131]
+```

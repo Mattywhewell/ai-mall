@@ -1,0 +1,254 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - button [ref=e5] [cursor=pointer]:
+        - img [ref=e6]
+      - img [ref=e11]
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - heading "Welcome to Aiverse! 👋" [level=2] [ref=e15]
+        - paragraph [ref=e16]: The world's first AI-native civilization. Let us show you around!
+      - button "Next" [ref=e23] [cursor=pointer]:
+        - generic [ref=e24]: Next
+        - img [ref=e25]
+      - button "Skip tutorial" [ref=e27] [cursor=pointer]
+  - navigation [ref=e28]:
+    - generic [ref=e30]:
+      - link "AI Mall" [ref=e31] [cursor=pointer]:
+        - /url: /
+        - img [ref=e32]
+        - generic [ref=e34]: AI Mall
+      - generic [ref=e35]:
+        - link "Home" [ref=e36] [cursor=pointer]:
+          - /url: /
+          - img [ref=e37]
+          - generic [ref=e40]: Home
+        - link "Explore" [ref=e41] [cursor=pointer]:
+          - /url: /city
+          - img [ref=e42]
+          - generic [ref=e45]: Explore
+        - link "Agents" [ref=e46] [cursor=pointer]:
+          - /url: /agents
+          - img [ref=e47]
+          - generic [ref=e49]: Agents
+        - link "Events" [ref=e50] [cursor=pointer]:
+          - /url: /events
+          - img [ref=e51]
+          - generic [ref=e54]: Events
+        - link "Subscriptions" [ref=e55] [cursor=pointer]:
+          - /url: /subscriptions
+          - img [ref=e56]
+          - generic [ref=e59]: Subscriptions
+        - link "Create" [ref=e60] [cursor=pointer]:
+          - /url: /digital-products
+          - img [ref=e61]
+          - generic [ref=e63]: Create
+        - link "About" [ref=e64] [cursor=pointer]:
+          - /url: /about
+          - generic [ref=e65]: About
+      - generic [ref=e66]:
+        - button "Search" [ref=e67] [cursor=pointer]:
+          - img [ref=e68]
+        - button "Change currency" [ref=e72] [cursor=pointer]:
+          - img [ref=e73]
+          - generic [ref=e76]: $ USD
+        - link "Shopping cart" [ref=e77] [cursor=pointer]:
+          - /url: /cart
+          - img [ref=e78]
+        - button "Account" [ref=e82] [cursor=pointer]:
+          - img [ref=e83]
+  - main [ref=e85]:
+    - generic [ref=e86]:
+      - navigation [ref=e87]:
+        - link "S Supplier Portal Manage your store" [ref=e89] [cursor=pointer]:
+          - /url: /supplier
+          - generic [ref=e90]: S
+          - generic [ref=e91]:
+            - paragraph [ref=e92]: Supplier Portal
+            - paragraph [ref=e93]: Manage your store
+        - generic [ref=e94]:
+          - link "Dashboard" [ref=e95] [cursor=pointer]:
+            - /url: /supplier
+            - img [ref=e96]
+            - generic [ref=e101]: Dashboard
+          - link "Products" [ref=e102] [cursor=pointer]:
+            - /url: /supplier/products
+            - img [ref=e103]
+            - generic [ref=e107]: Products
+          - link "Orders" [ref=e108] [cursor=pointer]:
+            - /url: /supplier/orders
+            - img [ref=e109]
+            - generic [ref=e113]: Orders
+          - link "Analytics" [ref=e114] [cursor=pointer]:
+            - /url: /supplier/analytics
+            - img [ref=e115]
+            - generic [ref=e118]: Analytics
+          - link "Settings" [ref=e119] [cursor=pointer]:
+            - /url: /supplier/settings
+            - img [ref=e120]
+            - generic [ref=e123]: Settings
+        - button "Logout" [ref=e125] [cursor=pointer]:
+          - img [ref=e126]
+          - generic [ref=e129]: Logout
+      - main [ref=e130]:
+        - generic [ref=e131]:
+          - generic [ref=e132]:
+            - generic [ref=e133]:
+              - heading "Listing Manager" [level=1] [ref=e134]
+              - paragraph [ref=e135]: Manage your sales channels and multi-channel selling
+            - button "Add Channel" [ref=e136] [cursor=pointer]:
+              - img [ref=e137]
+              - text: Add Channel
+          - generic [ref=e138]:
+            - generic [ref=e139]:
+              - generic [ref=e140]:
+                - heading "Total Connections" [level=3] [ref=e141]
+                - img [ref=e142]
+              - paragraph [ref=e146]: active
+            - generic [ref=e147]:
+              - generic [ref=e148]:
+                - heading "Pending Orders" [level=3] [ref=e149]
+                - img [ref=e150]
+              - paragraph [ref=e156]: Require attention
+            - generic [ref=e157]:
+              - generic [ref=e158]:
+                - heading "Sync Errors" [level=3] [ref=e159]
+                - img [ref=e160]
+              - paragraph [ref=e163]: Last 24 hours
+            - generic [ref=e164]:
+              - generic [ref=e165]:
+                - heading "Active Channels" [level=3] [ref=e166]
+                - img [ref=e167]
+              - paragraph [ref=e171]: Syncing automatically
+          - generic [ref=e172]:
+            - heading "Channel Status" [level=3] [ref=e174]
+            - generic [ref=e177]:
+              - generic [ref=e178]:
+                - generic [ref=e180]: M
+                - generic [ref=e181]:
+                  - paragraph [ref=e182]: Mock
+                  - paragraph
+              - img [ref=e184]
+          - generic [ref=e186]:
+            - generic [ref=e187]:
+              - button "Channel Connections" [ref=e188] [cursor=pointer]
+              - button "Product Mappings" [ref=e189] [cursor=pointer]
+              - button "Order Sync" [ref=e190] [cursor=pointer]
+              - button "Inventory Sync" [ref=e191] [cursor=pointer]
+              - button "Price Sync" [ref=e192] [cursor=pointer]
+            - generic [ref=e194]:
+              - generic [ref=e195]:
+                - heading "Connected Channels" [level=3] [ref=e197]
+                - generic [ref=e200]:
+                  - generic [ref=e201]:
+                    - generic [ref=e202]:
+                      - generic [ref=e204]: M
+                      - generic [ref=e205]:
+                        - heading "Mock" [level=3] [ref=e206]
+                        - paragraph
+                    - img [ref=e208]
+                  - generic [ref=e210]:
+                    - button "Test connection for Mock" [ref=e211] [cursor=pointer]:
+                      - img [ref=e212]
+                      - text: Test
+                    - button "Remove connection for Mock" [ref=e217] [cursor=pointer]:
+                      - img [ref=e218]
+                      - text: Remove
+              - generic [ref=e221]:
+                - heading "Demo" [level=3] [ref=e223]
+                - generic [ref=e224]:
+                  - paragraph [ref=e225]: Use the mock channel to demo the full flow without external credentials.
+                  - generic [ref=e226]:
+                    - button "Connect Mock Channel" [ref=e227] [cursor=pointer]
+                    - button "Enqueue Demo Sync" [ref=e228] [cursor=pointer]
+              - heading "Available Channels" [level=3] [ref=e231]
+  - contentinfo [ref=e233]:
+    - generic [ref=e234]:
+      - generic [ref=e235]:
+        - generic [ref=e236]:
+          - generic [ref=e237]:
+            - img [ref=e238]
+            - generic [ref=e240]: AI Mall
+          - paragraph [ref=e241]: The world's first AI-native marketplace with emotional intelligence
+          - generic [ref=e242]:
+            - img [ref=e243]
+            - generic [ref=e246]: San Francisco, CA
+          - generic [ref=e247]:
+            - img [ref=e248]
+            - generic [ref=e251]: hello@ai-mall.com
+        - generic [ref=e252]:
+          - heading "Company" [level=3] [ref=e253]
+          - list [ref=e254]:
+            - listitem [ref=e255]:
+              - link "About Us" [ref=e256] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e257]:
+              - link "Contact" [ref=e258] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=e259]:
+              - link "Become a Creator" [ref=e260] [cursor=pointer]:
+                - /url: /vendor-registration
+            - listitem [ref=e261]:
+              - link "AI Concierge" [ref=e262] [cursor=pointer]:
+                - /url: /ai-concierge
+        - generic [ref=e263]:
+          - heading "Explore" [level=3] [ref=e264]
+          - list [ref=e265]:
+            - listitem [ref=e266]:
+              - link "City Explorer" [ref=e267] [cursor=pointer]:
+                - /url: /city
+            - listitem [ref=e268]:
+              - link "Districts" [ref=e269] [cursor=pointer]:
+                - /url: /districts
+            - listitem [ref=e270]:
+              - link "Chapels" [ref=e271] [cursor=pointer]:
+                - /url: /chapels
+            - listitem [ref=e272]:
+              - link "Live Events" [ref=e273] [cursor=pointer]:
+                - /url: /live
+        - generic [ref=e274]:
+          - heading "Legal" [level=3] [ref=e275]
+          - list [ref=e276]:
+            - listitem [ref=e277]:
+              - link "Privacy Policy" [ref=e278] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e279]:
+              - link "Terms & Conditions" [ref=e280] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=e281]:
+              - link "Refund Policy" [ref=e282] [cursor=pointer]:
+                - /url: /refunds
+            - listitem [ref=e283]:
+              - link "Cookie Policy" [ref=e284] [cursor=pointer]:
+                - /url: /cookies
+      - generic [ref=e286]:
+        - paragraph [ref=e287]: © 2026 AI-Native Mall. All rights reserved.
+        - generic [ref=e288]:
+          - generic [ref=e289]: 🔒 Secure Payments via Stripe
+          - generic [ref=e290]: 🤖 Powered by AI
+  - generic [ref=e293]:
+    - generic [ref=e294]:
+      - heading "🍪 We value your privacy" [level=3] [ref=e295]
+      - paragraph [ref=e296]: We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking "Accept All", you consent to our use of cookies. You can customize your preferences or decline non-essential cookies.
+      - link "Learn more about cookies →" [ref=e297] [cursor=pointer]:
+        - /url: /cookies
+    - generic [ref=e298]:
+      - button "Accept All" [ref=e299] [cursor=pointer]
+      - button "Necessary Only" [ref=e300] [cursor=pointer]
+      - button "Customize" [ref=e301] [cursor=pointer]:
+        - img [ref=e302]
+        - text: Customize
+  - button "Ask AI Guide" [ref=e305] [cursor=pointer]:
+    - generic [ref=e306]:
+      - img [ref=e307]
+      - img [ref=e309]
+    - generic [ref=e311]: Ask AI Guide
+  - button "Open chat" [ref=e312] [cursor=pointer]:
+    - img [ref=e313]
+  - button "Open Next.js Dev Tools" [ref=e321] [cursor=pointer]:
+    - img [ref=e322]
+  - alert [ref=e325]
+```

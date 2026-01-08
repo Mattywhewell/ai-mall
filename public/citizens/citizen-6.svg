@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1066" viewBox="0 0 800 1066" role="img" aria-label="Market Bard portrait placeholder">
+  <rect width="100%" height="100%" fill="#1b1b10"/>
+  <g transform="translate(150,120)">
+    <circle cx="250" cy="200" r="200" fill="#FFF1C6"/>
+    <rect x="150" y="360" width="200" height="180" rx="14" fill="#221b08"/>
+    <circle cx="250" cy="200" r="180" fill="none" stroke="#2b2609" stroke-width="8"/>
+    <text x="250" y="560" font-family="Inter, Arial" font-size="28" text-anchor="middle" fill="#302b10">Market Bard</text>
+  </g>
+</svg>

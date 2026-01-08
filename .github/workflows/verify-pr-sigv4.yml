@@ -1,0 +1,35 @@
+name: Verify SigV4 check on PRs
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  check-sigv4:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR for SigV4 status
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prNumber = context.payload.pull_request.number;
+            const headSha = context.payload.pull_request.head.sha;
+
+            // Name of the workflow / check we expect. Adjust if your workflow has a different name.
+            const requiredCheckName = 'E2E SigV4 checks';
+
+            core.info(`Verifying PR #${prNumber} (sha ${headSha}) for required check: ${requiredCheckName}`);
+
+            // Get check runs for this commit
+            const { data: checkRuns } = await github.checks.listForRef({ owner, repo, ref: headSha });
+
+            const matching = (checkRuns.check_runs || []).filter(c => c.name === requiredCheckName && c.conclusion === 'success');
+
+            if (!matching || matching.length === 0) {
+              core.setFailed(`Required check "${requiredCheckName}" has not succeeded for commit ${headSha}. Please ensure the workflow runs and completes.`);
+            } else {
+              core.info(`Found successful check run: ${matching.map(m => m.name).join(', ')}`);
+            }

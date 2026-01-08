@@ -1,0 +1,44 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/update-world",
+      "schedule": "0 */3 * * *"
+    },
+    {
+      "path": "/api/cron/evolve-spirits",
+      "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/cron/regenerate-content",
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/aggregate-analytics",
+      "schedule": "0 */2 * * *"
+    },
+    {
+      "path": "/api/cron/process-supplier-integrations",
+      "schedule": "0 */1 * * *"
+    },
+    {
+      "path": "/api/cron/optimize-products",
+      "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron/process-instant-payouts",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/process-weekly-payouts",
+      "schedule": "0 1 * * 1"
+    },
+    {
+      "path": "/api/cron/process-monthly-payouts",
+      "schedule": "0 2 1 * *"
+    },
+    {
+      "path": "/api/cron/capture-growth-metrics",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}

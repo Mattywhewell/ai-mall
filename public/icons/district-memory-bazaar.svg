@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Memory Bazaar icon">
+  <!-- Layers: base / braid / glow -->
+  <g id="base">
+    <rect x="4" y="12" width="40" height="24" rx="4" fill="#1C2333" />
+    <path d="M6 18h36" stroke="#C7B7FF" stroke-width="1.6" stroke-linecap="round" opacity="0.9" />
+  </g>
+  <g id="braid" opacity="0.9">
+    <path d="M8 26c4-2 8 2 12 0s8-2 12 0 8-2 12 0" stroke="#F4C76E" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+  <g id="glow">
+    <circle cx="36" cy="16" r="6" fill="#00E5FF" opacity="0.08" />
+  </g>
+</svg>

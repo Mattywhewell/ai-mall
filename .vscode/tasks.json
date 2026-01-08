@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Test auto-listing API endpoint",
+			"type": "shell",
+			"command": "curl -X POST http://localhost:3000/api/auto-listing/extract -H \"Content-Type: application/json\" -d \"{\\\"product_url\\\":\\\"https://example-cj-product.com/item/123\\\",\\\"supplier_id\\\":\\\"cj_supplier_id_1\\\"}\"",
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}

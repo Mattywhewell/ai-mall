@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 import { Microstore } from '@/lib/types';
 import { Sparkles, Building2, Store, Zap, Globe, Cpu, Heart, ShoppingBag, TrendingUp, User } from 'lucide-react';
 import { DistrictCardSkeleton } from '@/components/Skeletons';

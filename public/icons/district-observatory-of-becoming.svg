@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Observatory of Becoming icon">
+  <g id="base">
+    <rect x="12" y="8" width="24" height="32" rx="4" fill="#1C2333" />
+  </g>
+  <g id="braid">
+    <path d="M24 14c4 0 6 4 6 8s-2 8-6 8-6-4-6-8 2-8 6-8" stroke="#C7B7FF" stroke-width="1.6" fill="none" opacity="0.95" />
+  </g>
+  <g id="glow">
+    <circle cx="24" cy="10" r="4" fill="#00E5FF" opacity="0.06" />
+  </g>
+</svg>

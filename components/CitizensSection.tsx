@@ -1,10 +1,39 @@
-'use client';
+"use client";
 
-function CitizenCard({ name, archetype, traits, role, interaction }: { name: string; archetype: string; traits: string; role: string; interaction: string }) {
+function CitizenCard({ name, archetype, traits, role, interaction, imageSrc }: { name: string; archetype: string; traits: string; role: string; interaction: string; imageSrc?: string }) {
   return (
     <article className="p-6 bg-white/5 rounded-2xl flex gap-4 items-start hover:shadow-md transition">
-      <div className="w-16 h-16 rounded-full bg-white/6 flex items-center justify-center text-purple-100 text-2xl font-semibold pulse">
-        {name.slice(0,1)}
+      <div className="w-16 h-16 rounded-full bg-white/6 flex items-center justify-center text-purple-100 text-2xl font-semibold pulse overflow-hidden">
+        {imageSrc ? (
+          (() => {
+            const match = imageSrc.match(/citizen-([0-9]+)\.png$/);
+            const idx = match ? match[1] : '1';
+            return (
+              <picture>
+                <source
+                  type="image/webp"
+                  srcSet={`/citizens/variants/illustrated/citizen-${idx}--illustrated.webp, /citizens/variants/painterly/citizen-${idx}--painterly.webp`}
+                />
+                <source
+                  type="image/webp"
+                  srcSet={`/citizens/hires/citizen-${idx}.webp, /citizens/hires/citizen-${idx}@2x.webp 2x`}
+                />
+                <img
+                  src={imageSrc}
+                  onError={(e) => {
+                    const t = e.currentTarget as HTMLImageElement;
+                    t.onerror = null;
+                    t.src = `/citizens/citizen-${idx}.svg`;
+                  }}
+                  alt={`${name} portrait`}
+                  className="w-16 h-16 object-cover"
+                />
+              </picture>
+            );
+          })()
+        ) : (
+          <span>{name.slice(0, 1)}</span>
+        )}
       </div>
       <div>
         <h4 className="text-lg font-bold text-white">{name} — {archetype}</h4>
@@ -30,6 +59,7 @@ export default function CitizensSection() {
           traits="Attentive, patient, luminous empathy"
           role="Guardian of communal memory and the city’s lullabies"
           interaction="Listens deeply, returns the missing line of your story; gentle prompt to explore"
+          imageSrc="/citizens/hires/citizen-1.png"
         />
 
         <CitizenCard
@@ -38,6 +68,7 @@ export default function CitizensSection() {
           traits="Curious, poetic, deft at pattern-reading"
           role="Maps shifting feelings into neighborhoods and routes"
           interaction="Leads reflective walks and hands you a map that breathes with your choices"
+          imageSrc="/citizens/hires/citizen-2.png"
         />
 
         <CitizenCard
@@ -46,6 +77,7 @@ export default function CitizensSection() {
           traits="Inventive, tender, ritual-minded"
           role="Transforms small emotions into shared ceremonies and public art"
           interaction="Invites hands-on sensory practices that reframe grief, joy, and doubt"
+          imageSrc="/citizens/hires/citizen-3.png"
         />
 
         <CitizenCard
@@ -54,6 +86,7 @@ export default function CitizensSection() {
           traits="Warm, bold, intuitively inclusive"
           role="First embrace—opens doors, names newcomers"
           interaction="Greets you with a small, meaningful task that roots you in belonging"
+          imageSrc="/citizens/hires/citizen-4.png"
         />
       </div>
     </section>

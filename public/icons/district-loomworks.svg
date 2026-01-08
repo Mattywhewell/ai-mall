@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Loomworks icon">
+  <g id="base">
+    <rect x="6" y="10" width="36" height="28" rx="4" fill="#1C2333" />
+  </g>
+  <g id="braid">
+    <path d="M8 18c6 6 12-6 20 0s12-6 20 0" stroke="#F4C76E" stroke-width="1.6" fill="none" opacity="0.95" />
+  </g>
+  <g id="glow">
+    <ellipse cx="34" cy="14" rx="6" ry="3" fill="#C7B7FF" opacity="0.06" />
+  </g>
+</svg>

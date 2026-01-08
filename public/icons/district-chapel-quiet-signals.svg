@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Chapel of Quiet Signals icon">
+  <g id="base">
+    <rect x="14" y="8" width="20" height="32" rx="3" fill="#1C2333" />
+    <path d="M24 10v28" stroke="#C7B7FF" stroke-width="1.6" stroke-linecap="round" />
+  </g>
+  <g id="braid">
+    <circle cx="24" cy="22" r="6" stroke="#00E5FF" stroke-width="1.4" fill="none" opacity="0.9" />
+  </g>
+  <g id="glow">
+    <circle cx="24" cy="22" r="10" fill="#C7B7FF" opacity="0.06" />
+  </g>
+</svg>

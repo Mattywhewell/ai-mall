@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Harbor of Echoes icon">
+  <g id="base">
+    <rect x="4" y="20" width="40" height="14" rx="3" fill="#1C2333" />
+    <path d="M6 28c6-4 12 4 18 0s12-4 18 0" stroke="#C7B7FF" stroke-width="1.2" fill="none" stroke-linecap="round" />
+  </g>
+  <g id="braid">
+    <path d="M12 24c6-2 12 2 24 0" stroke="#00E5FF" stroke-width="1.4" opacity="0.9" fill="none" />
+  </g>
+  <g id="glow">
+    <circle cx="8" cy="14" r="4" fill="#F4C76E" opacity="0.06" />
+  </g>
+</svg>
