@@ -1,5 +1,3 @@
-'use client';
-
 import DistrictCard from './DistrictCard';
 
 const DISTRICTS = [

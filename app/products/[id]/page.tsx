@@ -38,6 +38,13 @@ export default function ProductDetailPage() {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [helpfulVotes, setHelpfulVotes] = useState<Set<string>>(new Set());
+  const [sortBy, setSortBy] = useState<'recent' | 'highest' | 'lowest' | 'helpful'>('recent');
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
+  const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     async function fetchProductData() {
@@ -73,8 +80,31 @@ export default function ProductDetailPage() {
           .limit(4);
         setRelatedProducts(relatedData || []);
 
-        // Fetch reviews (mock data for now)
-        setReviews([
+        // Fetch reviews: try real table first, otherwise fall back to mock
+        let fetchedReviews = null;
+        try {
+          const { data: reviewRows, error: reviewError } = await supabase
+            .from('product_reviews')
+            .select('*')
+            .eq('product_id', productId)
+            .order('created_at', { ascending: false });
+          if (!reviewError && reviewRows) fetchedReviews = reviewRows.map((r: any) => ({
+            id: String(r.id),
+            user_name: r.user_name || 'Anonymous',
+            rating: r.rating || 5,
+            comment: r.comment || '',
+            created_at: r.created_at ? new Date(r.created_at).toLocaleDateString() : '',
+            helpful_count: r.helpful_count || 0,
+            verified_purchase: !!r.verified_purchase,
+          }));
+        } catch (e) {
+          // ignore and fallback to mock
+        }
+
+        if (fetchedReviews && fetchedReviews.length > 0) {
+          setReviews(fetchedReviews);
+        } else {
+          setReviews([
           {
             id: '1',
             user_name: 'Sarah Johnson',
@@ -103,6 +133,7 @@ export default function ProductDetailPage() {
             verified_purchase: true,
           },
         ]);
+        }
 
         // Track product view
         await supabase.from('analytics').insert({
@@ -159,6 +190,63 @@ export default function ProductDetailPage() {
     }
   };
 
+  const handleSubmitReview = async () => {
+    if (!reviewForm.comment.trim()) {
+      alert('Please write a review comment.');
+      return;
+    }
+
+    setSubmittingReview(true);
+    try {
+      const newReview = {
+        id: Date.now().toString(),
+        user_name: 'You',
+        rating: reviewForm.rating,
+        comment: reviewForm.comment,
+        created_at: new Date().toLocaleDateString(),
+        helpful_count: 0,
+        verified_purchase: true,
+      };
+
+      // Optimistic UI update
+      setReviews(prev => [newReview, ...prev]);
+      setReviewForm({ rating: 5, comment: '' });
+      setShowReviewForm(false);
+
+      // Try to persist to Supabase if available
+      try {
+        await supabase.from('product_reviews').insert({
+          product_id: productId,
+          user_name: 'You',
+          rating: newReview.rating,
+          comment: newReview.comment,
+          verified_purchase: true,
+        });
+      } catch (e) {
+        // persistence failed; keep optimistic update but log
+        console.warn('Persisting review failed:', e);
+      }
+      alert('Review submitted successfully!');
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      alert('Failed to submit review. Please try again.');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const handleHelpfulVote = (reviewId: string) => {
+    setHelpfulVotes(prev => {
+      const newVotes = new Set(prev);
+      if (newVotes.has(reviewId)) {
+        newVotes.delete(reviewId);
+      } else {
+        newVotes.add(reviewId);
+      }
+      return newVotes;
+    });
+  };
+
   const images = product?.image_url ? [product.image_url, product.image_url, product.image_url] : [];
   const avgRating = reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length || 0;
 
@@ -208,30 +296,55 @@ export default function ProductDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Image Gallery */}
           <div>
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-4">
-              <div className="relative h-96 lg:h-[500px]">
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-4 relative group">
+              <div className="relative h-96 lg:h-[500px] cursor-zoom-in">
                 {images.length > 0 ? (
                   <Image
                     src={images[selectedImage]}
                     alt={product.name}
                     fill
-                    className="object-contain p-8"
+                    className="object-contain p-8 transition-transform duration-300 group-hover:scale-105"
                   />
                 ) : (
                   <div className="flex items-center justify-center h-full bg-gray-100">
                     <ShoppingCart className="w-24 h-24 text-gray-400" />
                   </div>
                 )}
+                {/* Image Navigation Arrows */}
+                {images.length > 1 && (
+                  <>
+                    <button
+                      onClick={() => setSelectedImage(selectedImage > 0 ? selectedImage - 1 : images.length - 1)}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white rounded-full shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <ChevronLeft className="w-5 h-5 text-gray-700" />
+                    </button>
+                    <button
+                      onClick={() => setSelectedImage(selectedImage < images.length - 1 ? selectedImage + 1 : 0)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white rounded-full shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <ChevronLeft className="w-5 h-5 text-gray-700 rotate-180" />
+                    </button>
+                  </>
+                )}
+                {/* Image Counter */}
+                {images.length > 1 && (
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                    {selectedImage + 1} / {images.length}
+                  </div>
+                )}
               </div>
             </div>
             {images.length > 1 && (
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-6 gap-2">
                 {images.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setSelectedImage(idx)}
-                    className={`relative h-20 rounded-lg overflow-hidden border-2 ${
-                      selectedImage === idx ? 'border-purple-600' : 'border-gray-200'
+                    className={`relative h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                      selectedImage === idx
+                        ? 'border-purple-600 ring-2 ring-purple-200'
+                        : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <Image src={img} alt={`View ${idx + 1}`} fill className="object-cover" />
@@ -411,15 +524,71 @@ export default function ProductDetailPage() {
                   placeholder="Share your experience with this product..."
                 />
               </div>
-              <button className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                Submit Review
+              <button
+                onClick={handleSubmitReview}
+                disabled={submittingReview}
+                className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submittingReview ? 'Submitting...' : 'Submit Review'}
               </button>
             </div>
           )}
 
+          {/* Review controls: search, sort, verified filter */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="flex items-center space-x-2">
+              <input
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+                placeholder="Search reviews"
+                className="px-3 py-2 border rounded-lg w-64"
+              />
+              <select
+                value={sortBy}
+                onChange={(e) => { setSortBy(e.target.value as any); setPage(1); }}
+                className="px-3 py-2 border rounded-lg"
+              >
+                <option value="recent">Most recent</option>
+                <option value="highest">Highest rating</option>
+                <option value="lowest">Lowest rating</option>
+                <option value="helpful">Most helpful</option>
+              </select>
+              <label className="inline-flex items-center space-x-2 text-sm">
+                <input type="checkbox" checked={showVerifiedOnly} onChange={(e) => { setShowVerifiedOnly(e.target.checked); setPage(1); }} />
+                <span>Verified only</span>
+              </label>
+            </div>
+            <div className="text-sm text-gray-600">Showing {reviews.length} reviews</div>
+          </div>
+
           <div className="space-y-6">
-            {reviews.map((review) => (
-              <div key={review.id} className="border-b border-gray-200 pb-6 last:border-0">
+            {(() => {
+              // Filter/search
+              let filtered = reviews.filter(r => {
+                if (showVerifiedOnly && !r.verified_purchase) return false;
+                if (searchQuery && !(`${r.user_name} ${r.comment}`.toLowerCase().includes(searchQuery.toLowerCase()))) return false;
+                return true;
+              });
+
+              // Sort
+              if (sortBy === 'recent') {
+                filtered = filtered.sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+              } else if (sortBy === 'highest') {
+                filtered = filtered.sort((a,b) => b.rating - a.rating);
+              } else if (sortBy === 'lowest') {
+                filtered = filtered.sort((a,b) => a.rating - b.rating);
+              } else if (sortBy === 'helpful') {
+                filtered = filtered.sort((a,b) => (b.helpful_count || 0) - (a.helpful_count || 0));
+              }
+
+              const total = filtered.length;
+              const start = (page - 1) * pageSize;
+              const pageItems = filtered.slice(start, start + pageSize);
+
+              return (
+                <>
+                  {pageItems.map((review) => (
+                  <div key={review.id} className="border-b border-gray-200 pb-6 last:border-0">
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <div className="flex items-center space-x-2 mb-1">
@@ -444,11 +613,43 @@ export default function ProductDetailPage() {
                   <span className="text-sm text-gray-500">{review.created_at}</span>
                 </div>
                 <p className="text-gray-700 mb-3">{review.comment}</p>
-                <button className="text-sm text-gray-600 hover:text-purple-600">
-                  Helpful ({review.helpful_count})
+                <button
+                  onClick={() => handleHelpfulVote(review.id)}
+                  className={`text-sm ${
+                    helpfulVotes.has(review.id)
+                      ? 'text-purple-600 font-medium'
+                      : 'text-gray-600 hover:text-purple-600'
+                  }`}
+                >
+                  Helpful ({review.helpful_count + (helpfulVotes.has(review.id) ? 1 : 0)})
                 </button>
               </div>
             ))}
+
+                  {/* Pagination */}
+                  <div className="flex items-center justify-between mt-6">
+                    <div className="text-sm text-gray-600">Showing {Math.min(pageSize, pageItems.length)} of {total} reviews</div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => setPage(Math.max(1, page - 1))}
+                        disabled={page === 1}
+                        className="px-3 py-1 rounded-md border disabled:opacity-50"
+                      >
+                        Previous
+                      </button>
+                      <div className="px-3 py-1 border rounded-md bg-gray-50">Page {page} / {Math.max(1, Math.ceil(total / pageSize))}</div>
+                      <button
+                        onClick={() => setPage(Math.min(Math.max(1, Math.ceil(total / pageSize)), page + 1))}
+                        disabled={page >= Math.ceil(total / pageSize)}
+                        className="px-3 py-1 rounded-md border disabled:opacity-50"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
 

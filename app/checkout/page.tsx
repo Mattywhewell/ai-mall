@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useCartStore } from '@/lib/store/cartStore';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 

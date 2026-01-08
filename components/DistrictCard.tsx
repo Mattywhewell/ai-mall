@@ -1,5 +1,3 @@
-'use client';
-
 export default function DistrictCard({ name, description, purpose, hint }: { name: string; description: string; purpose: string; hint: string }) {
   return (
     <article className="group bg-white/5 rounded-2xl p-6 hover:shadow-2xl transition transform hover:-translate-y-1 focus-within:scale-102">

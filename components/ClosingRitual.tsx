@@ -1,5 +1,3 @@
-'use client';
-
 export default function ClosingRitual() {
   return (
     <section className="max-w-3xl mx-auto text-center mb-12 px-4 sm:px-6 lg:px-8">

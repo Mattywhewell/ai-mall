@@ -139,8 +139,122 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50">
+      {/* Top Navigation Bar */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold text-gray-900">AI Mall Admin</h1>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-600">
+                Last updated: {new Date().toLocaleTimeString()}
+              </div>
+              <button
+                onClick={fetchDashboardData}
+                className="px-3 py-1 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 transition-colors"
+              >
+                Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Quick Actions */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <Link
+              href="/admin/products/pending"
+              className="flex flex-col items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+            >
+              <Package className="h-8 w-8 text-blue-600 mb-2" />
+              <span className="text-sm font-medium text-blue-900">Review Products</span>
+            </Link>
+            <Link
+              href="/admin/vendors"
+              className="flex flex-col items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+            >
+              <Store className="h-8 w-8 text-green-600 mb-2" />
+              <span className="text-sm font-medium text-green-900">Manage Vendors</span>
+            </Link>
+            <Link
+              href="/admin/payouts"
+              className="flex flex-col items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors"
+            >
+              <DollarSign className="h-8 w-8 text-yellow-600 mb-2" />
+              <span className="text-sm font-medium text-yellow-900">Process Payouts</span>
+            </Link>
+            <Link
+              href="/admin/revenue"
+              className="flex flex-col items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+            >
+              <TrendingUp className="h-8 w-8 text-purple-600 mb-2" />
+              <span className="text-sm font-medium text-purple-900">View Analytics</span>
+            </Link>
+            <Link
+              href="/admin/collections"
+              className="flex flex-col items-center p-4 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
+            >
+              <Heart className="h-8 w-8 text-indigo-600 mb-2" />
+              <span className="text-sm font-medium text-indigo-900">Manage Collections</span>
+            </Link>
+            <Link
+              href="/admin/system-health"
+              className="flex flex-col items-center p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+            >
+              <Shield className="h-8 w-8 text-red-600 mb-2" />
+              <span className="text-sm font-medium text-red-900">System Health</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Alerts & Notifications */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Alerts & Notifications</h2>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center">
+                <div className="w-2 h-2 bg-yellow-400 rounded-full mr-3"></div>
+                <span className="text-sm text-yellow-800">5 products pending approval</span>
+              </div>
+              <Link
+                href="/admin/products/pending"
+                className="text-sm text-yellow-600 hover:text-yellow-800 font-medium"
+              >
+                Review →
+              </Link>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center">
+                <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
+                <span className="text-sm text-blue-800">3 payouts ready for processing</span>
+              </div>
+              <Link
+                href="/admin/payouts"
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Process →
+              </Link>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center">
+                <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
+                <span className="text-sm text-green-800">System health: All services operational</span>
+              </div>
+              <Link
+                href="/admin/system-health"
+                className="text-sm text-green-600 hover:text-green-800 font-medium"
+              >
+                View Details →
+              </Link>
+            </div>
+          </div>
+        </div>
+
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
           <div className="flex gap-4">

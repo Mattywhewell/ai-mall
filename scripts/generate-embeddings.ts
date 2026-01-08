@@ -1,8 +1,8 @@
--- Script to generate embeddings for all existing products
--- This is a one-time migration script
+// Script to generate embeddings for all existing products
+// This is a one-time migration script
 
-import { supabase } from './lib/supabaseClient';
-import { generateProductEmbedding, updateProductEmbedding } from './lib/ai/semanticSearch';
+import { supabase } from '../lib/supabaseClient';
+import { generateProductEmbedding, updateProductEmbedding } from '../lib/ai/semanticSearch';
 
 async function generateEmbeddingsForAllProducts() {
   console.log('Starting embedding generation for all products...');

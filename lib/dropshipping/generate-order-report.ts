@@ -18,17 +18,6 @@ export async function generateOrderReport({
   const supabase = getSupabaseClient();
 
   let query = supabase.from('orders').select('*');
-  status,
-  supplierId,
-  fromDate,
-  toDate
-}: {
-  status?: string,
-  supplierId?: string,
-  fromDate?: string,
-  toDate?: string
-} = {}) {
-  let query = supabase.from('orders').select('*');
   if (status) query = query.eq('cj_order_status', status);
   if (supplierId) query = query.eq('supplier_id', supplierId);
   if (fromDate) query = query.gte('created_at', fromDate);

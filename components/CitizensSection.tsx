@@ -1,5 +1,3 @@
-"use client";
-
 function CitizenCard({ name, archetype, traits, role, interaction, imageSrc }: { name: string; archetype: string; traits: string; role: string; interaction: string; imageSrc?: string }) {
   return (
     <article className="p-6 bg-white/5 rounded-2xl flex gap-4 items-start hover:shadow-md transition">

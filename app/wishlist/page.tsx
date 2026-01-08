@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { Product } from '@/lib/types';
 import { useCartStore } from '@/lib/store/cartStore';
