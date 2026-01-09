@@ -13,6 +13,7 @@ test.describe('Visual Layers API integration', () => {
         filename: `test-shader-${Date.now()}.glsl`,
         contentBase64,
         kind: 'shader',
+        uploadToken: process.env.UPLOAD_SECRET_TOKEN || process.env.TEST_CLEANUP_TOKEN || '',
       },
     });
 
