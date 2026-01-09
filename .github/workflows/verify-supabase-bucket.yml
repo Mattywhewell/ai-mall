@@ -1,0 +1,63 @@
+name: Verify Supabase Bucket (Scheduled)
+
+on:
+  workflow_dispatch:
+    inputs:
+      bucket:
+        description: 'Optional bucket name override (overrides SUPABASE_STORAGE_BUCKET)'
+        required: false
+        default: ''
+      public:
+        description: 'Create bucket as public (true|false) when creating'
+        required: false
+        default: 'false'
+  schedule:
+    - cron: '0 3 * * 0' # weekly, Sunday 03:00 UTC
+
+jobs:
+  verify:
+    name: Verify Supabase bucket exists
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify required secrets
+        run: |
+          if [ -z "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" ] || [ -z "${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" ]; then
+            echo "Missing required secrets: NEXT_PUBLIC_SUPABASE_URL and/or SUPABASE_SERVICE_ROLE_KEY."
+            exit 1
+          fi
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps --no-audit
+
+      - name: Ensure Supabase bucket exists
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_STORAGE_BUCKET: ${{ github.event.inputs.bucket || secrets.SUPABASE_STORAGE_BUCKET }}
+        run: |
+          echo "Ensuring Supabase bucket exists (bucket=${SUPABASE_STORAGE_BUCKET:-visual-layers})"
+
+          # If manually dispatched, honor the `public` input (true/false)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ github.event.inputs.public }}" = "true" ]; then
+              node scripts/supabase-create-bucket.js --public
+            else
+              node scripts/supabase-create-bucket.js
+            fi
+          else
+            # scheduled run; default to private
+            node scripts/supabase-create-bucket.js
+          fi
+
+      - name: Report success
+        if: success()
+        run: echo "Supabase bucket verification completed."
