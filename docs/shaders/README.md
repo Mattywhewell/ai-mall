@@ -19,4 +19,16 @@ Accessibility & performance:
 - Provide a reduced-motion param and a CSS fallback for non-WebGL environments.
 - Keep shaders simple (avoid large loops) and document expected frame cost.
 
+**Upload & cleanup tokens (security)** 🔐
+- Purpose: prevent unauthorised uploads and allow CI tests to clean up test artifacts.
+- Env variables: **`UPLOAD_SECRET_TOKEN`** (production/staging upload guard) and **`TEST_CLEANUP_TOKEN`** (CI-only token used by tests).
+- How to send tokens:
+  - Upload endpoint: include header `x-upload-token` or body field `uploadToken` when POSTing to `/api/visual-layers/upload`.
+  - Cleanup endpoint: include header `x-cleanup-token` or body field `token` when POSTing to `/api/visual-layers/cleanup` (or supply a `storageKey` to delete from storage).
+- Recommendations for production:
+  - Store tokens as repository or environment secrets (do not hardcode in code).
+  - Prefer **per-user signed upload URLs** or role-based checks (Supabase Auth) over shared tokens for higher security.
+  - Use a dedicated Supabase storage bucket (set via `SUPABASE_STORAGE_BUCKET`) and decide on ACLs: *public* for thumbnails/previews; *private + signed URLs* for raw shader/LUT sources unless vetted.
+  - Rotate tokens periodically and restrict scope where possible.
+
 Thanks — follow `CONTRIBUTING.md` for PR and review guidance. If you want, I can also scaffold the PoC demo and an e2e test next.
