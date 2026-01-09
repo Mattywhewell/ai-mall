@@ -113,6 +113,17 @@ Visit [http://localhost:3000](http://localhost:3000) 🎉
 - **[Implementation Summary](IMPLEMENTATION_SUMMARY.md)** - Technical overview
 - **[Usage Examples](lib/examples/usage-examples.ts)** - Code examples
 
+#### Telemetry Notification Test (CI)
+You can run a one-off test to verify Slack and email notifications for nightly telemetry failures:
+
+1. Go to the repository → **Actions** → **Telemetry Notification Test** → **Run workflow**.
+2. Configure inputs (optional): `notify_slack` (true/false), `notify_email` (true/false), `message`, `subject`.
+3. Required secrets (set in Settings → Secrets & variables → Actions):
+   - Slack: `SLACK_WEBHOOK` (Incoming Webhook URL)
+   - Email: `SMTP_SERVER`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `NOTIFY_EMAIL`
+
+The workflow will skip targets that are not configured and print a short status message in the run logs.
+
 ### Consciousness Layer (Latest)
 - **[Consciousness Summary](CONSCIOUSNESS_SUMMARY.md)** - What makes AI City alive
 - **[Consciousness Layer Deep Dive](AI_CONSCIOUSNESS_LAYER.md)** - Complete system docs
