@@ -41,6 +41,7 @@ function HeroImageRotator({ images }: { images: string[] }) {
 
 export default function Hero() {
   const [variant, setVariant] = useState<'a'|'b'>('a');
+  const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
     // Persist A/B variant in localStorage and allow override via ?ab=b
@@ -55,10 +56,23 @@ export default function Hero() {
     } catch (e) {
       // no-op
     }
+
+    // Hero intro (first-time visitors)
+    try {
+      const seen = localStorage.getItem('hasSeenHeroIntro');
+      if (!seen) {
+        setShowIntro(true);
+        const t = setTimeout(() => {
+          setShowIntro(false);
+          localStorage.setItem('hasSeenHeroIntro', 'true');
+        }, 900);
+        return () => clearTimeout(t);
+      }
+    } catch {}
   }, []);
 
   return (
-    <section className={`relative overflow-hidden py-24 md:py-32 hero-compact hero-variant-${variant}`}>
+    <section className={`relative overflow-hidden py-24 md:py-32 hero-compact hero-variant-${variant} ${showIntro ? 'hero-intro' : ''}`}>
       {/* Animated background shapes */}
       <div className="absolute inset-0" aria-hidden>
         <div className="absolute inset-0 bg-gradient-to-br from-[#2F076A] via-[#5A2EBE] to-[#FF6AA3] opacity-80 hero-bg-blur"></div>

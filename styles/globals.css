@@ -71,23 +71,28 @@ body {
 }
 
 /* CTA micro-interactions */
+:root {
+  --cta-transition: 160ms;
+  --cta-icon-move: 8px;
+}
+
 .cta-primary {
-  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+  transition: transform var(--cta-transition) ease, box-shadow var(--cta-transition) ease, background-color var(--cta-transition) ease;
   will-change: transform;
 }
 .cta-primary:hover {
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 12px 30px rgba(124,58,237,0.16);
+  transform: translateY(-4px) scale(1.04);
+  box-shadow: 0 8px 24px rgba(124,58,237,0.12);
 }
 .cta-primary:active {
-  transform: translateY(0) scale(0.99);
+  transform: translateY(0) scale(0.985);
 }
 .cta-primary .cta-icon {
   transform: translateX(0);
-  transition: transform 180ms ease;
+  transition: transform var(--cta-transition) ease;
 }
 .cta-primary:hover .cta-icon {
-  transform: translateX(6px);
+  transform: translateX(var(--cta-icon-move));
 }
 
 .cta-secondary {
@@ -100,20 +105,34 @@ body {
 /* Hero image fade */
 .hero-image {
   opacity: 0;
-  transition: opacity 900ms ease;
+  transition: opacity 700ms ease, transform 700ms ease;
+  transform-origin: center;
 }
 .hero-image.visible {
   opacity: 0.95;
+  transform: scale(1);
+}
+
+/* Intro animation for first-time visitors */
+@keyframes heroIntro {
+  0% { opacity: 0; transform: translateY(12px) scale(0.995); }
+  60% { opacity: 1; transform: translateY(-4px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.hero-intro {
+  animation: heroIntro 900ms cubic-bezier(.2,.9,.3,1) both;
 }
 
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
+  :root { --cta-transition: 0ms; }
   .cta-primary, .cta-secondary, .hero-lantern, .animate-shimmer {
     transition: none !important;
     animation: none !important;
     transform: none !important;
   }
-  .hero-image { transition: none !important; opacity: 0.95 !important; }
+  .hero-image { transition: none !important; opacity: 0.95 !important; transform: none !important; }
+  .hero-intro { animation: none !important; }
 }
 
 /* Line clamp utility */
