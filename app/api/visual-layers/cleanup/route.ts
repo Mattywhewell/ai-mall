@@ -16,6 +16,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: 'Invalid token or TEST_CLEANUP_TOKEN not set' }, { status: 403 });
     }
 
+    // If a storageKey is provided, delete from Supabase Storage
+    const storageKey = body.storageKey;
+    if (storageKey) {
+      try {
+        const supabase = getSupabaseClient();
+        const bucket = 'visual-layers';
+        const { error: delErr } = await supabase.storage.from(bucket).remove([storageKey]);
+        if (delErr) {
+          return NextResponse.json({ ok: false, error: delErr.message }, { status: 500 });
+        }
+        return NextResponse.json({ ok: true });
+      } catch (err: any) {
+        return NextResponse.json({ ok: false, error: err?.message || String(err) }, { status: 500 });
+      }
+    }
+
     const uploadDir = path.join(process.cwd(), 'tmp-shader-assets');
     const resolved = path.resolve(uploadDir, filename);
 

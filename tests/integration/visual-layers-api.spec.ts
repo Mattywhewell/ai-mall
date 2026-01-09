@@ -20,6 +20,7 @@ test.describe('Visual Layers API integration', () => {
     const uploadJson = await uploadResp.json();
     expect(uploadJson.ok).toBeTruthy();
     const uploadedPath = uploadJson.path;
+    const storageKey = uploadJson.storageKey || null;
     expect(typeof uploadedPath).toBe('string');
 
     // Create metadata
@@ -31,6 +32,7 @@ test.describe('Visual Layers API integration', () => {
         type: 'elemental',
         shader_file: uploadedPath,
         description: 'Integration test shader',
+        shader_storage_key: storageKey,
       },
     });
 

@@ -32,6 +32,7 @@ export async function POST(req: Request) {
       type: body.type,
       description: body.description || null,
       shader_file: body.shader_file || null,
+      shader_storage_key: body.shader_storage_key || null,
       lut_file: body.lut_file || null,
       mask_file: body.mask_file || null,
       blend_mode: body.blend_mode || null,
