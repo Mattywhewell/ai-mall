@@ -78,6 +78,36 @@ const OverlayShaderMaterial = ({ strength = 0.6, tint = "#FFC87A" }: any) => {
 };
 
 export default function VisualLayerRenderer({ strength = 0.6, tint = "#FFC87A" }: VisualLayerRendererProps) {
+  const [hasWebGL, setHasWebGL] = React.useState<boolean | null>(null);
+
+  React.useEffect(() => {
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = (canvas.getContext('webgl2') || canvas.getContext('webgl'));
+      setHasWebGL(!!gl);
+    } catch (e) {
+      setHasWebGL(false);
+    }
+  }, []);
+
+  if (hasWebGL === false) {
+    // Fallback static preview when WebGL is unavailable
+    return (
+      <div style={{ width: '100%', height: '500px', borderRadius: 12, overflow: 'hidden', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <img src="/shader-previews/runic-medium.svg" alt="Runic glow preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      </div>
+    );
+  }
+
+  // If still checking, show a small loader placeholder to avoid layout shift
+  if (hasWebGL === null) {
+    return (
+      <div style={{ width: '100%', height: '500px', borderRadius: 12, overflow: 'hidden', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: '#fff' }}>Checking renderer…</div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ width: "100%", height: "500px", borderRadius: 12, overflow: "hidden", background: "#111" }}>
       <Canvas camera={{ position: [0, 1.5, 3], fov: 55 }}>
