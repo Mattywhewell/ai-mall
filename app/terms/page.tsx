@@ -155,7 +155,7 @@ export default function TermsPage() {
               If you have any questions about these Terms, please contact us at:
             </p>
             <div className="bg-gray-50 rounded-lg p-4 mt-4">
-              <p className="text-gray-700">Email: legal@ai-mall.com</p>
+              <p className="text-gray-700">Email: legal@alverse.app</p>
               <p className="text-gray-700">Address: 123 Innovation Drive, San Francisco, CA 94103</p>
             </div>
           </section>

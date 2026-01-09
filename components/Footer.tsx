@@ -12,7 +12,7 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <Sparkles className="w-6 h-6 text-purple-400" />
-              <span className="text-xl font-bold text-white">AI Mall</span>
+              <span className="text-xl font-bold text-white">Aiverse</span>
             </div>
             <p className="text-sm text-gray-400">
               The world's first AI-native marketplace with emotional intelligence
@@ -23,7 +23,7 @@ export function Footer() {
             </div>
             <div className="flex items-center space-x-2 text-sm text-gray-400">
               <Mail className="w-4 h-4" />
-              <span>hello@ai-mall.com</span>
+              <span>hello@alverse.app</span>
             </div>
           </div>
 
@@ -113,7 +113,7 @@ export function Footer() {
         <div className="mt-12 pt-8 border-t border-gray-800">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-sm text-gray-400">
-              © {new Date().getFullYear()} AI-Native Mall. All rights reserved.
+              © {new Date().getFullYear()} Aiverse. All rights reserved.
             </p>
             <div className="flex items-center space-x-6 text-sm">
               <span className="text-gray-400">🔒 Secure Payments via Stripe</span>

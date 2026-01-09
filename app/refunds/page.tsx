@@ -6,7 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Refund Policy | AI Mall',
+  title: 'Refund Policy | Aiverse',
   description: 'Learn about our refund and return policies',
 };
 
@@ -36,7 +36,7 @@ export default function RefundsPage() {
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Overview</h2>
             <p className="text-gray-700">
-              At AI Mall, we want you to be completely satisfied with your purchase. This Refund Policy 
+              At Aiverse, we want you to be completely satisfied with your purchase. This Refund Policy 
               outlines the conditions under which refunds are available for products and services purchased 
               through our platform.
             </p>
@@ -59,7 +59,7 @@ export default function RefundsPage() {
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Physical Products</h2>
             <p className="text-gray-700 mb-3">
-              Physical products sold through AI Mall vendors are eligible for refunds:
+              Physical products sold through Aiverse vendors are eligible for refunds:
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
               <li>Request made within 30 days of delivery</li>
@@ -89,7 +89,7 @@ export default function RefundsPage() {
             </p>
             <ol className="list-decimal list-inside text-gray-700 space-y-2 ml-4">
               <li>Contact the vendor directly through their storefront</li>
-              <li>For platform issues, contact support@ai-mall.com</li>
+              <li>For platform issues, contact support@alverse.app</li>
               <li>Include order number and reason for refund</li>
               <li>Wait for approval (typically 2-5 business days)</li>
               <li>Refund will be processed to original payment method</li>
@@ -125,8 +125,8 @@ export default function RefundsPage() {
             </p>
             <div className="mt-4 p-4 bg-purple-50 rounded-lg">
               <p className="text-gray-700">
-                <strong>Email:</strong> refunds@ai-mall.com<br />
-                <strong>Support:</strong> support@ai-mall.com<br />
+                <strong>Email:</strong> refunds@alverse.app<br />
+                <strong>Support:</strong> support@alverse.app<br />
                 <strong>Hours:</strong> Monday-Friday, 9am-5pm PST
               </p>
             </div>

@@ -9,7 +9,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">1. Introduction</h2>
             <p className="text-gray-600 leading-relaxed">
-              AI-Native Mall ("we," "our," or "us") is committed to protecting your privacy. This Privacy 
+              Aiverse ("we," "our," or "us") is committed to protecting your privacy. This Privacy 
               Policy explains how we collect, use, disclose, and safeguard your information when you use 
               our Service. Please read this policy carefully.
             </p>
@@ -130,7 +130,7 @@ export default function PrivacyPage() {
               <li><strong>Object:</strong> Object to certain data processing activities</li>
             </ul>
             <p className="text-gray-600 leading-relaxed mt-3">
-              To exercise these rights, contact us at privacy@ai-mall.com
+              To exercise these rights, contact us at privacy@alverse.app
             </p>
           </section>
 
@@ -209,15 +209,15 @@ export default function PrivacyPage() {
               If you have questions or concerns about this Privacy Policy or our data practices:
             </p>
             <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-gray-700"><strong>Email:</strong> privacy@ai-mall.com</p>
+              <p className="text-gray-700"><strong>Email:</strong> privacy@alverse.app</p>
               <p className="text-gray-700"><strong>Address:</strong> 123 Innovation Drive, San Francisco, CA 94103</p>
-              <p className="text-gray-700"><strong>Data Protection Officer:</strong> dpo@ai-mall.com</p>
+              <p className="text-gray-700"><strong>Data Protection Officer:</strong> dpo@alverse.app</p>
             </div>
           </section>
 
           <div className="pt-8 border-t border-gray-200">
             <p className="text-sm text-gray-500 text-center">
-              By using AI-Native Mall, you acknowledge that you have read and understood this Privacy Policy 
+              By using Aiverse, you acknowledge that you have read and understood this Privacy Policy 
               and consent to the collection and use of your information as described.
             </p>
           </div>

@@ -84,7 +84,7 @@ function SuccessContent() {
             href="/"
             className="text-indigo-600 hover:text-indigo-700 font-medium"
           >
-            Return to AI Mall
+            Return to Aiverse
           </Link>
         </div>
       </div>

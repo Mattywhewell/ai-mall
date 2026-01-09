@@ -39,7 +39,7 @@ export function MainNavigation() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 text-xl font-bold text-gray-900">
             <Sparkles className="w-6 h-6 text-purple-600" />
-            <span>AI Mall</span>
+            <span>Aiverse</span>
           </Link>
           
           {/* Main Navigation Links */}
@@ -56,7 +56,7 @@ export function MainNavigation() {
 
             <Link href="/agents" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
               <Sparkles className="w-4 h-4" />
-              <span>Agents</span>
+              <span>AI Products</span>
             </Link>
 
             <Link href="/events" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
@@ -71,12 +71,23 @@ export function MainNavigation() {
 
             <Link href="/digital-products" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
               <Sparkles className="w-4 h-4" />
-              <span>Create</span>
+              <span>Become a Creator</span>
             </Link>
 
             <Link href="/about" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
               <span>About</span>
             </Link>
+
+            {/* Admin links (only visible to admins) */}
+            {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+            {/* @ts-ignore-next */}
+            {((user && ((user.user_metadata as any)?.is_admin || ((user.user_metadata as any)?.roles && (user.user_metadata as any).roles.includes('admin')) || user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL)) || false) && (
+              <div className="flex items-center space-x-4">
+                <Link href="/admin" className="text-gray-700 hover:text-purple-600 transition-colors">Dashboard</Link>
+                <Link href="/admin/revenue" className="text-gray-700 hover:text-purple-600 transition-colors">Revenue</Link>
+                <Link href="/admin/commerce-engine" className="text-gray-700 hover:text-purple-600 transition-colors">AI Systems</Link>
+              </div>
+            )}
           </div>
           
           {/* Right Side: Search, Currency, Cart, User */}

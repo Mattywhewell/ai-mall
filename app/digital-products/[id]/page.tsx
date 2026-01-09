@@ -226,7 +226,7 @@ export default function DigitalProductPage() {
                 <span className="font-semibold">AI-Generated</span>
               </div>
               <p className="text-sm text-gray-600">
-                This product was created using advanced AI (GPT-4) and is unique to AI Mall. 
+                This product was created using advanced AI (GPT-4) and is unique to Aiverse. 
                 All content is original and ready to use immediately.
               </p>
             </div>

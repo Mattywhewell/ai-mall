@@ -14,8 +14,8 @@ import { LiveChatSupport } from '@/components/LiveChatSupport';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'AI-Native Mall - Conscious Commerce',
-  description: 'Experience shopping with emotional intelligence and AI curators',
+  title: 'Aiverse - Conscious Commerce',
+  description: 'Experience a living AI city where creators, AI citizens, and conscious commerce coexist',
 };
 
 export default function RootLayout({

@@ -18,9 +18,9 @@
 - Join Our Community (CTA buttons)
 
 **Key Info:**
-- Company: AI-Native Mall Inc.
+- Company: Aiverse Inc.
 - Location: San Francisco, CA
-- Email: hello@ai-mall.com
+- Email: hello@alverse.app
 - Founded: 2026
 
 ---
@@ -34,7 +34,7 @@
   - Subject options: General, Support, Creator, Partnership, Feedback, Technical
 - Success notification on submission
 - Contact information display:
-  - Email: hello@ai-mall.com
+  - Email: hello@alverse.app
   - Phone: +1 (555) 123-4567
   - Address: 123 Innovation Drive, San Francisco, CA 94103
   - Live chat link
@@ -106,8 +106,8 @@
 - Secure payment processing (PCI DSS)
 
 **Contact:**
-- Email: privacy@ai-mall.com
-- DPO: dpo@ai-mall.com
+- Email: privacy@alverse.app
+- DPO: dpo@alverse.app
 
 ---
 
@@ -150,7 +150,7 @@
 ## 🔗 Navigation Structure
 
 **Main Navigation (Header):**
-- Home, Explore City, Revenue, AI Systems
+- Home, Explore City, AI Products, Live Events, Become a Creator
 - Currency Selector, Cart, User Menu
 
 **Footer Navigation:**
@@ -199,14 +199,14 @@ For complete compliance, consider adding:
 ## 📞 Contact Information
 
 **Primary:**
-- Email: hello@ai-mall.com
+- Email: hello@alverse.app
 - Phone: +1 (555) 123-4567
 - Address: 123 Innovation Drive, San Francisco, CA 94103
 
 **Legal:**
-- Legal: legal@ai-mall.com
-- Privacy: privacy@ai-mall.com
-- DPO: dpo@ai-mall.com
+- Legal: legal@alverse.app
+- Privacy: privacy@alverse.app
+- DPO: dpo@alverse.app
 
 ---
 

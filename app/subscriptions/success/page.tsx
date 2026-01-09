@@ -100,7 +100,7 @@ function SuccessContent() {
             href="/"
             className="bg-gray-100 text-gray-900 px-8 py-4 rounded-xl font-semibold hover:bg-gray-200 transition"
           >
-            Explore AI Mall
+            Explore Aiverse
           </Link>
         </div>
       </div>

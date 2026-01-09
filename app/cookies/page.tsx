@@ -6,7 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Cookie Policy | AI Mall',
+  title: 'Cookie Policy | Aiverse',
   description: 'Learn about how we use cookies and tracking technologies',
 };
 
@@ -172,7 +172,7 @@ export default function CookiesPage() {
             <div className="mt-4 p-4 bg-purple-50 rounded-lg">
               <p className="text-gray-700">
                 <strong>Email:</strong> privacy@ai-mall.com<br />
-                <strong>Address:</strong> AI Mall Inc., San Francisco, CA
+                <strong>Address:</strong> Aiverse Inc., San Francisco, CA
               </p>
             </div>
           </section>

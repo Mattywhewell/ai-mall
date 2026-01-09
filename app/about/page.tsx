@@ -45,11 +45,11 @@ export default function AboutPage() {
           <section>
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Business Information</h2>
             <div className="bg-gray-50 rounded-lg p-6 space-y-2">
-              <p className="text-gray-700"><strong>Company Name:</strong> AI-Native Mall Inc.</p>
+              <p className="text-gray-700"><strong>Company Name:</strong> Aiverse Inc.</p>
               <p className="text-gray-700"><strong>Business Type:</strong> Online Marketplace & E-commerce Platform</p>
               <p className="text-gray-700"><strong>Founded:</strong> 2026</p>
               <p className="text-gray-700"><strong>Location:</strong> San Francisco, CA, United States</p>
-              <p className="text-gray-700"><strong>Email:</strong> hello@ai-mall.com</p>
+              <p className="text-gray-700"><strong>Email:</strong> hello@alverse.app</p>
             </div>
           </section>
 
