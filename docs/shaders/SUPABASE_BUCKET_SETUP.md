@@ -32,6 +32,7 @@ Node (using repo helper script)
 
 - For private buckets, confirm that objects are not publicly accessible and that signed URLs grant time-limited access.
 - Use the helper `npm run verify:supabase-bucket` with `EXPECT_PUBLIC=false` to assert private behavior and validate that a signed URL returns HTTP 200 for preview objects.
+- To validate signed URL expiry, set `SIGNED_EXPIRY_CHECK=true` and `SIGNED_URL_TTL=<seconds>` (default `7`). The verifier will request the signed URL immediately, wait `TTL+2` seconds, and assert the signed URL is no longer valid.
 - When dispatching the scheduled verification with `public=true`, the same helper checks public accessibility and verifies signed URLs as well.
 4) Security & operational best practices
 

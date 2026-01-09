@@ -49,7 +49,7 @@ jobs:
       - name: Assert preview accessibility (bucket expected private)
         run: |
           echo "Verifying preview accessibility (expect private)..."
-          EXPECT_PUBLIC=false npm run verify:supabase-bucket
+          EXPECT_PUBLIC=false SIGNED_EXPIRY_CHECK=true SIGNED_URL_TTL=7 npm run verify:supabase-bucket
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

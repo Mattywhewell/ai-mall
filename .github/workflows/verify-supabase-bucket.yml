@@ -64,8 +64,10 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_STORAGE_BUCKET: ${{ github.event.inputs.bucket || secrets.SUPABASE_STORAGE_BUCKET }}
           EXPECT_PUBLIC: ${{ (github.event.inputs.public == 'true') && 'true' || 'false' }}
+          SIGNED_EXPIRY_CHECK: true
+          SIGNED_URL_TTL: 7
         run: |
-          echo "Verifying preview accessibility (expect public=${EXPECT_PUBLIC})"
+          echo "Verifying preview accessibility (expect public=${EXPECT_PUBLIC}) and signed URL expiry (ttl=${SIGNED_URL_TTL})"
           npm run verify:supabase-bucket
 
       - name: Report success

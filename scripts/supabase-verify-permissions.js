@@ -46,7 +46,8 @@ async function run() {
       if (resp.status === 200) {
         console.log('Public access verified (200).');
         // Also verify signed URL works as a sanity check
-        const { data: signed, error: signedErr } = await supabase.storage.from(bucket).createSignedUrl(previewKey, 60);
+        const ttl = parseInt(process.env.SIGNED_URL_TTL || '7', 10);
+        const { data: signed, error: signedErr } = await supabase.storage.from(bucket).createSignedUrl(previewKey, ttl);
         if (signedErr) {
           console.error('Failed to create signed URL:', signedErr.message || signedErr);
           process.exit(6);
@@ -54,6 +55,19 @@ async function run() {
         const sresp = await fetch(signed.signedUrl, { method: 'GET' });
         if (sresp.status === 200) {
           console.log('Signed URL access verified (200) for public object.');
+          // Optionally verify expiry behavior if requested
+          if ((process.env.SIGNED_EXPIRY_CHECK || 'false').toLowerCase() === 'true') {
+            const waitMs = (ttl + 2) * 1000;
+            console.log(`Waiting ${waitMs}ms to verify signed URL expiry (ttl=${ttl}s)...`);
+            await new Promise((r) => setTimeout(r, waitMs));
+            const after = await fetch(signed.signedUrl, { method: 'GET' });
+            console.log('HTTP status after wait:', after.status);
+            if (after.status === 200) {
+              console.error('Signed URL did not expire as expected (still returned 200).');
+              process.exit(9);
+            }
+            console.log('Signed URL expiry confirmed (non-200 after TTL).');
+          }
           process.exit(0);
         } else {
           console.error('Signed URL for public object did not return 200, got', sresp.status);
@@ -69,7 +83,8 @@ async function run() {
         process.exit(4);
       } else {
         console.log('Private access confirmed (non-200). Attempting to create signed URL...');
-        const { data: signed, error: signedErr } = await supabase.storage.from(bucket).createSignedUrl(previewKey, 60);
+        const ttl = parseInt(process.env.SIGNED_URL_TTL || '7', 10);
+        const { data: signed, error: signedErr } = await supabase.storage.from(bucket).createSignedUrl(previewKey, ttl);
         if (signedErr) {
           console.error('Failed to create signed URL for private object:', signedErr.message || signedErr);
           process.exit(6);
@@ -78,6 +93,19 @@ async function run() {
         console.log('Signed URL HTTP status:', sresp.status);
         if (sresp.status === 200) {
           console.log('Signed URL access verified (200) for private object.');
+          // Optionally verify expiry behavior
+          if ((process.env.SIGNED_EXPIRY_CHECK || 'false').toLowerCase() === 'true') {
+            const waitMs = (ttl + 2) * 1000;
+            console.log(`Waiting ${waitMs}ms to verify signed URL expiry (ttl=${ttl}s)...`);
+            await new Promise((r) => setTimeout(r, waitMs));
+            const after = await fetch(signed.signedUrl, { method: 'GET' });
+            console.log('HTTP status after wait:', after.status);
+            if (after.status === 200) {
+              console.error('Signed URL did not expire as expected (still returned 200).');
+              process.exit(9);
+            }
+            console.log('Signed URL expiry confirmed (non-200 after TTL).');
+          }
           process.exit(0);
         } else {
           console.error('Signed URL for private object did not return 200, got', sresp.status);
