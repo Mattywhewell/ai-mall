@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { TYPO } from '@/lib/designTokens';
+import { trackEvent } from '@/lib/analytics/GoogleAnalytics';
 
 function HeroImageRotator({ images }: { images: string[] }) {
   const [idx, setIdx] = useState(0);
@@ -53,6 +54,9 @@ export default function Hero() {
       if (q === 'b') v = 'b';
       if (!stored) localStorage.setItem('hero_variant', v);
       setVariant(v);
+
+      // Track variant view
+      trackEvent('hero_variant_view', { variant: v });
     } catch (e) {
       // no-op
     }
@@ -119,6 +123,7 @@ export default function Hero() {
             className="cta-primary inline-flex items-center justify-center px-8 py-4 rounded-full text-lg font-semibold shadow-2xl transform transition"
             style={{ background: 'linear-gradient(90deg,#7C3AED,#FF6AA3)', boxShadow: '0 10px 30px rgba(124,58,237,0.18)' }}
             aria-label="Enter the City"
+            onClick={() => trackEvent('hero_cta_click', { variant, cta: 'enter_city' })}
           >
             <span className="flex items-center gap-3">
               <span>{variant === 'a' ? 'Enter the City' : 'Explore the City'}</span>
@@ -132,6 +137,7 @@ export default function Hero() {
             href="/creator"
             className="cta-secondary inline-flex items-center justify-center px-6 py-4 rounded-full text-lg font-semibold bg-white/10 hover:bg-white/20 transition"
             aria-label="Become a Creator"
+            onClick={() => trackEvent('hero_cta_click', { variant, cta: 'become_creator' })}
           >
             Become a Creator
           </Link>
