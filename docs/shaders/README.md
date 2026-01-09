@@ -67,4 +67,16 @@ curl -X POST "http://localhost:3000/api/visual-layers/cleanup" \
   -d '{"storageKey":"shaders/1670000000000-test-shader.glsl","token":"'$UPLOAD_SECRET_TOKEN'"}'
 ```
 
+**Supabase bucket setup (short)** ⚙️
+- **Bucket name:** `visual-layers` (override with `SUPABASE_STORAGE_BUCKET`).
+- **ACL recommendation:**
+  - **Previews/thumbnails:** public (easier to embed in UIs).
+  - **Raw assets (shader sources, LUTs):** private + serve via signed URLs or authenticated requests.
+- **Quick creation:**
+  - Supabase UI: Storage → Create bucket → set name `visual-layers` → choose public or private.
+  - CLI: `supabase storage create-bucket visual-layers --public` (omit `--public` for a private bucket).
+- **Best practices:**
+  - Use prefixes (`shaders/`, `luts/`, `previews/`) for clearer policies and lifecycle rules.
+  - Add lifecycle rules or scheduled cleanup for unreferenced/test artifacts and rotate/rotate keys regularly.
+
 Thanks — follow `CONTRIBUTING.md` for PR and review guidance. If you want, I can also scaffold the PoC demo and an e2e test next.
