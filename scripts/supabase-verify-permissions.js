@@ -60,13 +60,30 @@ async function run() {
             const waitMs = (ttl + 2) * 1000;
             console.log(`Waiting ${waitMs}ms to verify signed URL expiry (ttl=${ttl}s)...`);
             await new Promise((r) => setTimeout(r, waitMs));
-            const after = await fetch(signed.signedUrl, { method: 'GET' });
-            console.log('HTTP status after wait:', after.status);
-            if (after.status === 200) {
-              console.error('Signed URL did not expire as expected (still returned 200).');
+            // Add short retry/backoff to account for CDN caching or eventual consistency
+            const retries = parseInt(process.env.SIGNED_EXPIRY_RETRIES || '3', 10);
+            const retryDelay = parseInt(process.env.SIGNED_EXPIRY_RETRY_DELAY || '2', 10) * 1000; // seconds -> ms
+
+            let expired = false;
+            for (let i = 0; i < retries; i++) {
+              const attempt = await fetch(signed.signedUrl, { method: 'GET' });
+              console.log(`Expiry check attempt ${i + 1}/${retries}, HTTP:`, attempt.status);
+              if (attempt.status !== 200) {
+                expired = true;
+                console.log('Signed URL expiry confirmed (non-200).');
+                break;
+              }
+              if (i < retries - 1) {
+                const d = retryDelay * (i + 1);
+                console.log(`Retrying expiry check after ${d}ms...`);
+                await new Promise((r) => setTimeout(r, d));
+              }
+            }
+
+            if (!expired) {
+              console.error(`Signed URL did not expire after ${retries} attempts.`);
               process.exit(9);
             }
-            console.log('Signed URL expiry confirmed (non-200 after TTL).');
           }
           process.exit(0);
         } else {
@@ -98,13 +115,30 @@ async function run() {
             const waitMs = (ttl + 2) * 1000;
             console.log(`Waiting ${waitMs}ms to verify signed URL expiry (ttl=${ttl}s)...`);
             await new Promise((r) => setTimeout(r, waitMs));
-            const after = await fetch(signed.signedUrl, { method: 'GET' });
-            console.log('HTTP status after wait:', after.status);
-            if (after.status === 200) {
-              console.error('Signed URL did not expire as expected (still returned 200).');
+            // Add short retry/backoff to account for CDN caching or eventual consistency
+            const retries = parseInt(process.env.SIGNED_EXPIRY_RETRIES || '3', 10);
+            const retryDelay = parseInt(process.env.SIGNED_EXPIRY_RETRY_DELAY || '2', 10) * 1000; // seconds -> ms
+
+            let expired = false;
+            for (let i = 0; i < retries; i++) {
+              const attempt = await fetch(signed.signedUrl, { method: 'GET' });
+              console.log(`Expiry check attempt ${i + 1}/${retries}, HTTP:`, attempt.status);
+              if (attempt.status !== 200) {
+                expired = true;
+                console.log('Signed URL expiry confirmed (non-200).');
+                break;
+              }
+              if (i < retries - 1) {
+                const d = retryDelay * (i + 1);
+                console.log(`Retrying expiry check after ${d}ms...`);
+                await new Promise((r) => setTimeout(r, d));
+              }
+            }
+
+            if (!expired) {
+              console.error(`Signed URL did not expire after ${retries} attempts.`);
               process.exit(9);
             }
-            console.log('Signed URL expiry confirmed (non-200 after TTL).');
           }
           process.exit(0);
         } else {
