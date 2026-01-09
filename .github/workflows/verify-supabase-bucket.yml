@@ -58,6 +58,16 @@ jobs:
             node scripts/supabase-create-bucket.js
           fi
 
+      - name: Assert preview accessibility
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_STORAGE_BUCKET: ${{ github.event.inputs.bucket || secrets.SUPABASE_STORAGE_BUCKET }}
+          EXPECT_PUBLIC: ${{ (github.event.inputs.public == 'true') && 'true' || 'false' }}
+        run: |
+          echo "Verifying preview accessibility (expect public=${EXPECT_PUBLIC})"
+          npm run verify:supabase-bucket
+
       - name: Report success
         if: success()
         run: echo "Supabase bucket verification completed."

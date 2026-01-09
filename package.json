@@ -19,7 +19,8 @@
     "test:e2e:ci": "tsx scripts/e2e/aws_sigv4_debug.ts",
     "test:unit": "vitest run --reporter dot",
     "test:unit:watch": "vitest",
-    "setup:supabase-bucket": "node scripts/supabase-create-bucket.js"
+    "setup:supabase-bucket": "node scripts/supabase-create-bucket.js",
+    "verify:supabase-bucket": "node scripts/supabase-verify-permissions.js"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
