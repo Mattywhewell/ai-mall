@@ -40,6 +40,36 @@ body {
   background-size: 1000px 100%;
 }
 
+/* Gentle floating lantern animation */
+@keyframes float-up {
+  0% { transform: translateY(0) translateX(0) scale(1); opacity: 1; }
+  50% { transform: translateY(-12px) translateX(6px) scale(1.02); opacity: 0.95; }
+  100% { transform: translateY(0) translateX(0) scale(1); opacity: 1; }
+}
+
+.hero-lantern {
+  animation: float-up 6s ease-in-out infinite;
+}
+
+.hero-bg-blur {
+  filter: blur(20px) saturate(120%);
+  opacity: 0.12;
+}
+
+/* Compact hero spacing for higher information density */
+.hero-compact {
+  padding-top: 10rem;
+  padding-bottom: 8rem;
+}
+
+/* Microcopy variant styles */
+.hero-variant-a .hero-sub {
+  color: #d9d5ff;
+}
+.hero-variant-b .hero-sub {
+  color: #ffd9ea;
+}
+
 /* Line clamp utility */
 .line-clamp-2 {
   display: -webkit-box;
