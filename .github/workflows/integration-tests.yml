@@ -46,6 +46,13 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
+      - name: Run telemetry Playwright test
+        # Validate telemetry/hero analytics in CI during pull requests
+        run: npx playwright test tests/e2e/hero-ab.spec.ts --project=chromium --reporter=github
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
