@@ -49,3 +49,28 @@ jobs:
         with:
           name: telemetry-playwright-report
           path: playwright-report/
+
+      - name: Notify Slack on failure
+        if: failure() && secrets.SLACK_WEBHOOK != ''
+        run: |
+          echo "Sending Slack notification (if webhook configured)..."
+          curl -s -X POST -H 'Content-type: application/json' --data "{\"text\":\"[Aiverse CI] Nightly telemetry test failed for ${GITHUB_REPOSITORY}@${GITHUB_SHA}. View run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}" ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Send failure email
+        if: failure() && secrets.SMTP_SERVER != ''
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "[Aiverse CI] Nightly telemetry tests failed - ${{ github.repository }}"
+          to: ${{ secrets.NOTIFY_EMAIL }}
+          from: "ci@alverse.app"
+          body: |
+            The nightly telemetry Playwright test failed.
+
+            Repository: ${{ github.repository }}
+            Run: ${{ github.run_id }}
+            Commit: ${{ github.sha }}
+            View run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
