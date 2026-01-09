@@ -45,5 +45,16 @@ test.describe('Visual Layers API integration', () => {
     const listJson = await listResp.json();
     const found = (listJson.data || []).some((item: any) => item.slug === slug);
     expect(found).toBeTruthy();
+
+    // Cleanup uploaded file via test-only cleanup endpoint
+    const uploadedFilename = (uploadJson.path || '').split('/').pop();
+    if (uploadedFilename) {
+      const cleanupResp = await request.post('/api/visual-layers/cleanup', {
+        data: { filename: uploadedFilename, token: process.env.TEST_CLEANUP_TOKEN || '' },
+      });
+      expect(cleanupResp.ok()).toBeTruthy();
+      const cleanupJson = await cleanupResp.json();
+      expect(cleanupJson.ok).toBeTruthy();
+    }
   });
 });
