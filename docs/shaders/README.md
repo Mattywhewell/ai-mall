@@ -31,4 +31,40 @@ Accessibility & performance:
   - Use a dedicated Supabase storage bucket (set via `SUPABASE_STORAGE_BUCKET`) and decide on ACLs: *public* for thumbnails/previews; *private + signed URLs* for raw shader/LUT sources unless vetted.
   - Rotate tokens periodically and restrict scope where possible.
 
+Examples (curl)
+
+- Upload a shader using header auth:
+
+```bash
+curl -X POST "http://localhost:3000/api/visual-layers/upload" \
+  -H "Content-Type: application/json" \
+  -H "x-upload-token: $UPLOAD_SECRET_TOKEN" \
+  -d '{"filename":"test-shader.glsl","contentBase64":"<BASE64>","kind":"shader"}'
+```
+
+- Upload a shader using body token (alternate):
+
+```bash
+curl -X POST "http://localhost:3000/api/visual-layers/upload" \
+  -H "Content-Type: application/json" \
+  -d '{"filename":"test-shader.glsl","contentBase64":"<BASE64>","kind":"shader","uploadToken":"'$UPLOAD_SECRET_TOKEN'"}'
+```
+
+- Cleanup by filename (local fallback):
+
+```bash
+curl -X POST "http://localhost:3000/api/visual-layers/cleanup" \
+  -H "Content-Type: application/json" \
+  -H "x-cleanup-token: $TEST_CLEANUP_TOKEN" \
+  -d '{"filename":"test-shader.glsl"}'
+```
+
+- Cleanup by storage key (Supabase storage):
+
+```bash
+curl -X POST "http://localhost:3000/api/visual-layers/cleanup" \
+  -H "Content-Type: application/json" \
+  -d '{"storageKey":"shaders/1670000000000-test-shader.glsl","token":"'$UPLOAD_SECRET_TOKEN'"}'
+```
+
 Thanks — follow `CONTRIBUTING.md` for PR and review guidance. If you want, I can also scaffold the PoC demo and an e2e test next.
