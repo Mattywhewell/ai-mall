@@ -45,7 +45,20 @@ async function run() {
     if (expectPublic) {
       if (resp.status === 200) {
         console.log('Public access verified (200).');
-        process.exit(0);
+        // Also verify signed URL works as a sanity check
+        const { data: signed, error: signedErr } = await supabase.storage.from(bucket).createSignedUrl(previewKey, 60);
+        if (signedErr) {
+          console.error('Failed to create signed URL:', signedErr.message || signedErr);
+          process.exit(6);
+        }
+        const sresp = await fetch(signed.signedUrl, { method: 'GET' });
+        if (sresp.status === 200) {
+          console.log('Signed URL access verified (200) for public object.');
+          process.exit(0);
+        } else {
+          console.error('Signed URL for public object did not return 200, got', sresp.status);
+          process.exit(7);
+        }
       } else {
         console.error('Expected public (200) but got', resp.status);
         process.exit(3);
@@ -55,8 +68,21 @@ async function run() {
         console.error('Expected private but preview returned 200.');
         process.exit(4);
       } else {
-        console.log('Private access confirmed (non-200).');
-        process.exit(0);
+        console.log('Private access confirmed (non-200). Attempting to create signed URL...');
+        const { data: signed, error: signedErr } = await supabase.storage.from(bucket).createSignedUrl(previewKey, 60);
+        if (signedErr) {
+          console.error('Failed to create signed URL for private object:', signedErr.message || signedErr);
+          process.exit(6);
+        }
+        const sresp = await fetch(signed.signedUrl, { method: 'GET' });
+        console.log('Signed URL HTTP status:', sresp.status);
+        if (sresp.status === 200) {
+          console.log('Signed URL access verified (200) for private object.');
+          process.exit(0);
+        } else {
+          console.error('Signed URL for private object did not return 200, got', sresp.status);
+          process.exit(8);
+        }
       }
     }
   } catch (err) {

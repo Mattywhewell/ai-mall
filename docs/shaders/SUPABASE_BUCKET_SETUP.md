@@ -28,7 +28,11 @@ Node (using repo helper script)
 - Create lifecycle rules to auto-delete objects under `tmp/` or older than a retention period (e.g., 30–90 days).
 - For CI uploads, use a dedicated prefix (`tmp/tests/`) and policies that prune objects older than N days.
 - Supabase currently supports lifecycle rules from the Storage UI — go to Storage → Buckets → {bucket} → Lifecycle to configure.
+5) Verify signed URL behavior
 
+- For private buckets, confirm that objects are not publicly accessible and that signed URLs grant time-limited access.
+- Use the helper `npm run verify:supabase-bucket` with `EXPECT_PUBLIC=false` to assert private behavior and validate that a signed URL returns HTTP 200 for preview objects.
+- When dispatching the scheduled verification with `public=true`, the same helper checks public accessibility and verifies signed URLs as well.
 4) Security & operational best practices
 
 - Store keys/tokens in repository secrets or environment variables; never check them into source control.
