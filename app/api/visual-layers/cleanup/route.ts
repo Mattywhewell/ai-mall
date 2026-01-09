@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
+import { getSupabaseClient } from '@/lib/supabase-server';
 
 export async function POST(req: Request) {
   try {
@@ -11,9 +12,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: 'Missing filename' }, { status: 400 });
     }
 
-    const expected = process.env.TEST_CLEANUP_TOKEN;
-    if (!expected || expected !== token) {
-      return NextResponse.json({ ok: false, error: 'Invalid token or TEST_CLEANUP_TOKEN not set' }, { status: 403 });
+    // Validate token from body or header. Allow either TEST_CLEANUP_TOKEN or UPLOAD_SECRET_TOKEN.
+    const tokenFromHeader = (req as any).headers?.get?.('x-cleanup-token');
+    const tokenFromBody = token;
+    const allowedTokens = [process.env.TEST_CLEANUP_TOKEN, process.env.UPLOAD_SECRET_TOKEN].filter(Boolean);
+    if (allowedTokens.length > 0) {
+      const okToken = allowedTokens.some((t) => t === tokenFromHeader || t === tokenFromBody);
+      if (!okToken) {
+        return NextResponse.json({ ok: false, error: 'Invalid or missing cleanup token' }, { status: 403 });
+      }
     }
 
     // If a storageKey is provided, delete from Supabase Storage
@@ -21,7 +28,7 @@ export async function POST(req: Request) {
     if (storageKey) {
       try {
         const supabase = getSupabaseClient();
-        const bucket = 'visual-layers';
+        const bucket = process.env.SUPABASE_STORAGE_BUCKET || 'visual-layers';
         const { error: delErr } = await supabase.storage.from(bucket).remove([storageKey]);
         if (delErr) {
           return NextResponse.json({ ok: false, error: delErr.message }, { status: 500 });
