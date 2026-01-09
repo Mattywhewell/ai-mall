@@ -22,10 +22,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: 'Invalid filename' }, { status: 400 });
     }
 
+    // Validate upload token(s) if present
+    const tokenFromHeader = (req as any).headers?.get?.('x-upload-token');
+    const tokenFromBody = uploadToken;
+    const allowedTokens = [process.env.UPLOAD_SECRET_TOKEN, process.env.TEST_CLEANUP_TOKEN].filter(Boolean);
+    if (allowedTokens.length > 0) {
+      const okToken = allowedTokens.some((t) => t === tokenFromHeader || t === tokenFromBody);
+      if (!okToken) {
+        return NextResponse.json({ ok: false, error: 'Unauthorized upload (missing or invalid upload token)' }, { status: 403 });
+      }
+    }
+
     // Prefer uploading to Supabase Storage if server role key is available
     try {
       const supabase = getSupabaseClient();
-      const bucket = 'visual-layers';
+      const bucket = process.env.SUPABASE_STORAGE_BUCKET || 'visual-layers';
       const storageKey = `shaders/${Date.now()}-${filename}`;
 
       const buffer = Buffer.from(contentBase64, 'base64');
