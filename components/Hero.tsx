@@ -1,13 +1,43 @@
-import Link from 'next/link';
-import Image from 'next/image';
-import { COLORS, TYPO } from '@/lib/designTokens';
-
 'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { TYPO } from '@/lib/designTokens';
+
+function HeroImageRotator({ images }: { images: string[] }) {
+  const [idx, setIdx] = useState(0);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) {
+      setLoaded(true);
+      return;
+    }
+    const t = setInterval(() => {
+      setIdx((i) => (i + 1) % images.length);
+      setLoaded(false);
+    }, 8000);
+    return () => clearInterval(t);
+  }, [images.length]);
+
+  return (
+    <div className="relative">
+      <img
+        key={images[idx]}
+        src={images[idx]}
+        alt="Aiverse city"
+        width={900}
+        height={280}
+        className={`mx-auto hero-image ${loaded ? 'visible' : ''}`}
+        onLoad={() => setLoaded(true)}
+        loading={idx === 0 ? 'eager' : 'lazy'}
+      />
+    </div>
+  );
+}
 
 export default function Hero() {
   const [variant, setVariant] = useState<'a'|'b'>('a');
@@ -72,29 +102,30 @@ export default function Hero() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
           <Link
             href="/city"
-            className="inline-flex items-center justify-center px-8 py-4 rounded-full text-lg font-semibold shadow-2xl transform transition hover:scale-105"
+            className="cta-primary inline-flex items-center justify-center px-8 py-4 rounded-full text-lg font-semibold shadow-2xl transform transition"
             style={{ background: 'linear-gradient(90deg,#7C3AED,#FF6AA3)', boxShadow: '0 10px 30px rgba(124,58,237,0.18)' }}
+            aria-label="Enter the City"
           >
-            {variant === 'a' ? 'Enter the City' : 'Explore the City'}
+            <span className="flex items-center gap-3">
+              <span>{variant === 'a' ? 'Enter the City' : 'Explore the City'}</span>
+              <svg className="cta-icon w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"></path>
+              </svg>
+            </span>
           </Link>
 
           <Link
             href="/creator"
-            className="inline-flex items-center justify-center px-6 py-4 rounded-full text-lg font-semibold bg-white/10 hover:bg-white/20 transition"
+            className="cta-secondary inline-flex items-center justify-center px-6 py-4 rounded-full text-lg font-semibold bg-white/10 hover:bg-white/20 transition"
+            aria-label="Become a Creator"
           >
             Become a Creator
           </Link>
         </div>
 
-        {/* subtle hero image for visual interest */}
+        {/* subtle hero image for visual interest - rotates between variants */}
         <div className="mt-6">
-          <Image src="/hero/city-mid.svg" alt="Aiverse city" width={900} height={280} className="mx-auto opacity-90" />
-        </div>
-
-      </div>
-    </section>);
-}
-          </Link>
+          <HeroImageRotator images={["/hero/city-mid.svg","/hero/city-fore.svg","/hero/city-base.svg"]} />
         </div>
 
         {/* Small preview of citizens (hires images if present, fallback to SVG placeholders) */}
@@ -110,12 +141,7 @@ export default function Hero() {
                 srcSet={`/citizens/hires/citizen-${i}.webp, /citizens/hires/citizen-${i}@2x.webp 2x`}
               />
               <img
-                src={`/citizens/hires/citizen-${i}.png`}
-                onError={(e) => {
-                  const t = e.currentTarget as HTMLImageElement;
-                  t.onerror = null;
-                  t.src = `/citizens/citizen-${i}.svg`;
-                }}
+                src={`/citizens/citizen-${i}.svg`}
                 width={64}
                 height={64}
                 alt={`Citizen ${i}`}

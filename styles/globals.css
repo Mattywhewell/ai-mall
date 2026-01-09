@@ -70,6 +70,52 @@ body {
   color: #ffd9ea;
 }
 
+/* CTA micro-interactions */
+.cta-primary {
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+  will-change: transform;
+}
+.cta-primary:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 12px 30px rgba(124,58,237,0.16);
+}
+.cta-primary:active {
+  transform: translateY(0) scale(0.99);
+}
+.cta-primary .cta-icon {
+  transform: translateX(0);
+  transition: transform 180ms ease;
+}
+.cta-primary:hover .cta-icon {
+  transform: translateX(6px);
+}
+
+.cta-secondary {
+  transition: transform 140ms ease, background-color 140ms ease;
+}
+.cta-secondary:hover {
+  transform: translateY(-2px);
+}
+
+/* Hero image fade */
+.hero-image {
+  opacity: 0;
+  transition: opacity 900ms ease;
+}
+.hero-image.visible {
+  opacity: 0.95;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .cta-primary, .cta-secondary, .hero-lantern, .animate-shimmer {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+  .hero-image { transition: none !important; opacity: 0.95 !important; }
+}
+
 /* Line clamp utility */
 .line-clamp-2 {
   display: -webkit-box;

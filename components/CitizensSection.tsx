@@ -17,12 +17,7 @@ function CitizenCard({ name, archetype, traits, role, interaction, imageSrc }: {
                   srcSet={`/citizens/hires/citizen-${idx}.webp, /citizens/hires/citizen-${idx}@2x.webp 2x`}
                 />
                 <img
-                  src={imageSrc}
-                  onError={(e) => {
-                    const t = e.currentTarget as HTMLImageElement;
-                    t.onerror = null;
-                    t.src = `/citizens/citizen-${idx}.svg`;
-                  }}
+                  src={`/citizens/citizen-${idx}.svg`}
                   alt={`${name} portrait`}
                   className="w-16 h-16 object-cover"
                 />
