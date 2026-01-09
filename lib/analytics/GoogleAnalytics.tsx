@@ -34,6 +34,20 @@ export const trackEvent = (eventName: string, params?: Record<string, any>) => {
   if (typeof window !== 'undefined' && (window as any).gtag) {
     (window as any).gtag('event', eventName, params);
   }
+
+  // Fallback: send telemetry to server-side endpoint if GA is not available or as a backup
+  try {
+    if (typeof window !== 'undefined') {
+      // Fire-and-forget; do not block UI
+      fetch('/api/telemetry/hero-event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventName, params, timestamp: new Date().toISOString() }),
+      }).catch(() => {});
+    }
+  } catch (e) {
+    // no-op
+  }
 };
 
 export const trackPageView = (url: string) => {
