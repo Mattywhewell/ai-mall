@@ -37,6 +37,15 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps --no-audit
 
+      - name: Ensure Supabase bucket exists (visual-layers)
+        run: |
+          echo "Ensuring Supabase bucket exists (bucket=${SUPABASE_STORAGE_BUCKET:-visual-layers})"
+          npm run setup:supabase-bucket
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_STORAGE_BUCKET: ${{ secrets.SUPABASE_STORAGE_BUCKET }}
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
