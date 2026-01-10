@@ -1,0 +1,19 @@
+{
+  "platform": "unreal-engine",
+  "version": "1.0.0",
+  "packageName": "MythicShaders-Unreal-v1.0.0.zip",
+  "deployTarget": "unreal-marketplace",
+  "description": "Mythic Shader Stack integration for unreal-engine",
+  "files": [
+    "unreal-plugin",
+    "unreal-plugin\\MaterialFunctions.txt",
+    "unreal-plugin\\MythicShaders.uplugin"
+  ],
+  "deploymentInstructions": [
+    "Compress integrations/unreal-engine/ to ZIP file",
+    "Submit to Unreal Marketplace",
+    "Create plugin documentation"
+  ],
+  "created": "2026-01-09T10:25:22.408Z",
+  "author": "Aiverse Core"
+}

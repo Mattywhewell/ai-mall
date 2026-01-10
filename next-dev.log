@@ -1,0 +1,83 @@
+
+> ai-native-mall@1.0.0 dev
+> npx --node-options='--max-old-space-size=4096' next dev -p 3000
+
+ ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\cupca\package-lock.json as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * C:\Users\cupca\Documents\ai-mall\package-lock.json
+
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.13:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3.6s
+ ✓ Compiled /middleware in 285ms (159 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 1773ms (930 modules)
+ GET / 200 in 4792ms
+ GET / 200 in 425ms
+ GET / 200 in 305ms
+ ○ Compiling /commons ...
+ ✓ Compiled /commons in 2.2s (2046 modules)
+ GET /commons 200 in 3011ms
+ ○ Compiling /api/auto-listing/extract ...
+ ✓ Compiled /api/auto-listing/extract in 6.4s (1113 modules)
+ ✓ Compiled in 777ms (905 modules)
+ POST /api/auto-listing/extract 403 in 7536ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1101ms (629 modules)
+ ○ Compiling /_not-found ...
+ GET / 200 in 7554ms
+ ✓ Compiled /_not-found in 3.5s (1521 modules)
+ GET /citizens/variants/illustrated/citizen-1--illustrated@2x.webp 404 in 7459ms
+ GET /citizens/variants/illustrated/citizen-4--illustrated@2x.webp 404 in 6079ms
+ GET /citizens/variants/illustrated/citizen-3--illustrated@2x.webp 404 in 7317ms
+ GET /citizens/variants/illustrated/citizen-2--illustrated@2x.webp 404 in 7421ms
+ ✓ Compiled /api/telemetry/hero-event in 462ms (1501 modules)
+[Telemetry] Hero event received: {
+  eventName: 'hero_variant_view',
+  params: { variant: 'a' },
+  timestamp: '2026-01-09T19:58:25.575Z'
+}
+ POST /api/telemetry/hero-event 200 in 644ms
+ ✓ Compiled /api/auto-listing/extract in 382ms (629 modules)
+ POST /api/auto-listing/extract 403 in 1195ms
+ POST /api/auto-listing/extract 403 in 1754ms
+ ✓ Compiled in 2.7s (905 modules)
+ ✓ Compiled in 399ms (905 modules)
+ ✓ Compiled in 643ms (905 modules)
+ ✓ Compiled in 619ms (905 modules)
+ ✓ Compiled in 409ms (905 modules)
+ ✓ Compiled in 432ms (905 modules)
+ ✓ Compiled in 712ms (905 modules)
+ ✓ Compiled in 320ms (905 modules)
+ ✓ Compiled in 452ms (905 modules)
+ ✓ Compiled in 460ms (905 modules)
+ ✓ Compiled in 252ms (905 modules)
+ ✓ Compiled in 343ms (905 modules)
+ ✓ Compiled in 251ms (905 modules)
+ ✓ Compiled in 239ms (905 modules)
+ ✓ Compiled in 333ms (905 modules)
+ ✓ Compiled in 231ms (905 modules)
+ ✓ Compiled in 256ms (905 modules)
+ ✓ Compiled in 303ms (905 modules)
+ ✓ Compiled in 885ms (905 modules)
+ ✓ Compiled in 390ms (905 modules)
+ ✓ Compiled in 288ms (905 modules)
+ ✓ Compiled in 256ms (905 modules)
+ ✓ Compiled in 311ms (905 modules)
+ ✓ Compiled in 246ms (905 modules)
+ ✓ Compiled in 586ms (905 modules)
+ ✓ Compiled in 3.1s (905 modules)
+ ✓ Compiled in 596ms (905 modules)
+ ✓ Compiled in 582ms (905 modules)
+ ✓ Compiled in 477ms (905 modules)
+ ✓ Compiled in 357ms (905 modules)
+ ✓ Compiled in 431ms (905 modules)
+ ✓ Compiled in 518ms (905 modules)
+[?25h

@@ -1,0 +1,38 @@
+{
+  "elemental-fog": {
+    "base": "/imagine prompt: cinematic scene with volumetric fog, soft warm backlight, low contrast, subtle grain, studio cinematic lens",
+    "parameters": "--ar 16:9 --v 5 --q 2",
+    "variations": [
+      "mystical fog rolling through ancient ruins",
+      "ethereal fog with floating particles",
+      "depth-layered fog in enchanted forest"
+    ]
+  },
+  "runic-glow": {
+    "base": "/imagine prompt: mystical runic glyphs carved in stone, subtle amber glow, evening, cinematic rim light, high detail",
+    "parameters": "--ar 16:9 --v 5 --q 2",
+    "variations": [
+      "animated energy flowing through runes",
+      "glowing architectural runes on temple walls",
+      "runic symbols pulsing with inner light"
+    ]
+  },
+  "sacral-vignette": {
+    "base": "/imagine prompt: sacral vignette, ritual cloth textures, candlelight, deep shadows, intimate composition",
+    "parameters": "--ar 16:9 --v 5 --q 2",
+    "variations": [
+      "sacred geometry framing mystical scene",
+      "ritual vignette with energy seals",
+      "mystical borders with sacred symbols"
+    ]
+  },
+  "melancholy-grade": {
+    "base": "/imagine prompt: melancholic color grading, cool blue shadows, warm golden highlights, cinematic mood, film photography",
+    "parameters": "--ar 16:9 --v 5 --q 2",
+    "variations": [
+      "contemplative atmosphere with cool tones",
+      "emotional depth through color contrast",
+      "nostalgic mood with balanced grading"
+    ]
+  }
+}

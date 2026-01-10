@@ -72,11 +72,10 @@ export default function SupplierDashboard() {
 
   const checkStripeConnection = async () => {
     try {
-      // Mock supplier ID - in production, get from auth session
-      const supplierId = 'supplier_123';
-      const res = await fetch(`/api/stripe/connect/onboard?supplierId=${supplierId}`);
-      if (res.ok) {
-        const data = await res.json();
+      // Get current supplier ID from authenticated user
+      const response = await fetch('/api/supplier/stripe/status');
+      if (response.ok) {
+        const data = await response.json();
         setStats(prev => ({
           ...prev,
           stripeConnected: data.connected,
@@ -91,26 +90,24 @@ export default function SupplierDashboard() {
   const connectStripe = async () => {
     setConnectingStripe(true);
     try {
-      // Mock supplier ID - in production, get from auth session
-      const supplierId = 'supplier_123';
-      
+      // Use authenticated supplier ID
       const res = await fetch('/api/stripe/connect/onboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ supplierId })
+        body: JSON.stringify({})
       });
 
       if (res.ok) {
         const data = await res.json();
-        // Redirect to Stripe OAuth
-        window.location.href = data.url;
+        if (data.url) {
+          window.location.href = data.url;
+        }
       } else {
-        const error = await res.json();
-        alert(`Failed to connect Stripe: ${error.error}`);
+        alert('Failed to connect Stripe account. Please try again.');
       }
     } catch (error) {
-      console.error('Connect Stripe error:', error);
-      alert('Failed to connect Stripe. Please try again.');
+      console.error('Failed to connect Stripe:', error);
+      alert('Failed to connect Stripe account. Please try again.');
     } finally {
       setConnectingStripe(false);
     }

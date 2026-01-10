@@ -1,0 +1,12 @@
+{
+  "name": "mythic-shaders-threejs",
+  "version": "1.0.0",
+  "description": "Mythic Shader Stack for Three.js/WebGL applications",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test-integration.js"
+  },
+  "dependencies": {
+    "three": "^0.128.0"
+  }
+}

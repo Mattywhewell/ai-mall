@@ -1,0 +1,18 @@
+{
+  "platform": "framer",
+  "version": "1.0.0",
+  "packageName": "mythic-shaders-framer-v1.0.0.zip",
+  "deployTarget": "framer-store",
+  "description": "Mythic Shader Stack integration for framer",
+  "files": [
+    "framer-components",
+    "framer-components\\MythicLayerRenderer.tsx"
+  ],
+  "deploymentInstructions": [
+    "Compress integrations/framer/ to ZIP file",
+    "Submit to Framer Store",
+    "Create component documentation"
+  ],
+  "created": "2026-01-09T10:25:22.348Z",
+  "author": "Aiverse Core"
+}

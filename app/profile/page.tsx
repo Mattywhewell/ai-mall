@@ -267,6 +267,7 @@ export default function ProfilePage() {
             <nav className="flex space-x-8 px-8">
               {[
                 { id: 'profile', label: 'Profile', icon: User },
+                { id: 'avatar', label: '3D Avatar', icon: Camera },
                 { id: 'orders', label: 'Orders', icon: Package },
                 { id: 'wishlist', label: 'Wishlist', icon: Heart },
                 { id: 'payment', label: 'Payment Methods', icon: CreditCard },
@@ -369,6 +370,24 @@ export default function ProfilePage() {
                     </button>
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab === 'avatar' && (
+              <div>
+                <div className="text-center mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">3D Avatar</h2>
+                  <p className="text-gray-600">Generate and manage your personalized 3D avatar</p>
+                </div>
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => router.push('/profile/avatar')}
+                    className="px-8 py-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-lg font-medium"
+                  >
+                    <Camera className="w-5 h-5 inline mr-2" />
+                    Generate 3D Avatar
+                  </button>
+                </div>
               </div>
             )}
 

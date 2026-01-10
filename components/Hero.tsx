@@ -47,16 +47,18 @@ export default function Hero() {
   useEffect(() => {
     // Persist A/B variant in localStorage and allow override via ?ab=b
     try {
-      const params = new URLSearchParams(window.location.search);
-      const q = params.get('ab');
-      const stored = localStorage.getItem('hero_variant');
-      let v: 'a'|'b' = (stored as 'a'|'b') || 'a';
-      if (q === 'b') v = 'b';
-      if (!stored) localStorage.setItem('hero_variant', v);
-      setVariant(v);
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const q = params.get('ab');
+        const stored = localStorage.getItem('hero_variant');
+        let v: 'a'|'b' = (stored as 'a'|'b') || 'a';
+        if (q === 'b') v = 'b';
+        if (!stored) localStorage.setItem('hero_variant', v);
+        setVariant(v);
 
-      // Track variant view
-      trackEvent('hero_variant_view', { variant: v });
+        // Track variant view
+        trackEvent('hero_variant_view', { variant: v });
+      }
     } catch (e) {
       // no-op
     }

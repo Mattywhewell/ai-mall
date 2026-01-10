@@ -1,0 +1,18 @@
+{
+  "platform": "v0",
+  "version": "1.0.0",
+  "packageName": "mythic-shaders-v0-prompt-v1.0.0.md",
+  "deployTarget": "v0-community",
+  "description": "Mythic Shader Stack integration for v0",
+  "files": [
+    "v0-components",
+    "v0-components\\v0-generation-prompt.md"
+  ],
+  "deploymentInstructions": [
+    "Share generation prompt on V0 forums",
+    "Create example implementations",
+    "Document component specifications"
+  ],
+  "created": "2026-01-09T10:25:22.416Z",
+  "author": "Aiverse Core"
+}

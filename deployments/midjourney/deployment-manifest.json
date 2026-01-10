@@ -1,0 +1,19 @@
+{
+  "platform": "midjourney",
+  "version": "1.0.0",
+  "packageName": "mythic-prompts-v1.0.0.json",
+  "deployTarget": "prompt-sharing-platforms",
+  "description": "Mythic Shader Stack integration for midjourney",
+  "files": [
+    "midjourney-prompts",
+    "midjourney-prompts\\generate-prompts.js",
+    "midjourney-prompts\\mythic-prompts.json"
+  ],
+  "deploymentInstructions": [
+    "Share prompt library on Midjourney forums",
+    "Create prompt template collections",
+    "Document prompt engineering techniques"
+  ],
+  "created": "2026-01-09T10:25:22.352Z",
+  "author": "Aiverse Core"
+}
