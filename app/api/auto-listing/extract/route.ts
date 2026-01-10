@@ -17,9 +17,21 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // Debug: log incoming request metadata to investigate 403s
+    console.log('[Auto-Listing] Incoming request', {
+      method: request.method,
+      url: request.url,
+      headers: {
+        'content-type': request.headers.get('content-type'),
+        authorization: request.headers.get('authorization'),
+        'x-forwarded-for': request.headers.get('x-forwarded-for'),
+      },
+    });
+
     let body;
     try {
       body = await request.json();
+      console.log('[Auto-Listing] Request body received:', body);
     } catch (jsonError) {
       console.error('[Auto-Listing] JSON parsing error:', jsonError);
       return NextResponse.json(
