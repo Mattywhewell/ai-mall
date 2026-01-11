@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Sky, Cloud, Environment } from '@react-three/drei';
+// import { Sky, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 
 export function SpatialEnvironment() {
@@ -20,23 +20,32 @@ export function SpatialEnvironment() {
 
   return (
     <>
-      {/* Sky */}
-      <Sky
+      {/* Sky component - disabled due to Polygon namespace issues */}
+      {/* <Sky
         distance={450000}
         sunPosition={[0, 1, 0]}
         inclination={0.49}
         azimuth={0.25}
-      />
+      /> */}
 
-      {/* Clouds */}
-      <Cloud
-        opacity={0.6}
-        speed={0.4}
-        width={20}
-        depth={1.5}
-        segments={20}
-        position={[0, 8, 0]}
-      />
+      {/* Simple gradient sky background */}
+      <color attach="background" args={['#87CEEB']} />
+
+      {/* Simple cloud effect using basic geometry */}
+      <group position={[0, 8, 0]}>
+        <mesh>
+          <sphereGeometry args={[3, 8, 6]} />
+          <meshBasicMaterial color="#FFFFFF" transparent opacity={0.3} />
+        </mesh>
+        <mesh position={[2, 0, 0]}>
+          <sphereGeometry args={[2.5, 8, 6]} />
+          <meshBasicMaterial color="#FFFFFF" transparent opacity={0.3} />
+        </mesh>
+        <mesh position={[-2, 0, 0]}>
+          <sphereGeometry args={[2.5, 8, 6]} />
+          <meshBasicMaterial color="#FFFFFF" transparent opacity={0.3} />
+        </mesh>
+      </group>
 
       {/* Lighting */}
       <ambientLight intensity={0.3} color="#87CEEB" />
@@ -62,8 +71,8 @@ export function SpatialEnvironment() {
         color="#FFE4B5"
       />
 
-      {/* Environment for reflections */}
-      <Environment preset="sunset" />
+      {/* Environment component - disabled due to Polygon namespace issues */}
+      {/* <Environment preset="sunset" /> */}
 
       {/* Atmospheric fog */}
       <fog attach="fog" args={['#87CEEB', 30, 100]} />

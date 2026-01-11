@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Text, Html } from '@react-three/drei';
+import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 
 export function Plaza() {
@@ -40,16 +40,11 @@ export function Plaza() {
         </mesh>
 
         {/* Welcome Text */}
-        <Text
-          position={[0, 5, 0]}
-          fontSize={0.5}
-          color="#2F4F4F"
-          anchorX="center"
-          anchorY="middle"
-          font="/fonts/inter.woff"
-        >
-          Aiverse Commons
-        </Text>
+        <Html position={[0, 5, 0]} center>
+          <div style={{ color: '#2F4F4F', fontSize: '24px', textAlign: 'center' }}>
+            Aiverse Commons
+          </div>
+        </Html>
       </group>
 
       {/* Plaza Floor */}

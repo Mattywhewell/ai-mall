@@ -1,5 +1,13 @@
 # Stripe Configuration Guide
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## Required Stripe Keys for AI City
 
 AI City uses Stripe for two main purposes:

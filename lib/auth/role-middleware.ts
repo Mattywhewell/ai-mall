@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/lib/supabase-server';
+import fs from 'fs';
+try { fs.mkdirSync('logs', { recursive: true }); } catch(e) { console.warn('Failed to create logs directory', e); }
 
 export type UserRole = 'customer' | 'supplier' | 'admin';
 
@@ -37,6 +39,12 @@ export async function checkUserRole(
     const authHeader = request.headers.get('authorization');
 
     if (!authHeader?.startsWith('Bearer ')) {
+      console.warn('[RoleCheck] Missing or invalid authorization header for request to', request.url, 'authHeaderPresent=', !!authHeader);
+      try {
+        fs.appendFileSync('logs/api-debug.log', JSON.stringify({ ts: new Date().toISOString(), event: 'auth-missing', url: request.url, authHeaderPresent: !!authHeader }) + '\n');
+      } catch (e) {
+        console.warn('Failed to persist auth-missing log', e);
+      }
       return {
         user: null,
         error: NextResponse.json(
@@ -81,6 +89,7 @@ export async function checkUserRole(
 
     // Check if user has required role
     if (!allowedRoles.includes(userRole)) {
+      console.warn('[RoleCheck] Insufficient permissions for user', user.id, 'required=', allowedRoles, 'current=', userRole, 'request=', request.url);
       return {
         user: null,
         error: NextResponse.json(

@@ -1,5 +1,13 @@
 # AI-Native Mall - Complete Setup Guide
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## Prerequisites
 - Node.js 18+ installed
 - Supabase account and project

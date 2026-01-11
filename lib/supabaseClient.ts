@@ -5,7 +5,9 @@ export { supabaseCreateClient as createClient };
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!supabaseUrl || !supabaseAnonKey || supabaseAnonKey === 'your-anon-key-here' || supabaseUrl.includes('placeholder')) {
+  console.warn('Supabase not configured, using placeholder client');
+} else if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables:', {
     hasUrl: !!supabaseUrl,
     hasKey: !!supabaseAnonKey

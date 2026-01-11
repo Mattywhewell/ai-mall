@@ -1,5 +1,13 @@
 # 🚀 SCALING INFRASTRUCTURE - AI MALL
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## Overview
 Complete scaling infrastructure to take AI Mall from MVP to unicorn status. This includes viral growth mechanisms, marketing automation, customer retention systems, and performance optimizations.
 

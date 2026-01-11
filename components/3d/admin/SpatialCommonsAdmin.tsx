@@ -1468,6 +1468,7 @@ export function SpatialCommonsAdmin() {
               </Card>
             </div>
           </div>
+          </div>
         </TabsContent>
       </Tabs>
 

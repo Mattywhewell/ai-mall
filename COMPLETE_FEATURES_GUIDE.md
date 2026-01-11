@@ -1,5 +1,13 @@
 # ✨ AI-Native Mall - Complete Feature Set
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## 🎯 System Overview
 
 Your platform is now a **fully-featured, production-ready e-commerce system** with:

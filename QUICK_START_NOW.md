@@ -1,5 +1,13 @@
 # 🎯 QUICK START GUIDE
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## ✅ What's Already Done
 
 1. ✅ **Dependencies Installed**

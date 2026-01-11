@@ -6,7 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Refund Policy | Aiverse',
+  title: 'Refund Policy | Alverse',
   description: 'Learn about our refund and return policies',
 };
 
@@ -36,8 +36,8 @@ export default function RefundsPage() {
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Overview</h2>
             <p className="text-gray-700">
-              At Aiverse, we want you to be completely satisfied with your purchase. This Refund Policy 
-              outlines the conditions under which refunds are available for products and services purchased 
+              At Alverse, we want you to be completely satisfied with your purchase. This Refund Policy
+              outlines the conditions under which refunds are available for products and services purchased
               through our platform.
             </p>
           </section>
@@ -59,7 +59,7 @@ export default function RefundsPage() {
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Physical Products</h2>
             <p className="text-gray-700 mb-3">
-              Physical products sold through Aiverse vendors are eligible for refunds:
+              Physical products sold through Alverse vendors are eligible for refunds:
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
               <li>Request made within 30 days of delivery</li>

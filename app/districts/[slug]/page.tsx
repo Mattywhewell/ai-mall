@@ -6,6 +6,9 @@ import { supabase } from '../../../lib/supabaseClient';
 import { Microstore, Product } from '@/lib/types';
 import ProductGrid from '@/components/ProductGrid';
 import { DistrictFilters } from '@/components/DistrictFilters';
+import MiniMap from '@/components/MiniMap';
+import PageTransition from '@/components/PageTransition';
+import AICitizen from '@/components/AICitizen';
 import Link from 'next/link';
 import { MapPin, Sparkles } from 'lucide-react';
 
@@ -24,7 +27,7 @@ export default function DistrictPage() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [worldContext, setWorldContext] = useState<WorldContext | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [userInteractions, setUserInteractions] = useState(0);
 
   useEffect(() => {
     async function fetchDistrictData() {
@@ -134,20 +137,22 @@ export default function DistrictPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Breadcrumb Navigation */}
-          <div className="flex items-center gap-2 text-sm mb-4">
-            <Link href="/city" className="text-indigo-600 hover:text-indigo-800">
-              City
-            </Link>
-            {worldContext?.hall && (
-              <>
-                <span className="text-gray-400">/</span>
-                <Link 
-                  href={`/halls/${worldContext.hall.slug}`}
+    <PageTransition>
+      <StructuredData microstore={microstore} slug={slug} />
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {/* Breadcrumb Navigation */}
+            <div className="flex items-center gap-2 text-sm mb-4">
+              <Link href="/city" className="text-indigo-600 hover:text-indigo-800">
+                City
+              </Link>
+              {worldContext?.hall && (
+                <>
+                  <span className="text-gray-400">/</span>
+                  <Link 
+                    href={`/halls/${worldContext.hall.slug}`}
                   className="text-indigo-600 hover:text-indigo-800"
                 >
                   {worldContext.hall.name}
@@ -214,6 +219,21 @@ export default function DistrictPage() {
         />
         <ProductGrid products={filteredProducts} />
       </div>
-    </div>
+
+      {/* Persistent Mini Map */}
+      <MiniMap
+        currentDistrict={microstore.name}
+        currentHall={worldContext?.hall?.name}
+        currentStreet={worldContext?.street?.name}
+      />
+
+      {/* AI Citizen */}
+      <AICitizen
+        districtId={slug}
+        userInteractions={userInteractions}
+        onGuidance={(message) => console.log('AI Citizen guidance:', message)}
+      />
+      </div>
+    </PageTransition>
   );
 }

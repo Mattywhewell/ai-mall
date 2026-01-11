@@ -1,5 +1,13 @@
 # Revenue Systems Guide - AI City
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## Overview
 
 Your AI City now includes **7 revenue-focused AI systems** designed to maximize profit, increase conversion, and automate optimization.

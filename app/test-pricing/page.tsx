@@ -35,6 +35,17 @@ export default function TestPricingPage() {
   
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
+      {/* Development Warning Banner */}
+      <div className="bg-red-600 text-white p-4 rounded-lg mb-6">
+        <div className="flex items-center">
+          <span className="text-2xl mr-2">⚠️</span>
+          <div>
+            <h2 className="font-bold">Development Only</h2>
+            <p className="text-sm">This page is for development testing and will return 404 in production.</p>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">
           Worldwide Pricing Test Suite

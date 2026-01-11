@@ -1,5 +1,13 @@
 # 🚀 Stripe Connect Quick Setup Guide
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## For AI City Marketplace
 
 ---

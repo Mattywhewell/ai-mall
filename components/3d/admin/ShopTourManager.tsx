@@ -569,5 +569,4 @@ function TourEditor({ tour, onSave, onCancel, isNew }: TourEditorProps) {
       </CardContent>
     </Card>
   );
-}</content>
-<parameter name="filePath">c:\Users\cupca\Documents\ai-mall\components\3d\admin\ShopTourManager.tsx
+}

@@ -1,5 +1,13 @@
 # Setup Checklist ✅
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 Use this checklist to ensure everything is set up correctly.
 
 ## Initial Setup

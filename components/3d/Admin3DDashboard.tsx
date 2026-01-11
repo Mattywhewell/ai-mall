@@ -177,5 +177,4 @@ export function Admin3DDashboard({ className = '' }: Admin3DDashboardProps) {
       </div>
     </div>
   );
-}</content>
-<parameter name="filePath">c:\Users\cupca\Documents\ai-mall\components\3d\Admin3DDashboard.tsx
+}

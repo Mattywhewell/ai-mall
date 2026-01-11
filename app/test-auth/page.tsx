@@ -9,6 +9,17 @@ export default function TestAuthPage() {
 
   return (
     <div className="min-h-screen p-8">
+      {/* Development Warning Banner */}
+      <div className="bg-red-600 text-white p-4 rounded-lg mb-6">
+        <div className="flex items-center">
+          <span className="text-2xl mr-2">⚠️</span>
+          <div>
+            <h2 className="font-bold">Development Only</h2>
+            <p className="text-sm">This page is for development testing and will return 404 in production.</p>
+          </div>
+        </div>
+      </div>
+
       <h1 className="text-3xl font-bold mb-6">Auth Test Page</h1>
       
       <div className="bg-white p-6 rounded-lg shadow-md space-y-4">

@@ -1,46 +1,56 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Text, Html, Sky, Environment, FirstPersonControls } from '@react-three/drei';
-import * as THREE from 'three';
-import MatterportViewer from './MatterportViewer';
+import React, { Suspense, useRef, useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 
-// Import our enhanced 3D components
-import { SpatialEnvironment as EnhancedSpatialEnvironment } from './3d/SpatialEnvironment';
-import { Plaza as EnhancedPlaza } from './3d/Plaza';
-import { DistrictPathways as EnhancedDistrictPathways } from './3d/DistrictPathways';
-import { AICitizens as EnhancedAICitizens } from './3d/AICitizens';
-import { ShopEntrances as EnhancedShopEntrances } from './3d/ShopEntrances';
-import { NavigationControls as EnhancedNavigationControls } from './3d/NavigationControls';
-import { ShopTourViewer as EnhancedShopTourViewer } from './3d/ShopTourViewer';
+// Dynamically import the entire 3D canvas to prevent SSR issues
+const SpatialCanvas = dynamic(() => import('./SpatialCanvas'), { ssr: false });
+
+// Dynamically import UI components that might have 3D dependencies
+const EnhancedShopTourViewer = dynamic(() => import('./3d/ShopTourViewer').then((mod) => mod.ShopTourViewer), { ssr: false });
+const EnhancedNavigationControls = dynamic(() => import('./3d/NavigationControls').then((mod) => mod.NavigationControls), { ssr: false });
+
+// Lightweight loading fallback for 3D components
+function Loading3DFallback() {
+  return (
+    <mesh>
+      <Html center>
+        <div className="text-white">Loading 3D environment…</div>
+      </Html>
+    </mesh>
+  );
+}
 
 // Error Boundary for Three.js components
 class ThreeErrorBoundary extends React.Component<
-  { children: React.ReactNode; fallback?: React.ReactNode },
+  { children: React.ReactNode; fallback?: React.ReactNode; componentName?: string },
   { hasError: boolean; error?: Error }
 > {
-  constructor(props: { children: React.ReactNode; fallback?: React.ReactNode }) {
+  constructor(props: { children: React.ReactNode; fallback?: React.ReactNode; componentName?: string }) {
     super(props);
     this.state = { hasError: false };
   }
 
   static getDerivedStateFromError(error: Error) {
+    // Log generic error
     console.error('Three.js Error Boundary caught an error:', error);
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Three.js Error Boundary details:', error, errorInfo);
+    // Include component name if provided
+    const name = (this.props as any).componentName || 'Unknown 3D Component';
+    console.error(`Three.js Error Boundary details for ${name}:`, error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
+      const name = (this.props as any).componentName || '3D Component';
       return this.props.fallback || (
         <div className="flex items-center justify-center h-full bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           <div>
-            <h3 className="font-bold">3D Rendering Error</h3>
-            <p className="text-sm">Unable to load the spatial environment. This might be due to WebGL not being supported or a graphics driver issue.</p>
+            <h3 className="font-bold">{name} Failed to Load</h3>
+            <p className="text-sm">Unable to load this part of the spatial environment.</p>
             <p className="text-xs mt-2">Error: {this.state.error?.message}</p>
           </div>
         </div>
@@ -58,6 +68,7 @@ export function SpatialCommons() {
   const [activeShopTour, setActiveShopTour] = useState<string | null>(null);
   const [activeArcade, setActiveArcade] = useState<string | null>(null);
   const [webglSupported, setWebglSupported] = useState<boolean | null>(null);
+  const [clientError, setClientError] = useState<Error | null>(null);
 
   useEffect(() => {
     // Check WebGL support
@@ -72,6 +83,29 @@ export function SpatialCommons() {
       console.error('Error checking WebGL support:', e);
       setWebglSupported(false);
     }
+  }, []);
+
+  // Global client-side error handler to capture runtime errors and show a banner
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const onError = (event: ErrorEvent) => {
+      console.error('Client error captured:', event.error || event.message);
+      setClientError(event.error || new Error(event.message || 'Unknown error'));
+    };
+
+    const onRejection = (event: PromiseRejectionEvent) => {
+      console.error('Unhandled rejection captured:', event.reason);
+      setClientError(event.reason instanceof Error ? event.reason : new Error(String(event.reason)));
+    };
+
+    window.addEventListener('error', onError);
+    window.addEventListener('unhandledrejection', onRejection as any);
+
+    return () => {
+      window.removeEventListener('error', onError);
+      window.removeEventListener('unhandledrejection', onRejection as any);
+    };
   }, []);
 
   if (webglSupported === false) {
@@ -99,56 +133,42 @@ export function SpatialCommons() {
 
   return (
     <div className="relative w-full h-screen bg-gradient-to-b from-blue-900 via-purple-900 to-indigo-900">
+      {/* Client-side error banner */}
+      {clientError && (
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 bg-red-600 text-white px-4 py-2 rounded shadow-md max-w-xl w-full mx-4">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 pr-4">
+              <strong className="block">Client Runtime Error</strong>
+              <div className="text-sm mt-1 truncate">{clientError.message}</div>
+            </div>
+            <div>
+              <button
+                className="ml-2 bg-white text-red-600 rounded px-3 py-1 text-sm font-medium"
+                onClick={() => setClientError(null)}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Spatial Canvas */}
       <ThreeErrorBoundary>
-        <Canvas
-          camera={{ position: [0, 5, 10], fov: 75 }}
-          shadows
-          className="w-full h-full"
-          onCreated={({ gl }) => {
-            console.log('Three.js canvas created successfully');
-            gl.setClearColor('#000011');
-          }}
-          onError={(error) => {
-            console.error('Three.js canvas error:', error);
-          }}
-        >
-          <EnhancedSpatialEnvironment />
-          <EnhancedPlaza />
-          <EnhancedDistrictPathways onDistrictSelect={(districtId) => {
+        <SpatialCanvas
+          navigationMode={navigationMode}
+          onDistrictSelect={(districtId) => {
             console.log('District selected:', districtId);
             // TODO: Implement district teleportation
-          }} />
-          <EnhancedAICitizens />
-          <EnhancedShopEntrances onShopEnter={setActiveShopTour} />
-          <EnhancedNavigationControls
-            mode={navigationMode}
-            onModeChange={setNavigationMode}
-            onHomeClick={() => {
-              console.log('Return to home');
-              // TODO: Implement return to plaza
-            }}
-          />
-          {navigationMode === 'walk' ? (
-            <FirstPersonControls
-              enabled={true}
-              movementSpeed={5}
-              lookSpeed={0.1}
-              constrainVertical={true}
-              verticalMax={Math.PI / 2}
-              verticalMin={-Math.PI / 2}
-            />
-          ) : (
-            <OrbitControls
-              enablePan={true}
-              enableZoom={true}
-              enableRotate={true}
-              maxPolarAngle={Math.PI / 2}
-              minDistance={2}
-              maxDistance={50}
-            />
-          )}
-        </Canvas>
+          }}
+          onShopSelect={(shopId) => {
+            console.log('Shop selected:', shopId);
+            setActiveShopTour(shopId);
+          }}
+          onCitizenInteract={(citizenId) => {
+            console.log('Citizen interaction:', citizenId);
+            // TODO: Implement citizen interaction
+          }}
+        />
       </ThreeErrorBoundary>
 
       {/* Active Shop Tour Viewer */}
@@ -174,6 +194,17 @@ export function SpatialCommons() {
         onModeChange={setNavigationMode}
       />
 
+      {/* Navigation Controls (DOM overlay) */}
+      <div className="absolute top-6 right-6 z-40">
+        <React.Suspense fallback={<div className="bg-white bg-opacity-80 p-2 rounded">Loading…</div>}>
+          <EnhancedNavigationControls
+            mode={navigationMode}
+            onModeChange={setNavigationMode}
+            onHomeClick={() => console.log('Return to home')}
+          />
+        </React.Suspense>
+      </div>
+
       {/* Traditional Fallback */}
       {showTraditionalUI && (
         <TraditionalNavigationFallback onClose={() => setShowTraditionalUI(false)} />
@@ -186,13 +217,14 @@ export function SpatialCommons() {
 function SpatialEnvironment() {
   return (
     <>
-      <Sky
+      {/* Sky and Environment components disabled - may be causing Polygon issues */}
+      {/* <Sky
         distance={450000}
         sunPosition={[0, 1, 0]}
         inclination={0}
         azimuth={0.25}
       />
-      <Environment preset="sunset" />
+      <Environment preset="sunset" /> */}
       <ambientLight intensity={0.4} />
       <directionalLight
         position={[10, 10, 5]}
@@ -569,66 +601,6 @@ function EmotionalWeather() {
 }
 
 // UI Overlay for Hybrid Navigation
-function SpatialUIOverlay({
-  onToggleTraditional,
-  navigationMode,
-  onModeChange
-}: {
-  onToggleTraditional: () => void;
-  navigationMode: 'walk' | 'teleport';
-  onModeChange: (mode: 'walk' | 'teleport') => void;
-}) {
-  return (
-    <div className="absolute top-4 left-4 z-10 space-y-2">
-      {/* Navigation Mode Toggle */}
-      <div className="bg-white/90 p-3 rounded-lg shadow-lg">
-        <div className="flex gap-2 mb-2">
-          <button
-            onClick={() => onModeChange('walk')}
-            className={`px-3 py-1 rounded ${
-              navigationMode === 'walk'
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-200 text-gray-700'
-            }`}
-          >
-            Walk
-          </button>
-          <button
-            onClick={() => onModeChange('teleport')}
-            className={`px-3 py-1 rounded ${
-              navigationMode === 'teleport'
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-200 text-gray-700'
-            }`}
-          >
-            Teleport
-          </button>
-        </div>
-
-        {/* Traditional UI Toggle */}
-        <button
-          onClick={onToggleTraditional}
-          className="w-full bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600"
-        >
-          Traditional View
-        </button>
-      </div>
-
-      {/* Welcome Message */}
-      <div className="bg-white/90 p-3 rounded-lg shadow-lg max-w-xs">
-        <h2 className="font-bold text-lg mb-2">Welcome to Aiverse Commons</h2>
-        <p className="text-sm text-gray-600 mb-2">
-          {navigationMode === 'walk' 
-            ? "Use WASD to walk around, mouse to look. Click on glowing pathways or use teleport buttons to explore districts." 
-            : "Explore the walkable city. Walk around, visit districts, or enter shops. Click on glowing pathways or use teleport navigation."}
-        </p>
-        <p className="text-xs text-gray-500">
-          Switch to Walk mode for first-person exploration, or Teleport mode for quick travel.
-        </p>
-      </div>
-    </div>
-  );
-}
 
 // Shop Tour Viewer Component
 function ShopTourViewer({ tourId, onClose }: { tourId: string; onClose: () => void }) {
@@ -881,6 +853,72 @@ function MonkeyTagGame({ onGameEnd }: { onGameEnd: () => void }) {
       {/* Instructions */}
       <div className="mt-6 text-orange-200">
         <p className="text-sm">Click the monkey as fast as you can before time runs out!</p>
+      </div>
+    </div>
+  );
+}
+
+// Spatial UI Overlay Component
+function SpatialUIOverlay({
+  onToggleTraditional,
+  navigationMode,
+  onModeChange
+}: {
+  onToggleTraditional: () => void;
+  navigationMode: 'walk' | 'teleport';
+  onModeChange: (mode: 'walk' | 'teleport') => void;
+}) {
+  return (
+    <div className="absolute top-4 left-4 z-30 bg-black/70 backdrop-blur-sm rounded-lg p-4 text-white max-w-xs">
+      <div className="space-y-3">
+        <div>
+          <h3 className="font-semibold text-sm mb-2">Navigation Mode</h3>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => onModeChange('walk')}
+              className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                navigationMode === 'walk'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-600 hover:bg-gray-500 text-gray-300'
+              }`}
+            >
+              🚶 Walk
+            </button>
+            <button
+              onClick={() => onModeChange('teleport')}
+              className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                navigationMode === 'teleport'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-600 hover:bg-gray-500 text-gray-300'
+              }`}
+            >
+              ⚡ Teleport
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <button
+            onClick={onToggleTraditional}
+            className="w-full bg-gray-600 hover:bg-gray-500 text-gray-300 px-3 py-2 rounded text-xs font-medium transition-colors"
+          >
+            📱 Traditional View
+          </button>
+        </div>
+
+        <div className="text-xs text-gray-400 border-t border-gray-600 pt-2">
+          {navigationMode === 'walk' ? (
+            <div>
+              <strong>Walk Mode:</strong><br />
+              Use WASD to move, mouse to look around
+            </div>
+          ) : (
+            <div>
+              <strong>Teleport Mode:</strong><br />
+              Click district buttons to jump instantly
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

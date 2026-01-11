@@ -8,11 +8,35 @@ import { autoListingEngine } from '@/lib/services/auto-listing-engine';
 import { fullAutomateCJOrder } from '@/lib/dropshipping/full-cj-order-automation';
 import { getSupabaseClient } from '@/lib/supabase-server';
 import { withRateLimit, rateLimiters } from '@/lib/rate-limiting/rate-limiter';
+import fs from 'fs';
+
+// Ensure logs directory exists for API debug traces
+try { fs.mkdirSync('logs', { recursive: true }); } catch (e) { console.warn('Failed to create logs directory', e); }
 
 export async function POST(request: NextRequest) {
   // Apply rate limiting
   const rateLimitResponse = await withRateLimit(request, rateLimiters.api);
   if (rateLimitResponse) {
+    try {
+      console.warn('[Auto-Listing] Request blocked by rate limiter', { status: rateLimitResponse.status, url: request.url });
+      // Persist to disk for offline debugging
+      const entry = {
+        ts: new Date().toISOString(),
+        event: 'auto-listing-blocked',
+        reason: 'rate_limit',
+        status: (rateLimitResponse as any)?.status || 'unknown',
+        url: request.url,
+        method: request.method,
+        headers: {
+          authorization: request.headers.get('authorization') ? '[present]' : '[missing]',
+          'content-type': request.headers.get('content-type'),
+          'x-forwarded-for': request.headers.get('x-forwarded-for')
+        }
+      };
+      fs.appendFileSync('logs/api-debug.log', JSON.stringify(entry) + '\n');
+    } catch (e) {
+      console.warn('[Auto-Listing] Rate limit logging failed', e);
+    }
     return rateLimitResponse;
   }
 
@@ -23,7 +47,7 @@ export async function POST(request: NextRequest) {
       url: request.url,
       headers: {
         'content-type': request.headers.get('content-type'),
-        authorization: request.headers.get('authorization'),
+        authorization: request.headers.get('authorization') ? '[present]' : '[missing]',
         'x-forwarded-for': request.headers.get('x-forwarded-for'),
       },
     });
@@ -47,6 +71,8 @@ export async function POST(request: NextRequest) {
 
     // Validation
     if (!product_url) {
+      const entry = { ts: new Date().toISOString(), event: 'auto-listing-validate', reason: 'missing_product_url', url: request.url };
+      try { fs.appendFileSync('logs/api-debug.log', JSON.stringify(entry) + '\n'); } catch(e){console.warn('Failed to write log', e)}
       return NextResponse.json(
         {
           success: false,
@@ -57,6 +83,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (!supplier_id) {
+      const entry = { ts: new Date().toISOString(), event: 'auto-listing-validate', reason: 'missing_supplier_id', url: request.url };
+      try { fs.appendFileSync('logs/api-debug.log', JSON.stringify(entry) + '\n'); } catch(e){console.warn('Failed to write log', e)}
       return NextResponse.json(
         {
           success: false,

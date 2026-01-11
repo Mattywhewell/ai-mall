@@ -32,7 +32,7 @@ CREATE POLICY "Admins can manage admin_assets" ON admin_assets
     EXISTS (
       SELECT 1 FROM user_roles
       WHERE user_roles.user_id = auth.uid()
-      AND user_roles.role IN ('admin', 'super_admin')
+      AND user_roles.role = 'admin'
     )
   );
 
@@ -134,7 +134,7 @@ CREATE POLICY "Admins can manage all avatars" ON user_avatars
     EXISTS (
       SELECT 1 FROM user_roles
       WHERE user_roles.user_id = auth.uid()
-      AND user_roles.role IN ('admin', 'super_admin')
+      AND user_roles.role = 'admin'
     )
   );
 

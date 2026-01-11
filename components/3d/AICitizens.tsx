@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Text, Html } from '@react-three/drei';
+import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface AICitizen {
@@ -152,28 +152,18 @@ function AICitizen({ citizen, isInteracting, onInteract }: AICitizenProps) {
       </mesh>
 
       {/* Name Tag */}
-      <Text
-        position={[0, 2.8, 0]}
-        fontSize={0.3}
-        color="#2F4F4F"
-        anchorX="center"
-        anchorY="middle"
-        font="/fonts/inter.woff"
-      >
-        {citizen.emoji} {citizen.name}
-      </Text>
+      <Html position={[0, 2.8, 0]} center>
+        <div style={{ color: '#2F4F4F', fontSize: '14px', textAlign: 'center' }}>
+          {citizen.emoji} {citizen.name}
+        </div>
+      </Html>
 
       {/* Personality Indicator */}
-      <Text
-        position={[0, 2.5, 0]}
-        fontSize={0.15}
-        color="#666666"
-        anchorX="center"
-        anchorY="middle"
-        font="/fonts/inter.woff"
-      >
-        {citizen.personality}
-      </Text>
+      <Html position={[0, 2.5, 0]} center>
+        <div style={{ color: '#666666', fontSize: '12px', textAlign: 'center' }}>
+          {citizen.personality}
+        </div>
+      </Html>
 
       {/* Interaction Indicator */}
       {isInteracting && (

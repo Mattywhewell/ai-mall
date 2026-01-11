@@ -1,0 +1,583 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Aiverse API",
+    "description": "API documentation for the Aiverse autonomous e-commerce platform",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Aiverse Support",
+      "url": "https://alverse.app/contact"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://alverse.app",
+      "description": "Production server"
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Development server"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          }
+        },
+        "required": ["error"]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "email": { "type": "string" },
+          "username": { "type": "string" },
+          "role": { "type": "string", "enum": ["user", "creator", "admin"] }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "price": { "type": "number" },
+          "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+          "creator_id": { "type": "string" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/world/city": {
+      "get": {
+        "summary": "Get city overview",
+        "description": "Returns personalized city data with halls, streets, and featured content",
+        "tags": ["World"],
+        "responses": {
+          "200": {
+            "description": "City data retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "halls": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "name": { "type": "string" },
+                          "description": { "type": "string" }
+                        }
+                      }
+                    },
+                    "streets": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "slug": { "type": "string" },
+                          "name": { "type": "string" },
+                          "popularity_score": { "type": "number" }
+                        }
+                      }
+                    },
+                    "chapels": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "name": { "type": "string" },
+                          "visit_count": { "type": "number" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/world/halls/{id}": {
+      "get": {
+        "summary": "Get hall details",
+        "description": "Returns detailed information about a specific hall",
+        "tags": ["World"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Hall ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Hall data retrieved successfully"
+          },
+          "404": {
+            "description": "Hall not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/world/streets/{slug}": {
+      "get": {
+        "summary": "Get street details",
+        "description": "Returns detailed information about a specific street",
+        "tags": ["World"],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Street slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Street data retrieved successfully"
+          },
+          "404": {
+            "description": "Street not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/world/chapels/{id}": {
+      "get": {
+        "summary": "Get chapel details",
+        "description": "Returns detailed information about a specific chapel",
+        "tags": ["World"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Chapel ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chapel data retrieved successfully"
+          },
+          "404": {
+            "description": "Chapel not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/world/evolution": {
+      "post": {
+        "summary": "Trigger world evolution",
+        "description": "Manually trigger the autonomous world evolution process",
+        "tags": ["World", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Evolution triggered successfully"
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/profile": {
+      "get": {
+        "summary": "Get user profile",
+        "description": "Returns the current user's profile information",
+        "tags": ["User"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User" }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update user profile",
+        "description": "Updates the current user's profile information",
+        "tags": ["User"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": { "type": "string" },
+                  "bio": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated successfully"
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/marketplace/products": {
+      "get": {
+        "summary": "Get marketplace products",
+        "description": "Returns a list of products available in the marketplace",
+        "tags": ["Marketplace"],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1 },
+            "description": "Page number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "default": 20 },
+            "description": "Items per page"
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Filter by category"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "products": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Product" }
+                    },
+                    "total": { "type": "integer" },
+                    "page": { "type": "integer" },
+                    "pages": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/marketplace/search": {
+      "get": {
+        "summary": "Search marketplace",
+        "description": "Search for products in the marketplace",
+        "tags": ["Marketplace"],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Search query"
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Filter by category"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/seller/dashboard": {
+      "get": {
+        "summary": "Get seller dashboard",
+        "description": "Returns dashboard data for sellers",
+        "tags": ["Seller"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Dashboard data retrieved successfully"
+          },
+          "403": {
+            "description": "Seller access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/seller/products": {
+      "get": {
+        "summary": "Get seller products",
+        "description": "Returns products owned by the current seller",
+        "tags": ["Seller"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Products retrieved successfully"
+          },
+          "403": {
+            "description": "Seller access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create new product",
+        "description": "Creates a new product for the seller",
+        "tags": ["Seller"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "price": { "type": "number" },
+                  "category": { "type": "string" }
+                },
+                "required": ["name", "price"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Product created successfully"
+          },
+          "403": {
+            "description": "Seller access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/pending-approvals": {
+      "get": {
+        "summary": "Get pending approvals",
+        "description": "Returns products pending admin approval",
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Pending approvals retrieved successfully"
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auto-listing/extract": {
+      "post": {
+        "summary": "Extract product data",
+        "description": "Extracts product information from external URLs",
+        "tags": ["Auto Listing"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "product_url": { "type": "string" },
+                  "supplier_id": { "type": "string" }
+                },
+                "required": ["product_url", "supplier_id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Product data extracted successfully"
+          },
+          "400": {
+            "description": "Invalid request data",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cron/update-world": {
+      "post": {
+        "summary": "Update world",
+        "description": "Triggers the world update cron job",
+        "tags": ["Cron", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "World update triggered successfully"
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/stripe/webhook": {
+      "post": {
+        "summary": "Stripe webhook",
+        "description": "Handles Stripe webhook events",
+        "tags": ["Stripe"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook processed successfully"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "World",
+      "description": "World and city-related endpoints"
+    },
+    {
+      "name": "User",
+      "description": "User management endpoints"
+    },
+    {
+      "name": "Marketplace",
+      "description": "Marketplace and product browsing"
+    },
+    {
+      "name": "Seller",
+      "description": "Seller dashboard and product management"
+    },
+    {
+      "name": "Admin",
+      "description": "Administrative endpoints"
+    },
+    {
+      "name": "Auto Listing",
+      "description": "Automated product listing endpoints"
+    },
+    {
+      "name": "Cron",
+      "description": "Scheduled job endpoints"
+    },
+    {
+      "name": "Stripe",
+      "description": "Payment processing endpoints"
+    }
+  ]
+}

@@ -23,6 +23,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check if Supabase is properly configured
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    // Skip Supabase initialization if credentials are not properly configured
+    if (!supabaseUrl || !supabaseKey || supabaseKey === 'your-anon-key-here' || supabaseUrl.includes('placeholder')) {
+      console.warn('Supabase not configured, running in offline mode');
+      setSession(null);
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
     // Allow dev-only test user via ?test_user=true
     if (process.env.NODE_ENV !== 'production' && typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);

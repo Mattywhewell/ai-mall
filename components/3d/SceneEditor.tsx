@@ -22,6 +22,7 @@ import * as THREE from 'three';
 interface SceneEditorProps {
   initialModelUrl?: string;
   onSave?: (sceneData: any) => void;
+  onSaveRef?: React.MutableRefObject<(() => void) | null>;
 }
 
 interface SceneObject {
@@ -220,12 +221,13 @@ function TransformController({
   );
 }
 
-export function SceneEditor({ initialModelUrl, onSave }: SceneEditorProps) {
+export function SceneEditor({ initialModelUrl, onSave, onSaveRef }: SceneEditorProps) {
   const [objects, setObjects] = useState<SceneObject[]>([]);
   const [selectedObject, setSelectedObject] = useState<SceneObject | null>(null);
   const [transformMode, setTransformMode] = useState<'translate' | 'rotate' | 'scale'>('translate');
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
   const [showGrid, setShowGrid] = useState(true);
+  const [webglSupported, setWebglSupported] = useState<boolean | null>(null);
 
   // Initialize with model if provided
   useEffect(() => {
@@ -241,6 +243,28 @@ export function SceneEditor({ initialModelUrl, onSave }: SceneEditorProps) {
       setObjects([initialObject]);
     }
   }, [initialModelUrl]);
+
+  // Check WebGL support
+  useEffect(() => {
+    const checkWebGL = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        setWebglSupported(!!gl);
+      } catch (e) {
+        setWebglSupported(false);
+      }
+    };
+
+    checkWebGL();
+  }, []);
+
+  // Expose save function via ref
+  useEffect(() => {
+    if (onSaveRef) {
+      onSaveRef.current = handleSave;
+    }
+  }, [onSave]);
 
   const addPrimitive = useCallback((type: 'box' | 'sphere' | 'plane') => {
     const newObject: SceneObject = {
@@ -395,43 +419,64 @@ export function SceneEditor({ initialModelUrl, onSave }: SceneEditorProps) {
 
       {/* 3D Canvas */}
       <div className="flex-1">
-        <Canvas
-          camera={{ position: [5, 5, 5], fov: 50 }}
-          gl={{
-            antialias: true,
-            alpha: false,
-            powerPreference: 'high-performance'
-          }}
-          dpr={[1, 2]}
-          onPointerMissed={() => setSelectedObject(null)}
-        >
-          {/* Background */}
-          <color attach="background" args={[backgroundColor]} />
+        {webglSupported === false ? (
+          <div className="flex items-center justify-center h-full bg-gray-100 rounded-lg">
+            <div className="text-center p-8">
+              <div className="text-6xl mb-4">🚫</div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">WebGL Not Supported</h3>
+              <p className="text-gray-600 mb-4">
+                Your browser doesn't support WebGL, which is required for 3D scene editing.
+              </p>
+              <p className="text-sm text-gray-500">
+                Try updating your browser or enabling hardware acceleration in your browser settings.
+              </p>
+            </div>
+          </div>
+        ) : webglSupported === null ? (
+          <div className="flex items-center justify-center h-full bg-gray-100 rounded-lg">
+            <div className="text-center p-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Checking WebGL support...</p>
+            </div>
+          </div>
+        ) : (
+          <Canvas
+            camera={{ position: [5, 5, 5], fov: 50 }}
+            gl={{
+              antialias: true,
+              alpha: false,
+              powerPreference: 'high-performance'
+            }}
+            dpr={[1, 2]}
+            onPointerMissed={() => setSelectedObject(null)}
+          >
+            {/* Background */}
+            <color attach="background" args={[backgroundColor]} />
 
-          {/* Lighting */}
-          <ambientLight intensity={0.3} />
-          <directionalLight
-            position={[10, 10, 5]}
-            intensity={1}
-            castShadow
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
-          />
-
-          {/* Grid */}
-          {showGrid && (
-            <gridHelper args={[20, 20, '#444444', '#333333']} />
-          )}
-
-          {/* Scene Objects */}
-          {objects.map((object) => (
-            <SceneObjectComponent
-              key={object.id}
-              object={object}
-              isSelected={selectedObject?.id === object.id}
-              onSelect={() => setSelectedObject(object)}
+            {/* Lighting */}
+            <ambientLight intensity={0.3} />
+            <directionalLight
+              position={[10, 10, 5]}
+              intensity={1}
+              castShadow
+              shadow-mapSize-width={2048}
+              shadow-mapSize-height={2048}
             />
-          ))}
+
+            {/* Grid */}
+            {showGrid && (
+              <gridHelper args={[20, 20, '#444444', '#333333']} />
+            )}
+
+            {/* Scene Objects */}
+            {objects.map((object) => (
+              <SceneObjectComponent
+                key={object.id}
+                object={object}
+                isSelected={selectedObject?.id === object.id}
+                onSelect={() => setSelectedObject(object)}
+              />
+            ))}
 
           {/* Transform Controls */}
           <TransformController
@@ -449,6 +494,7 @@ export function SceneEditor({ initialModelUrl, onSave }: SceneEditorProps) {
             maxDistance={50}
           />
         </Canvas>
+        )}
       </div>
 
       {/* Status Bar */}

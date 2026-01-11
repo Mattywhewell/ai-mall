@@ -1,5 +1,13 @@
 # ✅ AI Commerce Engine - Implementation Complete
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## 🎯 What Was Built
 
 A **fully automated product evaluation and import system** that scores every product on 5 weighted pillars and makes intelligent import decisions. **Only profitable, high-demand, low-risk, on-brand products enter the marketplace.**

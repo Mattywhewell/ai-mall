@@ -6,7 +6,7 @@ import { AuthProvider } from '@/lib/auth/AuthContext';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Aiverse - Conscious Commerce',
+  title: 'Alverse - Conscious Commerce',
   description: 'Experience a living AI city where creators, AI citizens, and conscious commerce coexist',
 };
 

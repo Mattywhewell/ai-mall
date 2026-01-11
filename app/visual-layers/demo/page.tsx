@@ -1,7 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import VisualLayerRenderer from "@/components/visual-layer/Renderer";
+import dynamic from "next/dynamic";
+
+// Dynamically import the 3D renderer to prevent SSR issues
+const VisualLayerRenderer = dynamic(() => import("@/components/visual-layer/Renderer"), { ssr: false });
 
 export default function DemoPage() {
   const [strength, setStrength] = useState(0.6);

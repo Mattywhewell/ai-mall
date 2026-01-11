@@ -1,6 +1,12 @@
 # AI City - Complete Feature Set
 ## The Living, Breathing Digital Marketplace
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
 ---
 
 ## 🎭 Core Philosophy

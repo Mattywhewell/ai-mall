@@ -1,5 +1,13 @@
 # Testing Stripe Connect Integration
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## 🎯 Quick Test Guide
 
 This guide helps you test the complete Stripe Connect OAuth flow for supplier payouts.

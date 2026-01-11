@@ -127,12 +127,6 @@ async function uploadGeneratedModel(modelUrl: string, jobId: string): Promise<st
     return modelUrl;
   }
 }
-    throw new Error(`Failed to download model: ${response.statusText}`);
-  }
-
-  const blob = await response.blob();
-  return new File([blob], 'generated-model.glb', { type: 'model/gltf-binary' });
-}
 
 // Function to check generation status (for polling)
 export async function checkGenerationStatus(jobId: string): Promise<{

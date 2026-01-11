@@ -125,5 +125,4 @@ export function SpatialCommons({ className = '' }: SpatialCommonsProps) {
       </div>
     </div>
   );
-}</content>
-<parameter name="filePath">c:\Users\cupca\Documents\ai-mall\components\3d\SpatialCommons.tsx
+}

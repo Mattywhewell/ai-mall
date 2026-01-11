@@ -149,6 +149,17 @@ export function createRateLimit(options: RateLimitOptions) {
 
     const allowed = count <= maxRequests;
 
+    // Debug logging for rate limiting behavior
+    try {
+      console.log('[RateLimit] key=', key, 'count=', count, 'limit=', maxRequests, 'allowed=', allowed);
+    } catch (e) {
+      console.warn('[RateLimit] Failed to log rate limit info', e);
+    }
+
+    if (!allowed) {
+      console.warn(`[RateLimit] Throttling request key=${key} count=${count} limit=${maxRequests}`);
+    }
+
     return {
       allowed,
       count,

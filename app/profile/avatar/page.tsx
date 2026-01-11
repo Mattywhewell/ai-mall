@@ -3,7 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Camera, Loader2, CheckCircle, XCircle, RotateCcw, Eye } from 'lucide-react';
-import { ModelViewer } from '@/components/3d/ModelViewer';
+import dynamic from 'next/dynamic';
+
+// Dynamically import 3D components to prevent SSR issues
+const ModelViewer = dynamic(() => import('@/components/3d/ModelViewer').then(mod => mod.ModelViewer), { ssr: false });
 
 interface UserAvatar {
   id: string;

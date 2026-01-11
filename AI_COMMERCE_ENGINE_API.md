@@ -1,5 +1,13 @@
 # 🔌 AI Commerce Engine - API Reference
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 Quick reference for all AI Commerce Engine API endpoints.
 
 ---

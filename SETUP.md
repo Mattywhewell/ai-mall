@@ -1,5 +1,13 @@
 # AI-Native Mall Setup Guide
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## Database Setup
 
 ### 1. Create Tables in Supabase

@@ -1,5 +1,13 @@
 # 🧬 Autonomous AI-Native Commerce Platform
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## Welcome to the Self-Evolving Mall
 
 This is not just an e-commerce platform. This is a **living, learning, self-optimizing organism** that continuously improves itself without human intervention.

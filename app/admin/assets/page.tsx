@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Upload, Eye, Edit, Trash2, Plus, Loader2 } from 'lucide-react';
-import { ModelViewer } from '@/components/3d/ModelViewer';
-import { SceneEditor } from '@/components/3d/SceneEditor';
+import dynamic from 'next/dynamic';
+
+// Dynamically import 3D components to prevent SSR issues
+const ModelViewer = dynamic(() => import('@/components/3d/ModelViewer').then(mod => mod.ModelViewer), { ssr: false });
+const SceneEditor = dynamic(() => import('@/components/3d/SceneEditor').then(mod => mod.SceneEditor), { ssr: false });
 
 interface AdminAsset {
   id: string;
@@ -389,6 +392,7 @@ function SceneEditorModal({
 }) {
   const [sceneName, setSceneName] = useState(`Scene from ${asset.name}`);
   const [saving, setSaving] = useState(false);
+  const saveRef = useRef<(() => void) | null>(null);
 
   const handleSaveScene = async (sceneData: any) => {
     setSaving(true);
@@ -422,6 +426,12 @@ function SceneEditorModal({
     }
   };
 
+  const handleSaveClick = () => {
+    if (saveRef.current) {
+      saveRef.current();
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg w-full max-w-6xl h-5/6 flex flex-col">
@@ -445,7 +455,7 @@ function SceneEditorModal({
               Cancel
             </button>
             <button
-              onClick={() => {}}
+              onClick={handleSaveClick}
               className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50"
               disabled={saving}
             >
@@ -464,6 +474,7 @@ function SceneEditorModal({
           <SceneEditor
             initialModelUrl={asset.file_url}
             onSave={handleSaveScene}
+            onSaveRef={saveRef}
           />
         </div>
       </div>

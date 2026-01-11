@@ -1,5 +1,13 @@
 # 🚀 PRODUCTION SETUP CHECKLIST
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## ✅ Step 1: Database Migrations
 
 ### Run in Supabase SQL Editor

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Text, Html } from '@react-three/drei';
+import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface ShopEntrancesProps {
@@ -154,28 +154,18 @@ function ShopEntrance({ shop, isHovered, onHover, onEnter }: ShopEntranceProps) 
       </mesh>
 
       {/* Shop Name */}
-      <Text
-        position={[0, 3, 1.6]}
-        fontSize={0.3}
-        color="#2F4F4F"
-        anchorX="center"
-        anchorY="middle"
-        font="/fonts/inter.woff"
-      >
-        {shop.emoji} {shop.name}
-      </Text>
+      <Html position={[0, 3, 1.6]} center>
+        <div style={{ color: '#2F4F4F', fontSize: '14px', textAlign: 'center' }}>
+          {shop.emoji} {shop.name}
+        </div>
+      </Html>
 
       {/* Category */}
-      <Text
-        position={[0, 2.5, 1.6]}
-        fontSize={0.15}
-        color="#666666"
-        anchorX="center"
-        anchorY="middle"
-        font="/fonts/inter.woff"
-      >
-        {shop.category}
-      </Text>
+      <Html position={[0, 2.5, 1.6]} center>
+        <div style={{ color: '#666666', fontSize: '12px', textAlign: 'center' }}>
+          {shop.category}
+        </div>
+      </Html>
 
       {/* Hover Info */}
       {isHovered && (

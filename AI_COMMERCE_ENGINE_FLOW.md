@@ -1,5 +1,13 @@
 # 🤖 AI Commerce Engine - Visual Flow Diagram
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                      🤖 AI COMMERCE ENGINE                                  │

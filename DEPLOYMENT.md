@@ -1,5 +1,13 @@
 # AI City Deployment Guide
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## Quick Start
 
 ### 1. Database Setup

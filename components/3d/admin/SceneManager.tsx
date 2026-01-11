@@ -459,5 +459,4 @@ function SceneEditor({ scene, onSave, onCancel, isNew }: SceneEditorProps) {
       </CardContent>
     </Card>
   );
-}</content>
-<parameter name="filePath">c:\Users\cupca\Documents\ai-mall\components\3d\admin\SceneManager.tsx
+}

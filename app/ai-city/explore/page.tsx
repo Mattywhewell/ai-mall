@@ -16,6 +16,23 @@ export default function AICityExplorer() {
   const [timeOfDay, setTimeOfDay] = useState<'dawn' | 'day' | 'dusk' | 'night'>('day');
   const [activeDistrict, setActiveDistrict] = useState<string | null>(null);
   const [flowAnimation, setFlowAnimation] = useState(true);
+  const [cursorRhythm, setCursorRhythm] = useState<'slow' | 'medium' | 'fast'>('medium');
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [mouseHistory, setMouseHistory] = useState<Array<{x: number, y: number, time: number}>>([]);
+  const [userMood, setUserMood] = useState<'curious' | 'focused' | 'exploratory' | 'overwhelmed'>('curious');
+  const [interactionPatterns, setInteractionPatterns] = useState({
+    hoverTime: 0,
+    clicks: 0,
+    scrolls: 0,
+    districtVisits: new Set<string>(),
+    lastActivity: Date.now()
+  });
+  const [userMemory, setUserMemory] = useState({
+    favoriteDistricts: [] as string[],
+    visitCount: {} as Record<string, number>,
+    preferredTimeOfDay: 'day' as 'dawn' | 'day' | 'dusk' | 'night',
+    journeyHistory: [] as Array<{district: string, timestamp: number, duration: number}>
+  });
 
   useEffect(() => {
     // Cycle through time of day every 30 seconds
@@ -27,6 +44,144 @@ export default function AICityExplorer() {
       });
     }, 30000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Load and save user memory
+  useEffect(() => {
+    const savedMemory = localStorage.getItem('ai-city-memory');
+    if (savedMemory) {
+      try {
+        const memory = JSON.parse(savedMemory);
+        setUserMemory(memory);
+        // Set preferred time of day
+        if (memory.preferredTimeOfDay) {
+          setTimeOfDay(memory.preferredTimeOfDay);
+        }
+      } catch (error) {
+        console.log('Could not load user memory');
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('ai-city-memory', JSON.stringify(userMemory));
+  }, [userMemory]);
+
+  // Cursor rhythm detection
+  useEffect(() => {
+    let lastTime = Date.now();
+    let lastPosition = { x: 0, y: 0 };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const currentTime = Date.now();
+      const currentPosition = { x: e.clientX, y: e.clientY };
+      
+      setMousePosition(currentPosition);
+      
+      // Track mouse history for rhythm analysis
+      setMouseHistory(prev => {
+        const newHistory = [...prev.slice(-10), { ...currentPosition, time: currentTime }];
+        
+        // Calculate average speed over last 10 movements
+        if (newHistory.length >= 5) {
+          let totalDistance = 0;
+          let totalTime = 0;
+          
+          for (let i = 1; i < newHistory.length; i++) {
+            const dx = newHistory[i].x - newHistory[i-1].x;
+            const dy = newHistory[i].y - newHistory[i-1].y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const timeDiff = newHistory[i].time - newHistory[i-1].time;
+            
+            totalDistance += distance;
+            totalTime += timeDiff;
+          }
+          
+          const avgSpeed = totalDistance / (totalTime / 1000); // pixels per second
+          
+          if (avgSpeed < 200) setCursorRhythm('slow');
+          else if (avgSpeed < 500) setCursorRhythm('medium');
+          else setCursorRhythm('fast');
+        }
+        
+        return newHistory;
+      });
+      
+      lastTime = currentTime;
+      lastPosition = currentPosition;
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Mood detection based on interaction patterns
+  useEffect(() => {
+    const moodInterval = setInterval(() => {
+      const patterns = interactionPatterns;
+      const timeSinceActivity = Date.now() - patterns.lastActivity;
+
+      // Mood detection logic
+      if (patterns.hoverTime > 30000 && patterns.districtVisits.size >= 3) {
+        setUserMood('focused'); // Deep engagement
+      } else if (patterns.clicks > 10 && timeSinceActivity < 5000) {
+        setUserMood('exploratory'); // Active exploration
+      } else if (patterns.hoverTime < 5000 && patterns.districtVisits.size < 2) {
+        setUserMood('curious'); // Initial curiosity
+      } else if (timeSinceActivity > 30000 || patterns.scrolls > 20) {
+        setUserMood('overwhelmed'); // Information overload
+      }
+    }, 5000);
+
+    return () => clearInterval(moodInterval);
+  }, [interactionPatterns]);
+
+  // Track interactions
+  const trackInteraction = (type: 'hover' | 'click' | 'scroll' | 'visit', districtId?: string) => {
+    setInteractionPatterns(prev => ({
+      ...prev,
+      lastActivity: Date.now(),
+      [type === 'hover' ? 'hoverTime' : type === 'click' ? 'clicks' : type === 'scroll' ? 'scrolls' : 'districtVisits']:
+        type === 'visit' && districtId
+          ? new Set([...prev.districtVisits, districtId])
+          : type === 'hover'
+          ? prev.hoverTime + 1000
+          : prev[type === 'click' ? 'clicks' : 'scrolls'] + 1
+    }));
+
+    // Update memory for visits
+    if (type === 'visit' && districtId) {
+      setUserMemory(prev => {
+        const newVisitCount = { ...prev.visitCount };
+        newVisitCount[districtId] = (newVisitCount[districtId] || 0) + 1;
+
+        const newJourneyHistory = [...prev.journeyHistory.slice(-9), {
+          district: districtId,
+          timestamp: Date.now(),
+          duration: 0 // Could be calculated based on time spent
+        }];
+
+        // Update favorite districts (top 3 most visited)
+        const sortedDistricts = Object.entries(newVisitCount)
+          .sort(([,a], [,b]) => b - a)
+          .slice(0, 3)
+          .map(([district]) => district);
+
+        return {
+          ...prev,
+          visitCount: newVisitCount,
+          journeyHistory: newJourneyHistory,
+          favoriteDistricts: sortedDistricts
+        };
+      });
+    }
+  };
+
+  // Scroll tracking
+  useEffect(() => {
+    const handleScroll = () => trackInteraction('scroll');
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const districts = [
@@ -102,28 +257,80 @@ export default function AICityExplorer() {
     night: 'from-indigo-900 via-purple-900 to-slate-900'
   };
 
+  // Mood-based atmospheric effects
+  const moodAtmospheres = {
+    curious: {
+      overlay: 'bg-gradient-to-br from-transparent via-blue-500/10 to-transparent',
+      particles: 'sparkle',
+      intensity: 'gentle'
+    },
+    focused: {
+      overlay: 'bg-gradient-to-br from-transparent via-purple-500/15 to-transparent',
+      particles: 'flow',
+      intensity: 'moderate'
+    },
+    exploratory: {
+      overlay: 'bg-gradient-to-br from-transparent via-green-500/10 to-transparent',
+      particles: 'energy',
+      intensity: 'active'
+    },
+    overwhelmed: {
+      overlay: 'bg-gradient-to-br from-transparent via-gray-500/20 to-transparent',
+      particles: 'calm',
+      intensity: 'subtle'
+    }
+  };
+
+  const currentAtmosphere = moodAtmospheres[userMood];
+
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${skyGradients[timeOfDay]} transition-all duration-[3000ms] relative overflow-hidden`}>
+    <div className={`min-h-screen bg-gradient-to-br ${skyGradients[timeOfDay]} transition-all duration-[3000ms] relative overflow-hidden ${currentAtmosphere.overlay}`}>
+      {/* Mood indicator */}
+      <div className="absolute top-4 right-4 z-10 bg-black/20 backdrop-blur-sm rounded-full px-3 py-1 text-white text-sm">
+        Mood: {userMood}
+      </div>
+
+      {/* Memory welcome for returning visitors */}
+      {userMemory.journeyHistory.length > 0 && (
+        <div className="absolute top-4 left-4 z-10 bg-black/20 backdrop-blur-sm rounded-xl px-4 py-2 text-white max-w-xs">
+          <div className="text-sm font-semibold mb-1">Welcome back! 👋</div>
+          <div className="text-xs opacity-90">
+            {userMemory.favoriteDistricts.length > 0 && (
+              <>Your favorite districts: {userMemory.favoriteDistricts.join(', ')}</>
+            )}
+          </div>
+        </div>
+      )}
       {/* Atmospheric Effects */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* Floating particles */}
-        <div className="absolute inset-0 opacity-30">
-          {[...Array(30)].map((_, i) => (
+        {/* Mood-responsive floating particles */}
+        <div className={`absolute inset-0 ${userMood === 'overwhelmed' ? 'opacity-10' : 'opacity-30'}`}>
+          {[...Array(userMood === 'exploratory' ? 50 : userMood === 'focused' ? 20 : 30)].map((_, i) => (
             <div
               key={i}
-              className="absolute w-1 h-1 bg-white rounded-full animate-float"
+              className={`absolute rounded-full animate-float ${
+                userMood === 'curious' ? 'w-1 h-1 bg-blue-200' :
+                userMood === 'focused' ? 'w-2 h-2 bg-purple-300' :
+                userMood === 'exploratory' ? 'w-1 h-1 bg-green-200' :
+                'w-1 h-1 bg-gray-300'
+              }`}
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
                 animationDelay: `${Math.random() * 5}s`,
-                animationDuration: `${5 + Math.random() * 10}s`
+                animationDuration: `${userMood === 'overwhelmed' ? 15 : 5 + Math.random() * 10}s`
               }}
             />
           ))}
         </div>
 
-        {/* Fog layers */}
-        <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-white/10 to-transparent backdrop-blur-sm" />
+        {/* Mood-responsive fog layers */}
+        <div className={`absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t backdrop-blur-sm ${
+          userMood === 'curious' ? 'from-blue-500/10 to-transparent' :
+          userMood === 'focused' ? 'from-purple-500/15 to-transparent' :
+          userMood === 'exploratory' ? 'from-green-500/10 to-transparent' :
+          'from-gray-500/20 to-transparent'
+        }`} />
         
         {/* Light rays */}
         {timeOfDay === 'dawn' && (
@@ -230,33 +437,55 @@ export default function AICityExplorer() {
             )}
 
             {/* Districts */}
-            {districts.map((district) => (
-              <div
-                key={district.id}
-                className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
-                style={{ left: district.position.left, top: district.position.top }}
-                onMouseEnter={() => setActiveDistrict(district.id)}
-                onMouseLeave={() => setActiveDistrict(null)}
-              >
-                {/* Glow effect */}
-                <div className={`absolute inset-0 w-32 h-32 -m-16 bg-${district.color}-500/30 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500`} />
-                
-                {/* District icon */}
-                <div className={`relative w-24 h-24 bg-gradient-to-br from-${district.color}-400 to-${district.color}-600 rounded-2xl flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform border-4 border-white/50 group-hover:border-white`}>
-                  <district.icon className="w-12 h-12 text-white" />
-                  
-                  {/* Pulse ring */}
-                  <div className="absolute inset-0 rounded-2xl border-4 border-white/50 animate-ping" />
-                </div>
+            {districts.map((district) => {
+              // Calculate reactive positioning based on cursor proximity and rhythm
+              const baseTop = parseFloat(district.position.top);
+              const baseLeft = parseFloat(district.position.left);
+              
+              const dx = mousePosition.x - (baseLeft / 100 * (typeof window !== 'undefined' ? window.innerWidth : 1920));
+              const dy = mousePosition.y - (baseTop / 100 * (typeof window !== 'undefined' ? window.innerHeight : 1080));
+              const distance = Math.sqrt(dx * dx + dy * dy);
+              
+              // Cursor proximity effect
+              const proximityFactor = Math.max(0, 1 - distance / 300); // Closer = stronger effect
+              
+              // Rhythm-based movement
+              const rhythmOffset = cursorRhythm === 'fast' ? 2 : cursorRhythm === 'slow' ? 0.5 : 1;
+              const time = Date.now() * 0.001 * rhythmOffset;
+              
+              const reactiveTop = baseTop + Math.sin(time + district.id.charCodeAt(0)) * proximityFactor * 5;
+              const reactiveLeft = baseLeft + Math.cos(time + district.id.charCodeAt(0)) * proximityFactor * 5;
 
-                {/* District label */}
-                <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                  <div className="px-4 py-2 bg-black/70 backdrop-blur-md rounded-full border border-white/30">
-                    <span className="text-white font-bold text-sm">{district.name}</span>
-                  </div>
-                </div>
+              // Memory-based personalization
+              const isFavorite = userMemory.favoriteDistricts.includes(district.id);
+              const visitCount = userMemory.visitCount[district.id] || 0;
+              const memoryMultiplier = Math.min(visitCount * 0.1 + 1, 1.5); // Up to 50% boost for favorites
+              
+              return (
+                <div
+                  key={district.id}
+                  className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
+                  style={{ 
+                    left: `${Math.max(10, Math.min(80, reactiveLeft))}%`, 
+                    top: `${Math.max(10, Math.min(80, reactiveTop))}%`,
+                    transform: `translate(-50%, -50%) scale(${1 + proximityFactor * 0.2})`,
+                    transition: 'transform 0.3s ease-out'
+                  }}
+                  onMouseEnter={() => {
+                    setActiveDistrict(district.id);
+                    trackInteraction('hover');
+                  }}
+                  onMouseLeave={() => setActiveDistrict(null)}
+                  onClick={() => {
+                    trackInteraction('click');
+                    trackInteraction('visit', district.id);
+                  }}
+                >
+                  {/* Memory-based glow effect */}
+                  {isFavorite && (
+                    <div className="absolute inset-0 w-40 h-40 -m-20 bg-yellow-400/20 rounded-full blur-3xl animate-pulse" />
+                  )}
 
-                {/* Hover details */}
                 {activeDistrict === district.id && (
                   <div className="absolute top-full mt-16 left-1/2 transform -translate-x-1/2 w-80 z-50">
                     <div className="bg-white/95 backdrop-blur-xl rounded-2xl p-6 shadow-2xl border-2 border-white animate-slideUp">
@@ -293,7 +522,8 @@ export default function AICityExplorer() {
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
 
             {/* Decorative elements */}
             <div className="absolute bottom-8 left-8 flex items-center space-x-4">

@@ -1,7 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import MythicLayerRenderer from "@/components/visual-layer/MythicLayerRenderer";
+import dynamic from "next/dynamic";
+
+// Dynamically import the 3D renderer to prevent SSR issues
+const MythicLayerRenderer = dynamic(() => import("@/components/visual-layer/MythicLayerRenderer"), { ssr: false });
 
 interface LayerConfig {
   slug: string;

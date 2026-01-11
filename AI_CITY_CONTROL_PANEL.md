@@ -1,5 +1,13 @@
 # 🎛️ AI City Control Panel
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## 🚀 Quick Activation (30 seconds)
 
 ```bash

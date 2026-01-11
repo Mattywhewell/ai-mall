@@ -1,5 +1,13 @@
 # 🌆 AI City Activation Guide
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## ✨ Your AI City is Ready to Come Alive!
 
 The infrastructure is built, the world is waiting. Now let's turn on the lights and watch it breathe.
