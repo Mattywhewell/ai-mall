@@ -1,5 +1,13 @@
 # 🚀 Quick Start: Autonomous Systems
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 Get the self-evolving AI-native mall running in 5 minutes.
 
 ## Prerequisites

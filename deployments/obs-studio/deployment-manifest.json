@@ -1,0 +1,25 @@
+{
+  "platform": "obs-studio",
+  "version": "1.0.0",
+  "packageName": "mythic-shaders-obs-v1.0.0.zip",
+  "deployTarget": "obs-forum",
+  "description": "Mythic Shader Stack integration for obs-studio",
+  "files": [
+    "obs-filters",
+    "obs-filters\\mythic-filters.json",
+    "obs-filters\\shaders",
+    "obs-filters\\shaders\\architectural.runic-glow.medium.frag",
+    "obs-filters\\shaders\\elemental.bloom.cinematic.frag",
+    "obs-filters\\shaders\\elemental.fog.mystic.frag",
+    "obs-filters\\shaders\\elemental.fog.volumetric.frag",
+    "obs-filters\\shaders\\emotional.color-grade.melancholy.frag",
+    "obs-filters\\shaders\\ritual.vignette.sacral.frag"
+  ],
+  "deploymentInstructions": [
+    "Compress integrations/obs-studio/ to ZIP file",
+    "Upload to OBS forums",
+    "Create installation tutorial"
+  ],
+  "created": "2026-01-09T10:25:22.357Z",
+  "author": "Aiverse Core"
+}

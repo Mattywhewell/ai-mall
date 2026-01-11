@@ -1,5 +1,13 @@
 # 🚀 Quick Start - AI City
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 Get your AI City running in 5 minutes!
 
 ## Step 1: Database Setup (2 min)

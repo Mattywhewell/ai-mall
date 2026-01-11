@@ -1,0 +1,23 @@
+{
+  "platform": "amd-radeon",
+  "version": "1.0.0",
+  "packageName": "MythicShaders-AMD-v1.0.0.zip",
+  "deployTarget": "amd-developer-portal",
+  "description": "Mythic Shader Stack integration for amd-radeon",
+  "files": [
+    "amd-radeon",
+    "amd-radeon\\architectural.runic-glow.medium.hlsl",
+    "amd-radeon\\elemental.bloom.cinematic.hlsl",
+    "amd-radeon\\elemental.fog.mystic.hlsl",
+    "amd-radeon\\elemental.fog.volumetric.hlsl",
+    "amd-radeon\\emotional.color-grade.melancholy.hlsl",
+    "amd-radeon\\ritual.vignette.sacral.hlsl"
+  ],
+  "deploymentInstructions": [
+    "Compress integrations/amd-radeon/ to ZIP file",
+    "Submit to AMD Developer Portal",
+    "Request hardware acceleration certification"
+  ],
+  "created": "2026-01-09T10:25:22.337Z",
+  "author": "Aiverse Core"
+}

@@ -1,5 +1,13 @@
 # AI-Native Mall - Quick Start
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## Newly Added Features ✨
 
 This guide covers the 10 AI-native features added to your existing Next.js + Supabase mall.

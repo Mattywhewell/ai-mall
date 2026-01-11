@@ -1,95 +1,98 @@
+/**
+ * Street API Endpoint
+ * Returns street data with districts and AI spirit
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/lib/supabase-server';
+import { supabase } from '@/lib/supabaseClient';
+import { AISpiritSystem } from '@/lib/ai-city/spirits';
+import { WorldRenderer } from '@/lib/ai-city/world-renderer';
+import { Street, AISpirit } from '@/lib/types/world';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: { slug: string } }
 ) {
   try {
-    const { slug } = await params;
-
-    // Get user ID
-    const userId = `anon_${Math.random().toString(36).substring(7)}`;
+    const streetSlug = params.slug;
 
     // Fetch street data
     const { data: street, error: streetError } = await supabase
       .from('streets')
       .select('*')
-      .eq('slug', slug)
+      .eq('slug', streetSlug)
       .single();
 
     if (streetError || !street) {
-      return NextResponse.json(
-        { error: 'Street not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Street not found' }, { status: 404 });
     }
 
-    // Fetch parent hall if connected
-    let parentHall = null;
-    if (street.connects_hall_id) {
-      const { data: hallData } = await supabase
-        .from('halls')
-        .select('*')
-        .eq('id', street.connects_hall_id)
-        .single();
-      parentHall = hallData;
-    }
-
-    // Get existing AI spirit if available
-    const { data: existingSpirit } = await supabase
-      .from('ai_spirits')
-      .select('*')
-      .eq('entity_type', 'street')
-      .eq('entity_id', street.id)
-      .single();
-
-    // Create simple static spirit data if none exists
-    const spirit = existingSpirit?.spirit_data || {
-      name: street.name,
-      greeting: `Welcome to ${street.name}, a vibrant pathway of discovery.`,
-      personality: street.personality || 'friendly',
-      voice_style: 'conversational'
-    };
-
-    // Fetch districts (simplified - just get some microstores)
-    const { data: districts } = await supabase
+    // Fetch connected districts (microstores)
+    const { data: districts, error: districtsError } = await supabase
       .from('microstores')
-      .select('id, name, slug, district, description, cover_image')
-      .limit(6);
-
-    // Fetch featured products
-    const { data: featuredProducts } = await supabase
-      .from('products')
       .select('*')
-      .limit(8)
-      .order('created_at', { ascending: false });
+      .in('id', street.districts || [])
+      .order('created_at', { ascending: true });
 
-    // Simple atmospheric description based on personality
-    const atmosphereMap: Record<string, string> = {
-      tech: 'Sleek surfaces reflect innovation in every direction. The air hums with possibilities.',
-      neon: 'Vibrant lights paint the path ahead. Energy pulses through every corner.',
-      artisan: 'Craftsmanship meets creativity. Each step reveals new artistry.',
-      wellness: 'Calm surrounds you. Peace flows through this serene passage.',
-      vintage: 'Timeless charm whispers stories of the past. Heritage lives here.'
-    };
+    if (districtsError) {
+      console.error('Error fetching districts:', districtsError);
+      return NextResponse.json({ error: 'Failed to fetch districts' }, { status: 500 });
+    }
 
-    const atmosphericDescription = atmosphereMap[street.personality] || 
-      `${street.name} welcomes you. A pathway connecting worlds.`;
+    // Get or generate AI spirit
+    let spirit: AISpirit | null = null;
+    try {
+      const { data: existingSpirit } = await supabase
+        .from('ai_spirits')
+        .select('spirit_data')
+        .eq('entity_type', 'street')
+        .eq('entity_id', street.id)
+        .single();
+
+      if (existingSpirit?.spirit_data) {
+        spirit = existingSpirit.spirit_data as AISpirit;
+      } else {
+        // Generate new spirit
+        spirit = await AISpiritSystem.generateStreetSpirit(street);
+      }
+    } catch (spiritError) {
+      console.error('Error with AI spirit:', spiritError);
+      spirit = AISpiritSystem.getDefaultSpirit('street');
+    }
+
+    // Generate atmospheric description
+    let atmosphericDescription = '';
+    try {
+      atmosphericDescription = await WorldRenderer.generateAtmosphericDescription(street, 'street');
+    } catch (error) {
+      console.error('Error generating atmospheric description:', error);
+      atmosphericDescription = `Welcome to ${street.name}, where ${street.personality} culture thrives.`;
+    }
+
+    // Track street visit analytics
+    try {
+      await supabase.from('world_analytics').insert({
+        layer_type: 'street',
+        entity_id: street.id,
+        metric_type: 'view',
+        metric_value: 1,
+        recorded_at: new Date().toISOString()
+      });
+    } catch (analyticsError) {
+      console.error('Error tracking analytics:', analyticsError);
+    }
 
     return NextResponse.json({
-      street: street,
-      spirit: spirit,
-      atmospheric_description: atmosphericDescription,
+      street,
+      spirit,
       districts: districts || [],
-      featured_products: featuredProducts || [],
-      parent_hall: parentHall
+      atmospheric_description: atmosphericDescription
     });
 
   } catch (error) {
-    console.error('Error fetching street:', error);
+    console.error('Street API error:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

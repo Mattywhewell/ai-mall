@@ -68,7 +68,7 @@ export default function NewProductPage() {
             Back to Products
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">Add New Product</h1>
-          <p className="text-gray-600 mt-2">Fill in the details to list your product on Aiverse</p>
+          <p className="text-gray-600 mt-2">Fill in the details to list your product on Alverse</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">

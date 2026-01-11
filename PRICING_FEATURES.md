@@ -1,5 +1,13 @@
 # Worldwide Pricing - Complete Feature Set
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## ✅ Implemented Features
 
 ### 1. **Core Pricing System**

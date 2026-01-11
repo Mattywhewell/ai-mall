@@ -1,0 +1,94 @@
+{
+  "name": "Mythic Shader Stack",
+  "version": "1.0.0",
+  "description": "Aiverse Mythic Shader Stack for OBS Studio",
+  "author": "Aiverse Core",
+  "filters": [
+    {
+      "name": "Elemental Fog",
+      "shader": "elemental.fog.mystic.frag",
+      "blend_mode": "additive",
+      "default_strength": 0.6,
+      "parameters": [
+        {
+          "name": "u_strength",
+          "type": "float",
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "name": "u_tint",
+          "type": "color",
+          "default": [
+            0.8,
+            0.9,
+            1
+          ]
+        },
+        {
+          "name": "u_depth",
+          "type": "float",
+          "default": 0.8,
+          "min": 0,
+          "max": 1
+        }
+      ]
+    },
+    {
+      "name": "Runic Glow",
+      "shader": "architectural.runic-glow.medium.frag",
+      "blend_mode": "screen",
+      "default_strength": 0.5,
+      "parameters": [
+        {
+          "name": "u_strength",
+          "type": "float",
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "name": "u_color_primary",
+          "type": "color",
+          "default": [
+            1,
+            0.8,
+            0.4
+          ]
+        },
+        {
+          "name": "u_speed",
+          "type": "float",
+          "default": 1,
+          "min": 0.1,
+          "max": 3
+        }
+      ]
+    },
+    {
+      "name": "Sacral Vignette",
+      "shader": "ritual.vignette.sacral.frag",
+      "blend_mode": "multiply",
+      "default_strength": 0.4,
+      "parameters": [
+        {
+          "name": "u_strength",
+          "type": "float",
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "name": "u_tint",
+          "type": "color",
+          "default": [
+            0.9,
+            0.6,
+            0.8
+          ]
+        }
+      ]
+    }
+  ]
+}

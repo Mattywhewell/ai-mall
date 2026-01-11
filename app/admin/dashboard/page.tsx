@@ -35,7 +35,7 @@ import {
   Line,
 } from 'recharts';
 import Link from 'next/link';
-import { Eye, ShoppingCart, TrendingUp, DollarSign } from 'lucide-react';
+import { Eye, ShoppingCart, TrendingUp, DollarSign, Package } from 'lucide-react';
 import { DropshippingOrdersTable } from './DropshippingOrdersTable';
 
 const COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
@@ -203,11 +203,11 @@ export default function AdminDashboard() {
               <span className="text-sm font-medium text-indigo-900">Manage Collections</span>
             </Link>
             <Link
-              href="/admin/system-health"
-              className="flex flex-col items-center p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+              href="/admin/assets"
+              className="flex flex-col items-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"
             >
-              <Shield className="h-8 w-8 text-red-600 mb-2" />
-              <span className="text-sm font-medium text-red-900">System Health</span>
+              <Package className="h-8 w-8 text-orange-600 mb-2" />
+              <span className="text-sm font-medium text-orange-900">Manage Assets</span>
             </Link>
           </div>
         </div>

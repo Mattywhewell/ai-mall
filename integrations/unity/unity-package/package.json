@@ -1,0 +1,10 @@
+{
+  "name": "com.aiverse.mythic-shaders",
+  "version": "1.0.0",
+  "displayName": "Mythic Shader Stack",
+  "description": "Aiverse Mythic Shader Stack for Unity Post-Processing",
+  "unity": "2020.3",
+  "dependencies": {
+    "com.unity.postprocessing": "3.1.1"
+  }
+}

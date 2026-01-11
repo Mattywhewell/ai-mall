@@ -97,7 +97,7 @@ function PricingPage() {
         <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white">
           <div className="max-w-7xl mx-auto px-4 py-16 text-center">
             <h1 className="text-5xl font-bold mb-4">Choose Your Plan</h1>
-            <p className="text-xl text-indigo-100 mb-8">Scale Aiverse with powerful automation and insights</p>
+            <p className="text-xl text-indigo-100 mb-8">Scale Alverse with powerful automation and insights</p>
             {/* Billing Toggle */}
             <div className="inline-flex bg-white/10 backdrop-blur-sm rounded-full p-1">
               <button
@@ -242,7 +242,7 @@ function PricingPage() {
           {/* FAQ or Additional Info */}
           <div className="mt-16 text-center">
             <p className="text-gray-600 mb-4">All plans include 14-day free trial. No credit card required.</p>
-            <Link href="/" className="text-indigo-600 hover:text-indigo-700 font-medium">← Back to Aiverse</Link>
+            <Link href="/" className="text-indigo-600 hover:text-indigo-700 font-medium">← Back to Alverse</Link>
           </div>
         </div>
       </div>

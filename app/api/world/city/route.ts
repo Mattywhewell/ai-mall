@@ -1,80 +1,109 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/lib/supabase-server';
+/**
+ * City API Endpoint
+ * Returns personalized city overview with halls, trending streets, featured chapels
+ */
+
+import { NextRequest } from 'next/server';
+import { supabase } from '@/lib/supabaseClient';
+import { WorldRenderer } from '@/lib/ai-city/world-renderer';
+import { AISpiritSystem } from '@/lib/ai-city/spirits';
+import { Hall, Street, Chapel } from '@/lib/types/world';
+import { createSuccessResponse, handleSupabaseError } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   try {
-    // Initialize supabase client
-    const supabase = getSupabaseClient();
-    // Get user ID
-    const { data: { user } } = await supabase.auth.getUser();
-    const userId = user?.id || `anon_${Math.random().toString(36).substring(7)}`;
+    // Get user ID from auth (if available)
+    const authHeader = request.headers.get('authorization');
+    let userId = null;
 
-    // Try to fetch city architecture data
+    if (authHeader?.startsWith('Bearer ')) {
+      // TODO: Validate JWT token and extract user ID
+      // For now, we'll work without user personalization
+    }
+
+    // Fetch all halls
     const { data: halls, error: hallsError } = await supabase
       .from('halls')
       .select('*')
-      .order('name');
+      .order('created_at', { ascending: true });
 
-    // If halls table doesn't exist, return mock data
-    if (hallsError && hallsError.code === '42P01') {
-      return NextResponse.json({
-        halls: [],
-        trendingStreets: [],
-        featuredChapels: [],
-        welcomeMessage: "Welcome to the AI City! The city architecture is still being built. Please run the world-architecture-schema.sql to create the city layers.",
-        userContext: {
-          userId,
-          hasHistory: false,
-          personalizedView: false,
-          setupRequired: true
-        }
-      });
+    if (hallsError) {
+      return handleSupabaseError(hallsError, 'fetch halls');
     }
 
-    // Fetch trending streets (top 10 by popularity)
-    const { data: trendingStreets } = await supabase
+    // Fetch streets with popularity
+    const { data: streets, error: streetsError } = await supabase
       .from('streets')
       .select('*')
-      .eq('trending', true)
-      .order('popularity_score', { ascending: false })
-      .limit(10);
+      .order('popularity_score', { ascending: false });
 
-    // Fetch featured chapels (most visited)
-    const { data: featuredChapels } = await supabase
-      .from('chapels')
-      .select('*')
-      .order('visit_count', { ascending: false })
-      .limit(6);
-
-    // Parse color_palette for halls (convert string to array)
-    if (halls) {
-      halls.forEach(hall => {
-        if (hall.atmosphere && typeof hall.atmosphere.color_palette === 'string') {
-          hall.atmosphere.color_palette = hall.atmosphere.color_palette.split(' ').filter(Boolean);
-        }
-      });
+    if (streetsError) {
+      return handleSupabaseError(streetsError, 'fetch streets');
     }
 
-    // Simple welcome message (avoid complex AI calls that might fail)
-    const welcomeMessage = "Step into a world that learns, adapts, and evolves with you. Every corner holds a story waiting to unfold.";
+    // Fetch chapels
+    const { data: chapels, error: chapelsError } = await supabase
+      .from('chapels')
+      .select('*')
+      .order('visit_count', { ascending: false });
 
-    return NextResponse.json({
+    if (chapelsError) {
+      return handleSupabaseError(chapelsError, 'fetch chapels');
+    }
+
+    // Get trending streets (top 3 by popularity)
+    const trendingStreets = (streets || [])
+      .filter(street => street.popularity_score > 70)
+      .slice(0, 3);
+
+    // Get featured chapels (top 3 by visit count)
+    const featuredChapels = (chapels || []).slice(0, 3);
+
+    // Generate personalized welcome message
+    let welcomeMessage = null;
+    try {
+      const timeOfDay = new Date().getHours();
+      const timeContext = timeOfDay < 12 ? 'morning' : timeOfDay < 18 ? 'afternoon' : 'evening';
+
+      welcomeMessage = await AISpiritSystem.generateWelcomeMessage(
+        halls || [],
+        trendingStreets,
+        timeContext
+      );
+    } catch (error) {
+      console.error('Error generating welcome message:', error);
+      welcomeMessage = "Welcome to the AI City, where every space tells a story.";
+    }
+
+    // Track city visit analytics
+    try {
+      await supabase.from('world_analytics').insert({
+        layer_type: 'city',
+        entity_id: 'homepage',
+        metric_type: 'view',
+        metric_value: 1,
+        user_id: userId,
+        recorded_at: new Date().toISOString()
+      });
+    } catch (analyticsError) {
+      console.error('Error tracking analytics:', analyticsError);
+    }
+
+    const cityData = {
       halls: halls || [],
-      trendingStreets: trendingStreets || [],
-      featuredChapels: featuredChapels || [],
-      welcomeMessage,
-      userContext: {
-        userId,
-        hasHistory: false,
-        personalizedView: false
-      }
-    });
+      trendingStreets,
+      featuredChapels,
+      welcomeMessage
+    };
+
+    // Cache for 5 minutes on CDN, 1 minute in browser
+    const response = createSuccessResponse(cityData, 'City data retrieved successfully');
+    response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=60');
+
+    return response;
 
   } catch (error) {
-    console.error('Error fetching city data:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
+    console.error('City API error:', error);
+    return handleSupabaseError(error, 'process city request');
   }
 }

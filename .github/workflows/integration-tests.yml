@@ -15,6 +15,7 @@ jobs:
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      TEST_CLEANUP_TOKEN: 'test-token'  # used by integration tests to authorize cleanup endpoint
 
     steps:
       - name: Checkout
@@ -36,6 +37,24 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps --no-audit
 
+      - name: Ensure Supabase bucket exists (visual-layers)
+        run: |
+          echo "Ensuring Supabase bucket exists (bucket=${SUPABASE_STORAGE_BUCKET:-visual-layers})"
+          npm run setup:supabase-bucket
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_STORAGE_BUCKET: ${{ secrets.SUPABASE_STORAGE_BUCKET }}
+
+      - name: Assert preview accessibility (bucket expected private)
+        run: |
+          echo "Verifying preview accessibility (expect private)..."
+          EXPECT_PUBLIC=false SIGNED_EXPIRY_CHECK=true SIGNED_URL_TTL=7 npm run verify:supabase-bucket
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_STORAGE_BUCKET: ${{ secrets.SUPABASE_STORAGE_BUCKET }}
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
@@ -49,6 +68,20 @@ jobs:
       - name: Run telemetry Playwright test
         # Validate telemetry/hero analytics in CI during pull requests
         run: npx playwright test tests/e2e/hero-ab.spec.ts --project=chromium --reporter=github
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Run visual-layers Playwright test
+        # Ensure the visual layers demo loads and reacts to controls
+        run: npx playwright test tests/e2e/visual-layers.spec.ts --project=chromium --reporter=github
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Run visual-layers fallback Playwright test
+        # Verify fallback static preview when WebGL is unavailable
+        run: npx playwright test tests/e2e/visual-layers-fallback.spec.ts --project=chromium --reporter=github
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

@@ -1,0 +1,20 @@
+// MythicFog.uasset (Material Function)
+Begin Object Class=/Script/Engine.MaterialFunction Name="MythicFog"
+    Description="Volumetric fog with depth layering and ethereal particles"
+    Inputs=(
+        (InputName="Strength", InputType=1, PreviewValue=(R=0.6,G=0,B=0,A=0)),
+        (InputName="Tint", InputType=4, PreviewValue=(R=0.8,G=0.9,B=1.0,A=1.0)),
+        (InputName="Depth", InputType=1, PreviewValue=(R=0.8,G=0,B=0,A=0))
+    )
+End Object
+
+// RunicGlow.uasset (Material Function)
+Begin Object Class=/Script/Engine.MaterialFunction Name="RunicGlow"
+    Description="Animated runic glyph energy flows"
+    Inputs=(
+        (InputName="Strength", InputType=1, PreviewValue=(R=0.5,G=0,B=0,A=0)),
+        (InputName="PrimaryColor", InputType=4, PreviewValue=(R=1.0,G=0.8,B=0.4,A=1.0)),
+        (InputName="SecondaryColor", InputType=4, PreviewValue=(R=0.6,G=0.4,B=0.8,A=1.0)),
+        (InputName="Speed", InputType=1, PreviewValue=(R=1.0,G=0,B=0,A=0))
+    )
+End Object

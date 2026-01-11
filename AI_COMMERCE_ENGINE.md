@@ -1,5 +1,13 @@
 # 🤖 AI Commerce Engine - Complete Documentation
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## Overview
 
 The **AI Commerce Engine** is an automated marketplace management system that evaluates every product against a rigorous 5-pillar scoring system to ensure only **profitable, high-demand, low-risk, on-brand products** enter AI City.

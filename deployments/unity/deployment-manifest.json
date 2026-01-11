@@ -1,0 +1,26 @@
+{
+  "platform": "unity",
+  "version": "1.0.0",
+  "packageName": "MythicShaders-Unity-v1.0.0.unitypackage",
+  "deployTarget": "unity-asset-store",
+  "description": "Mythic Shader Stack integration for unity",
+  "files": [
+    "unity-package",
+    "unity-package\\MythicVolumeProfile.cs",
+    "unity-package\\package.json",
+    "unity-package\\Shaders",
+    "unity-package\\Shaders\\architectural.runic-glow.medium.shader",
+    "unity-package\\Shaders\\elemental.bloom.cinematic.shader",
+    "unity-package\\Shaders\\elemental.fog.mystic.shader",
+    "unity-package\\Shaders\\elemental.fog.volumetric.shader",
+    "unity-package\\Shaders\\emotional.color-grade.melancholy.shader",
+    "unity-package\\Shaders\\ritual.vignette.sacral.shader"
+  ],
+  "deploymentInstructions": [
+    "Create .unitypackage from integrations/unity/",
+    "Submit to Unity Asset Store",
+    "Set up Unity Package Manager integration"
+  ],
+  "created": "2026-01-09T10:25:22.399Z",
+  "author": "Aiverse Core"
+}

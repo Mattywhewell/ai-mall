@@ -1,97 +1,98 @@
+/**
+ * Hall API Endpoint
+ * Returns hall data with AI spirit and connected streets
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/lib/supabase-server';
+import { supabase } from '@/lib/supabaseClient';
 import { AISpiritSystem } from '@/lib/ai-city/spirits';
 import { WorldRenderer } from '@/lib/ai-city/world-renderer';
-import { isOpenAIConfigured } from '@/lib/ai-city/activation-helper';
+import { Hall, Street, AISpirit } from '@/lib/types/world';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: { slug: string } }
 ) {
   try {
-    const supabase = getSupabaseClient();
-    const { slug } = await params;
-
-    // Get user ID from session or generate anonymous ID
-    const userId = `anon_${Math.random().toString(36).substring(7)}`;
+    const hallSlug = params.slug;
 
     // Fetch hall data
     const { data: hall, error: hallError } = await supabase
       .from('halls')
       .select('*')
-      .eq('slug', slug)
+      .eq('slug', hallSlug)
       .single();
 
     if (hallError || !hall) {
-      console.error('Hall fetch error:', hallError);
-      return NextResponse.json(
-        { error: 'Hall not found', details: hallError?.message },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Hall not found' }, { status: 404 });
     }
 
     // Fetch connected streets
-    const { data: streets } = await supabase
+    const { data: streets, error: streetsError } = await supabase
       .from('streets')
       .select('*')
-      .eq('connects_hall_id', hall.id)
+      .eq('connects_hall', hall.id)
       .order('popularity_score', { ascending: false });
 
+    if (streetsError) {
+      console.error('Error fetching streets:', streetsError);
+      return NextResponse.json({ error: 'Failed to fetch connected streets' }, { status: 500 });
+    }
+
     // Get or generate AI spirit
-    const { data: existingSpirit } = await supabase
-      .from('ai_spirits')
-      .select('*')
-      .eq('entity_type', 'hall')
-      .eq('entity_id', hall.id)
-      .single();
+    let spirit: AISpirit | null = null;
+    try {
+      const { data: existingSpirit } = await supabase
+        .from('ai_spirits')
+        .select('spirit_data')
+        .eq('entity_type', 'hall')
+        .eq('entity_id', hall.id)
+        .single();
 
-    let spirit = existingSpirit?.spirit_data || null;
-
-    // Generate dynamic spirit if OpenAI is configured and no spirit exists
-    if (!spirit && isOpenAIConfigured()) {
-      try {
+      if (existingSpirit?.spirit_data) {
+        spirit = existingSpirit.spirit_data as AISpirit;
+      } else {
+        // Generate new spirit
         spirit = await AISpiritSystem.generateHallSpirit(hall);
-        console.log(`[AI] Generated dynamic spirit for ${hall.name}`);
-      } catch (error) {
-        console.error('[AI] Failed to generate spirit, using static:', error);
       }
+    } catch (spiritError) {
+      console.error('Error with AI spirit:', spiritError);
+      spirit = AISpiritSystem.getDefaultSpirit('hall');
     }
 
-    // Parse color_palette if it's a string
-    if (hall.atmosphere && typeof hall.atmosphere.color_palette === 'string') {
-      hall.atmosphere.color_palette = hall.atmosphere.color_palette.split(' ').filter(Boolean);
+    // Generate atmospheric description
+    let atmosphericDescription = '';
+    try {
+      atmosphericDescription = await WorldRenderer.generateAtmosphericDescription(hall, 'hall');
+    } catch (error) {
+      console.error('Error generating atmospheric description:', error);
+      atmosphericDescription = `Welcome to the ${hall.name} Hall, where ${hall.theme} comes alive.`;
     }
 
-    // Generate dynamic atmospheric description if OpenAI configured
-    let atmosphericDescription = hall.atmosphere?.ambient_text || `Welcome to ${hall.name}`;
-    if (isOpenAIConfigured()) {
-      try {
-        atmosphericDescription = await WorldRenderer.generateAtmosphericDescription(
-          'hall',
-          hall,
-          new Date().getHours() < 18 ? 'day' : 'night'
-        );
-      } catch (error) {
-        console.error('[AI] Failed to generate atmospheric description:', error);
-      }
+    // Track hall visit analytics
+    try {
+      await supabase.from('world_analytics').insert({
+        layer_type: 'hall',
+        entity_id: hall.id,
+        metric_type: 'view',
+        metric_value: 1,
+        recorded_at: new Date().toISOString()
+      });
+    } catch (analyticsError) {
+      console.error('Error tracking analytics:', analyticsError);
     }
 
     return NextResponse.json({
-      hall: hall,
-      spirit: spirit,
+      hall,
+      spirit,
       streets: streets || [],
-      atmospheric_description: atmosphericDescription,
-      ai_mode: isOpenAIConfigured() ? 'dynamic' : 'static',
-      userContext: {
-        userId,
-        personalizedView: false
-      }
+      atmospheric_description: atmosphericDescription
     });
 
   } catch (error) {
-    console.error('Error fetching hall:', error);
+    console.error('Hall API error:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

@@ -1,0 +1,391 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e6] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e7]:
+      - img [ref=e8]
+    - generic [ref=e11]:
+      - button "Open issues overlay" [ref=e12]:
+        - generic [ref=e13]:
+          - generic [ref=e14]: "1"
+          - generic [ref=e15]: "2"
+        - generic [ref=e16]:
+          - text: Issue
+          - generic [ref=e17]: s
+      - button "Collapse issues badge" [ref=e18]:
+        - img [ref=e19]
+  - generic [ref=e22]:
+    - generic [ref=e23]:
+      - button [ref=e24] [cursor=pointer]:
+        - img [ref=e25]
+      - img [ref=e30]
+    - generic [ref=e32]:
+      - generic [ref=e33]:
+        - heading "Welcome to Aiverse! 👋" [level=2] [ref=e34]
+        - paragraph [ref=e35]: The world's first AI-native civilization. Let us show you around!
+      - button "Next" [ref=e42] [cursor=pointer]:
+        - generic [ref=e43]: Next
+        - img [ref=e44]
+      - button "Skip tutorial" [ref=e46] [cursor=pointer]
+  - navigation [ref=e47]:
+    - generic [ref=e49]:
+      - link "Aiverse" [ref=e50] [cursor=pointer]:
+        - /url: /
+        - img [ref=e51]
+        - generic [ref=e53]: Aiverse
+      - generic [ref=e54]:
+        - link "Home" [ref=e55] [cursor=pointer]:
+          - /url: /
+          - img [ref=e56]
+          - generic [ref=e59]: Home
+        - link "Explore" [ref=e60] [cursor=pointer]:
+          - /url: /city
+          - img [ref=e61]
+          - generic [ref=e64]: Explore
+        - link "AI Products" [ref=e65] [cursor=pointer]:
+          - /url: /agents
+          - img [ref=e66]
+          - generic [ref=e68]: AI Products
+        - link "Events" [ref=e69] [cursor=pointer]:
+          - /url: /events
+          - img [ref=e70]
+          - generic [ref=e73]: Events
+        - link "Subscriptions" [ref=e74] [cursor=pointer]:
+          - /url: /subscriptions
+          - img [ref=e75]
+          - generic [ref=e78]: Subscriptions
+        - link "Become a Creator" [ref=e79] [cursor=pointer]:
+          - /url: /digital-products
+          - img [ref=e80]
+          - generic [ref=e82]: Become a Creator
+        - link "About" [ref=e83] [cursor=pointer]:
+          - /url: /about
+          - generic [ref=e84]: About
+      - generic [ref=e85]:
+        - button "Search" [ref=e86] [cursor=pointer]:
+          - img [ref=e87]
+        - button "Change currency" [ref=e91] [cursor=pointer]:
+          - img [ref=e92]
+          - generic [ref=e95]: $ USD
+        - button "Notifications" [ref=e97] [cursor=pointer]:
+          - img [ref=e98]
+          - generic [ref=e101]: "2"
+        - link "Shopping cart" [ref=e102] [cursor=pointer]:
+          - /url: /cart
+          - img [ref=e103]
+        - button "User menu" [ref=e108] [cursor=pointer]:
+          - generic [ref=e109]:
+            - img [ref=e111]
+            - img [ref=e115]
+          - img [ref=e118]
+  - main [ref=e120]:
+    - generic [ref=e122]:
+      - generic [ref=e123]:
+        - heading "System Health" [level=1] [ref=e124]
+        - paragraph [ref=e125]: Real-time monitoring of platform health and performance
+      - generic [ref=e127]:
+        - generic [ref=e128]:
+          - img [ref=e130]
+          - generic [ref=e133]:
+            - heading "healthy" [level=2] [ref=e134]
+            - paragraph [ref=e135]: All systems operational
+        - generic [ref=e136]:
+          - generic [ref=e137]: 99.9%
+          - generic [ref=e138]: 30-day uptime
+      - generic [ref=e139]:
+        - generic [ref=e140]:
+          - generic [ref=e141]:
+            - img [ref=e142]
+            - img [ref=e144]
+          - generic [ref=e147]: 45ms
+          - generic [ref=e148]: API Latency
+        - generic [ref=e149]:
+          - generic [ref=e150]:
+            - img [ref=e151]
+            - img [ref=e153]
+          - generic [ref=e156]: 0.2%
+          - generic [ref=e157]: Error Rate
+        - generic [ref=e158]:
+          - img [ref=e160]
+          - generic [ref=e162]: "234"
+          - generic [ref=e163]: Active Users
+        - generic [ref=e164]:
+          - img [ref=e166]
+          - generic [ref=e169]: 1,250
+          - generic [ref=e170]: Requests/Min
+      - generic [ref=e171]:
+        - heading "Service Status" [level=2] [ref=e172]
+        - generic [ref=e173]:
+          - generic [ref=e174]:
+            - generic [ref=e175]:
+              - generic [ref=e176]:
+                - img [ref=e178]
+                - generic [ref=e181]:
+                  - heading "API Server" [level=3] [ref=e182]
+                  - generic [ref=e183]: operational
+              - generic [ref=e184]:
+                - generic [ref=e185]: Uptime
+                - generic [ref=e186]: 99.95%
+            - generic [ref=e187]:
+              - generic [ref=e188]:
+                - generic [ref=e189]: Latency
+                - generic [ref=e190]: 42ms
+              - generic [ref=e191]:
+                - generic [ref=e192]: Last Check
+                - generic [ref=e193]: 1:29:58 PM
+              - generic [ref=e194]:
+                - generic [ref=e195]: Status
+                - generic [ref=e196]: operational
+          - generic [ref=e200]:
+            - generic [ref=e201]:
+              - generic [ref=e202]:
+                - img [ref=e204]
+                - generic [ref=e207]:
+                  - heading "Database" [level=3] [ref=e208]
+                  - generic [ref=e209]: operational
+              - generic [ref=e210]:
+                - generic [ref=e211]: Uptime
+                - generic [ref=e212]: 99.99%
+            - generic [ref=e213]:
+              - generic [ref=e214]:
+                - generic [ref=e215]: Latency
+                - generic [ref=e216]: 18ms
+              - generic [ref=e217]:
+                - generic [ref=e218]: Last Check
+                - generic [ref=e219]: 1:29:58 PM
+              - generic [ref=e220]:
+                - generic [ref=e221]: Status
+                - generic [ref=e222]: operational
+          - generic [ref=e226]:
+            - generic [ref=e227]:
+              - generic [ref=e228]:
+                - img [ref=e230]
+                - generic [ref=e233]:
+                  - heading "Auto-Listing Engine" [level=3] [ref=e234]
+                  - generic [ref=e235]: operational
+              - generic [ref=e236]:
+                - generic [ref=e237]: Uptime
+                - generic [ref=e238]: 98.5%
+            - generic [ref=e239]:
+              - generic [ref=e240]:
+                - generic [ref=e241]: Latency
+                - generic [ref=e242]: 850ms
+              - generic [ref=e243]:
+                - generic [ref=e244]: Last Check
+                - generic [ref=e245]: 1:29:58 PM
+              - generic [ref=e246]:
+                - generic [ref=e247]: Status
+                - generic [ref=e248]: operational
+          - generic [ref=e252]:
+            - generic [ref=e253]:
+              - generic [ref=e254]:
+                - img [ref=e256]
+                - generic [ref=e259]:
+                  - heading "Stripe Payments" [level=3] [ref=e260]
+                  - generic [ref=e261]: operational
+              - generic [ref=e262]:
+                - generic [ref=e263]: Uptime
+                - generic [ref=e264]: 99.8%
+            - generic [ref=e265]:
+              - generic [ref=e266]:
+                - generic [ref=e267]: Latency
+                - generic [ref=e268]: 230ms
+              - generic [ref=e269]:
+                - generic [ref=e270]: Last Check
+                - generic [ref=e271]: 1:29:58 PM
+              - generic [ref=e272]:
+                - generic [ref=e273]: Status
+                - generic [ref=e274]: operational
+          - generic [ref=e278]:
+            - generic [ref=e279]:
+              - generic [ref=e280]:
+                - img [ref=e282]
+                - generic [ref=e285]:
+                  - heading "Image Processing" [level=3] [ref=e286]
+                  - generic [ref=e287]: operational
+              - generic [ref=e288]:
+                - generic [ref=e289]: Uptime
+                - generic [ref=e290]: 99.2%
+            - generic [ref=e291]:
+              - generic [ref=e292]:
+                - generic [ref=e293]: Latency
+                - generic [ref=e294]: 320ms
+              - generic [ref=e295]:
+                - generic [ref=e296]: Last Check
+                - generic [ref=e297]: 1:29:58 PM
+              - generic [ref=e298]:
+                - generic [ref=e299]: Status
+                - generic [ref=e300]: operational
+          - generic [ref=e304]:
+            - generic [ref=e305]:
+              - generic [ref=e306]:
+                - img [ref=e308]
+                - generic [ref=e311]:
+                  - heading "Email Service" [level=3] [ref=e312]
+                  - generic [ref=e313]: operational
+              - generic [ref=e314]:
+                - generic [ref=e315]: Uptime
+                - generic [ref=e316]: 99.7%
+            - generic [ref=e317]:
+              - generic [ref=e318]:
+                - generic [ref=e319]: Latency
+                - generic [ref=e320]: 150ms
+              - generic [ref=e321]:
+                - generic [ref=e322]: Last Check
+                - generic [ref=e323]: 1:29:58 PM
+              - generic [ref=e324]:
+                - generic [ref=e325]: Status
+                - generic [ref=e326]: operational
+      - generic [ref=e331]:
+        - generic [ref=e332]:
+          - generic [ref=e333]:
+            - img [ref=e334]
+            - heading "Role-Based System Performance" [level=2] [ref=e336]
+          - generic [ref=e337]:
+            - img [ref=e338]
+            - generic [ref=e341]: healthy
+        - generic [ref=e342]:
+          - generic [ref=e343]:
+            - generic [ref=e344]:
+              - generic [ref=e345]:
+                - paragraph [ref=e346]: Role Detection
+                - paragraph [ref=e347]: 0ms
+              - img [ref=e348]
+            - paragraph [ref=e353]: Avg time • 0 operations
+          - generic [ref=e354]:
+            - generic [ref=e355]:
+              - generic [ref=e356]:
+                - paragraph [ref=e357]: Navigation Render
+                - paragraph [ref=e358]: 5ms
+              - img [ref=e359]
+            - paragraph [ref=e361]: Last render time
+          - generic [ref=e362]:
+            - generic [ref=e363]:
+              - generic [ref=e364]:
+                - paragraph [ref=e365]: Access Control
+                - paragraph [ref=e366]: 0ms
+              - img [ref=e367]
+            - paragraph [ref=e369]: Last check time
+          - generic [ref=e370]:
+            - generic [ref=e371]:
+              - generic [ref=e372]:
+                - paragraph [ref=e373]: Profile Page
+                - paragraph [ref=e374]: 0ms
+              - img [ref=e375]
+            - paragraph [ref=e378]: Last load time
+        - generic [ref=e379]:
+          - heading "Detailed Metrics" [level=3] [ref=e380]
+          - generic [ref=e381]:
+            - generic [ref=e382]:
+              - generic [ref=e383]:
+                - generic [ref=e384]: Total Operations
+                - generic [ref=e385]: "0"
+              - generic [ref=e386]:
+                - generic [ref=e387]: Detection Failures
+                - generic [ref=e388]: "0"
+              - generic [ref=e389]:
+                - generic [ref=e390]: Slowest Detection
+                - generic [ref=e391]: 0ms
+            - generic [ref=e392]:
+              - generic [ref=e393]:
+                - generic [ref=e394]: Success Rate
+                - generic [ref=e395]: 100%
+              - generic [ref=e396]:
+                - generic [ref=e397]: Health Status
+                - generic [ref=e398]: healthy
+        - button "Export Metrics" [ref=e400] [cursor=pointer]
+      - generic [ref=e401]:
+        - heading "Recent Incidents" [level=2] [ref=e402]
+        - generic [ref=e403]:
+          - img [ref=e404]
+          - heading "No Recent Incidents" [level=3] [ref=e407]
+          - paragraph [ref=e408]: All systems have been running smoothly
+      - generic [ref=e409]:
+        - text: "Last updated: 1/9/2026, 1:29:58 PM"
+        - text: Auto-refreshes every 30 seconds
+  - contentinfo [ref=e410]:
+    - generic [ref=e411]:
+      - generic [ref=e412]:
+        - generic [ref=e413]:
+          - generic [ref=e414]:
+            - img [ref=e415]
+            - generic [ref=e417]: Aiverse
+          - paragraph [ref=e418]: The world's first AI-native marketplace with emotional intelligence
+          - generic [ref=e419]:
+            - img [ref=e420]
+            - generic [ref=e423]: San Francisco, CA
+          - generic [ref=e424]:
+            - img [ref=e425]
+            - generic [ref=e428]: hello@alverse.app
+        - generic [ref=e429]:
+          - heading "Company" [level=3] [ref=e430]
+          - list [ref=e431]:
+            - listitem [ref=e432]:
+              - link "About Us" [ref=e433] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e434]:
+              - link "Contact" [ref=e435] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=e436]:
+              - link "Become a Creator" [ref=e437] [cursor=pointer]:
+                - /url: /vendor-registration
+            - listitem [ref=e438]:
+              - link "AI Concierge" [ref=e439] [cursor=pointer]:
+                - /url: /ai-concierge
+        - generic [ref=e440]:
+          - heading "Explore" [level=3] [ref=e441]
+          - list [ref=e442]:
+            - listitem [ref=e443]:
+              - link "City Explorer" [ref=e444] [cursor=pointer]:
+                - /url: /city
+            - listitem [ref=e445]:
+              - link "Districts" [ref=e446] [cursor=pointer]:
+                - /url: /districts
+            - listitem [ref=e447]:
+              - link "Chapels" [ref=e448] [cursor=pointer]:
+                - /url: /chapels
+            - listitem [ref=e449]:
+              - link "Live Events" [ref=e450] [cursor=pointer]:
+                - /url: /live
+        - generic [ref=e451]:
+          - heading "Legal" [level=3] [ref=e452]
+          - list [ref=e453]:
+            - listitem [ref=e454]:
+              - link "Privacy Policy" [ref=e455] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e456]:
+              - link "Terms & Conditions" [ref=e457] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=e458]:
+              - link "Refund Policy" [ref=e459] [cursor=pointer]:
+                - /url: /refunds
+            - listitem [ref=e460]:
+              - link "Cookie Policy" [ref=e461] [cursor=pointer]:
+                - /url: /cookies
+      - generic [ref=e463]:
+        - paragraph [ref=e464]: © 2026 Aiverse. All rights reserved.
+        - generic [ref=e465]:
+          - generic [ref=e466]: 🔒 Secure Payments via Stripe
+          - generic [ref=e467]: 🤖 Powered by AI
+  - generic [ref=e470]:
+    - generic [ref=e471]:
+      - heading "🍪 We value your privacy" [level=3] [ref=e472]
+      - paragraph [ref=e473]: We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking "Accept All", you consent to our use of cookies. You can customize your preferences or decline non-essential cookies.
+      - link "Learn more about cookies →" [ref=e474] [cursor=pointer]:
+        - /url: /cookies
+    - generic [ref=e475]:
+      - button "Accept All" [ref=e476] [cursor=pointer]
+      - button "Necessary Only" [ref=e477] [cursor=pointer]
+      - button "Customize" [ref=e478] [cursor=pointer]:
+        - img [ref=e479]
+        - text: Customize
+  - button "Ask AI Guide" [ref=e482] [cursor=pointer]:
+    - generic [ref=e483]:
+      - img [ref=e484]
+      - img [ref=e486]
+    - generic [ref=e488]: Ask AI Guide
+  - button "Open chat" [ref=e489] [cursor=pointer]:
+    - img [ref=e490]
+  - alert [ref=e493]
+```

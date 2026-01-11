@@ -1,0 +1,24 @@
+{
+  "platform": "reshade",
+  "version": "1.0.0",
+  "packageName": "MythicShaders-ReShade-v1.0.0.zip",
+  "deployTarget": "reshade-repository",
+  "description": "Mythic Shader Stack integration for reshade",
+  "files": [
+    "MythicShaders.ini",
+    "reshade-shaders",
+    "reshade-shaders\\architectural.runic-glow.medium.fx",
+    "reshade-shaders\\elemental.bloom.cinematic.fx",
+    "reshade-shaders\\elemental.fog.mystic.fx",
+    "reshade-shaders\\elemental.fog.volumetric.fx",
+    "reshade-shaders\\emotional.color-grade.melancholy.fx",
+    "reshade-shaders\\ritual.vignette.sacral.fx"
+  ],
+  "deploymentInstructions": [
+    "Compress integrations/reshade/ to ZIP file",
+    "Upload to ReShade repository",
+    "Update ReShade preset database"
+  ],
+  "created": "2026-01-09T10:25:22.369Z",
+  "author": "Aiverse Core"
+}

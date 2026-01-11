@@ -1,90 +1,101 @@
+/**
+ * Chapel API Endpoint
+ * Returns chapel data with AI spirit and contemplative content
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/lib/supabase-server';
+import { supabase } from '@/lib/supabaseClient';
+import { AISpiritSystem } from '@/lib/ai-city/spirits';
+import { WorldRenderer } from '@/lib/ai-city/world-renderer';
+import { Chapel, AISpirit } from '@/lib/types/world';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: { slug: string } }
 ) {
   try {
-    const { slug } = await params;
-
-    // Get user ID
-    const userId = `anon_${Math.random().toString(36).substring(7)}`;
+    const chapelSlug = params.slug;
 
     // Fetch chapel data
     const { data: chapel, error: chapelError } = await supabase
       .from('chapels')
       .select('*')
-      .eq('slug', slug)
+      .eq('slug', chapelSlug)
       .single();
 
     if (chapelError || !chapel) {
-      return NextResponse.json(
-        { error: 'Chapel not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Chapel not found' }, { status: 404 });
     }
 
-    // Fetch parent hall if connected
-    let parentHall = null;
-    if (chapel.connected_to_hall) {
-      const { data: hallData } = await supabase
-        .from('halls')
-        .select('*')
-        .eq('id', chapel.connected_to_hall)
+    // Get or generate AI spirit
+    let spirit: AISpirit | null = null;
+    try {
+      const { data: existingSpirit } = await supabase
+        .from('ai_spirits')
+        .select('spirit_data')
+        .eq('entity_type', 'chapel')
+        .eq('entity_id', chapel.id)
         .single();
-      parentHall = hallData;
+
+      if (existingSpirit?.spirit_data) {
+        spirit = existingSpirit.spirit_data as AISpirit;
+      } else {
+        // Generate new spirit
+        spirit = await AISpiritSystem.generateChapelSpirit(chapel);
+      }
+    } catch (spiritError) {
+      console.error('Error with AI spirit:', spiritError);
+      spirit = AISpiritSystem.getDefaultSpirit('chapel');
     }
 
-    // Get existing AI spirit if available
-    const { data: existingSpirit } = await supabase
-      .from('ai_spirits')
-      .select('*')
-      .eq('entity_type', 'chapel')
-      .eq('entity_id', chapel.id)
-      .single();
+    // Generate atmospheric description
+    let atmosphericDescription = '';
+    try {
+      atmosphericDescription = await WorldRenderer.generateAtmosphericDescription(chapel, 'chapel');
+    } catch (error) {
+      console.error('Error generating atmospheric description:', error);
+      atmosphericDescription = `Welcome to ${chapel.name}, a space for ${chapel.emotion} and reflection.`;
+    }
 
-    // Create simple static spirit data if none exists
-    const spirit = existingSpirit?.spirit_data || {
-      name: `Guardian of ${chapel.name}`,
-      greeting: chapel.ai_insight || 'Welcome to this sacred space.',
-      emotion: chapel.emotion,
-      voice_style: 'gentle'
-    };
+    // Update visit count
+    try {
+      await supabase
+        .from('chapels')
+        .update({
+          visit_count: (chapel.visit_count || 0) + 1,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', chapel.id);
+    } catch (updateError) {
+      console.error('Error updating visit count:', updateError);
+    }
 
-    // Simple spirit message based on emotion
-    const emotionMessages: Record<string, string> = {
-      contemplation: 'In this quiet moment, what truth seeks you?',
-      joy: 'Let your heart be light. Joy multiplies when shared.',
-      mystery: 'Some questions are meant to linger. Sit with the unknown.',
-      serenity: 'Breathe deeply. Peace is not found, but remembered.',
-      wonder: 'Open your eyes anew. Magic hides in plain sight.'
-    };
-
-    const spiritMessage = emotionMessages[chapel.emotion] || 
-      'Welcome to this sacred space. Take a moment to simply be.';
-
-    // Simple atmospheric description
-    const atmosphericDescription = `${chapel.micro_story} ${chapel.ai_insight}`;
-
-    // Increment visit count
-    await supabase
-      .from('chapels')
-      .update({ visit_count: (chapel.visit_count || 0) + 1 })
-      .eq('id', chapel.id);
+    // Track chapel visit analytics
+    try {
+      await supabase.from('world_analytics').insert({
+        layer_type: 'chapel',
+        entity_id: chapel.id,
+        metric_type: 'view',
+        metric_value: 1,
+        recorded_at: new Date().toISOString()
+      });
+    } catch (analyticsError) {
+      console.error('Error tracking analytics:', analyticsError);
+    }
 
     return NextResponse.json({
-      chapel: chapel,
-      spirit: spirit,
-      spirit_message: spiritMessage,
-      atmospheric_description: atmosphericDescription,
-      parent_hall: parentHall
+      chapel: {
+        ...chapel,
+        visit_count: (chapel.visit_count || 0) + 1
+      },
+      spirit,
+      atmospheric_description: atmosphericDescription
     });
 
   } catch (error) {
-    console.error('Error fetching chapel:', error);
+    console.error('Chapel API error:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

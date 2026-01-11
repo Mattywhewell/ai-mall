@@ -1,5 +1,13 @@
 # ✅ Stripe Connect Implementation Complete
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 ## 🎯 What Was Built
 
 A complete **Stripe Connect OAuth flow** that allows suppliers to connect their Stripe accounts and receive **automatic payouts** from AI City.

@@ -86,7 +86,7 @@ export default function WishlistPage() {
       try {
         await navigator.share({
           title: 'My Wishlist',
-          text: 'Check out my wishlist on Aiverse!',
+          text: 'Check out my wishlist on Alverse!',
           url,
         });
       } catch (err) {

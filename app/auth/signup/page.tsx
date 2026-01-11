@@ -9,6 +9,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [userType, setUserType] = useState<'customer' | 'supplier'>('customer');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -26,7 +27,7 @@ export default function SignupPage() {
       return;
     }
 
-    const { error } = await signUp(email, password, fullName);
+    const { error } = await signUp(email, password, fullName, userType);
 
     if (error) {
       setError(error.message);
@@ -130,6 +131,42 @@ export default function SignupPage() {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="John Doe"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              I want to join as a:
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setUserType('customer')}
+                className={`p-4 border-2 rounded-lg text-left transition-all ${
+                  userType === 'customer'
+                    ? 'border-purple-500 bg-purple-50 text-purple-700'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                <div className="font-semibold">Customer</div>
+                <div className="text-sm text-gray-600 mt-1">
+                  Shop and discover AI-powered products
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setUserType('supplier')}
+                className={`p-4 border-2 rounded-lg text-left transition-all ${
+                  userType === 'supplier'
+                    ? 'border-purple-500 bg-purple-50 text-purple-700'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                <div className="font-semibold">Supplier</div>
+                <div className="text-sm text-gray-600 mt-1">
+                  Sell products and grow your business
+                </div>
+              </button>
+            </div>
           </div>
 
           <div>

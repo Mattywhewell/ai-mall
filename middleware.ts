@@ -1,6 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export function middleware(request: NextRequest) {
+  // Debug: log request entry and key headers for tracing 403 sources
+  try {
+    console.log('[Middleware] Incoming request', {
+      method: request.method,
+      url: request.url,
+      auth: request.headers.get('authorization') ? '[present]' : '[missing]',
+      contentType: request.headers.get('content-type'),
+      forwardedFor: request.headers.get('x-forwarded-for'),
+      userAgent: request.headers.get('user-agent')?.slice(0, 100)
+    });
+  } catch (e) {
+    console.warn('[Middleware] Failed to log request headers', e);
+  }
+
+  const { pathname } = request.nextUrl;
+  
+  // Block test/development routes in production
+  const isProduction = process.env.NODE_ENV === 'production';
+  const testRoutes = ['/test-auth', '/test-pricing'];
+  
+  if (isProduction && testRoutes.some(route => pathname.startsWith(route))) {
+    console.log(`[Middleware] Blocking test route in production: ${pathname}`);
+    // Return 404 for test routes in production
+    return new NextResponse(null, { status: 404 });
+  }
+
   const response = NextResponse.next();
   
   // Detect user country from Vercel/Cloudflare geo headers
@@ -20,6 +46,7 @@ export function middleware(request: NextRequest) {
       path: '/',
       sameSite: 'lax',
     });
+    console.log(`[Middleware] Set user-country cookie to ${country}`);
   }
   
   return response;

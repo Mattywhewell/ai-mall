@@ -6,6 +6,20 @@ This is a **fully autonomous, AI-native e-commerce platform** that learns, adapt
 
 > "Think beyond traditional software. Think in terms of systems that learn, adapt, and reconfigure themselves."
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed and operational with enterprise security features
+
+**🗄️ Database**: Supabase with 8 enterprise-grade migrations applied
+
+**🔐 Security**: RBAC, RLS policies, audit logging, API key management
+
+**🤖 AI Features**: Consciousness layer, emotional intelligence, AI curators
+
+---
+
 ## 🧬 What Makes This Different?
 
 **Traditional E-Commerce:**
@@ -57,7 +71,47 @@ This is a **fully autonomous, AI-native e-commerce platform** that learns, adapt
 6. ✅ **Relationship Evolution** - Stranger → Acquaintance → Friend → Confidant
 7. ✅ **Emotional Product Scoring** - Products ranked by emotional resonance
 8. ✅ **Consciousness Analytics** - Measures transformation over conversion
+## 🔒 Enhanced Security Features
 
+### Production-Ready Rate Limiting
+- **Redis Backend**: Automatic Redis support for production scaling
+- **Memory Fallback**: Graceful degradation when Redis unavailable
+- **Configurable Limits**: Customizable rate limits per endpoint
+- **Smart Key Generation**: IP-based and user-based rate limiting
+
+### Granular Permissions System
+- **Role-Based Access**: Admin, Supplier, Customer, AI Agent roles
+- **Fine-Grained Permissions**: 25+ specific permissions for precise control
+- **Custom Permissions**: Grant/revoke individual permissions per user
+- **Audit Logging**: All permission changes are tracked
+- **Database Functions**: Efficient permission checking with PostgreSQL functions
+
+### Available Permissions
+```typescript
+// User Management
+USER_VIEW, USER_CREATE, USER_UPDATE, USER_DELETE
+
+// Supplier Management  
+SUPPLIER_VIEW, SUPPLIER_CREATE, SUPPLIER_UPDATE, SUPPLIER_DELETE
+SUPPLIER_APPROVE, SUPPLIER_REJECT
+
+// Product Management
+PRODUCT_VIEW, PRODUCT_CREATE, PRODUCT_UPDATE, PRODUCT_DELETE
+PRODUCT_APPROVE, PRODUCT_FLAG
+
+// Admin Operations
+ADMIN_VIEW, ADMIN_MANAGE_USERS, ADMIN_MANAGE_SUPPLIERS
+ADMIN_MANAGE_PRODUCTS, ADMIN_VIEW_AUDIT_LOGS, ADMIN_SYSTEM_CONFIG
+
+// AI Operations
+AI_GENERATE, AI_MODERATE, AI_ANALYZE
+
+// File Operations
+FILE_UPLOAD, FILE_DOWNLOAD, FILE_DELETE
+
+// Analytics
+ANALYTICS_VIEW, ANALYTICS_EXPORT
+```
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -85,6 +139,12 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 OPENAI_API_KEY=your_openai_api_key
+
+# Redis for production rate limiting (optional)
+REDIS_URL=redis://localhost:6379
+
+# Email service (optional)
+RESEND_API_KEY=your_resend_api_key
 ```
 
 3. Run SQL scripts in Supabase SQL Editor (in order):
@@ -104,6 +164,37 @@ npm run dev
 ```
 
 Visit [http://localhost:3000](http://localhost:3000) 🎉
+
+## 🧪 Testing
+
+### Enhanced Security Features Test
+Test the new Redis rate limiting and granular permissions system:
+
+```bash
+# Test Redis rate limiting and permissions
+npm run test:enhanced-security
+```
+
+This will verify:
+- ✅ Redis connectivity (with fallback to memory store)
+- ✅ Rate limiting functionality
+- ✅ Permission checking system
+- ✅ User role assignments
+
+### Other Tests
+```bash
+# Run unit tests
+npm run test:unit
+
+# Run end-to-end tests
+npm run test:e2e
+
+# Test email verification
+npm run test:email
+
+# Test moderation features
+npm run test:moderation
+```
 
 ## 📚 Documentation
 

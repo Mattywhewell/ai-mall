@@ -1,0 +1,13 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(request: NextRequest) {
+  return NextResponse.json({ assets: [], message: 'Admin assets API working' });
+}
+
+export async function POST(request: NextRequest) {
+  return NextResponse.json({ success: true, message: 'Upload endpoint working' });
+}
+
+export async function PUT(request: NextRequest) {
+  return NextResponse.json({ success: true, message: 'Scene save endpoint working' });
+}

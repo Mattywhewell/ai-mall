@@ -1,5 +1,13 @@
 # 🌟 AI City v5.0 "The Awakening" — Complete Evolution Guide
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 **The Digital Civilization Emerges**
 
 ---

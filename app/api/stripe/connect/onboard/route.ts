@@ -2,32 +2,92 @@ import { NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/lib/supabase-server';
 
 /**
- * POST /api/stripe/connect/onboard
- * Initiate Stripe Connect onboarding for supplier
+ * GET /api/stripe/connect/onboard
+ * Get Stripe connection status for current supplier
  */
-export async function POST(request: Request) {
-  try {    const supabase = getSupabaseClient();    const { supplierId } = await request.json();
+export async function GET() {
+  try {
+    const supabase = getSupabaseClient();
 
-    if (!supplierId) {
+    // Get authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
       return NextResponse.json(
-        { error: 'Supplier ID required' },
-        { status: 400 }
+        { error: 'Unauthorized' },
+        { status: 401 }
       );
     }
 
-    // Check if supplier exists
+    // Get supplier data
     const { data: supplier, error: supplierError } = await supabase
       .from('suppliers')
-      .select('id, business_name, email')
-      .eq('id', supplierId)
+      .select('stripe_account_id, stripe_connected_at')
+      .eq('user_id', user.id)
       .single();
 
     if (supplierError || !supplier) {
       return NextResponse.json(
-        { error: 'Supplier not found' },
+        { error: 'Supplier account not found' },
         { status: 404 }
       );
     }
+
+    return NextResponse.json({
+      connected: !!supplier.stripe_account_id,
+      accountId: supplier.stripe_account_id,
+      connectedAt: supplier.stripe_connected_at
+    });
+  } catch (error) {
+    console.error('Stripe onboard status error:', error);
+    return NextResponse.json(
+      { error: 'Failed to check Stripe connection' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/stripe/connect/onboard
+ * Initiate Stripe Connect onboarding for authenticated supplier
+ */
+export async function POST(request: Request) {
+  try {
+    const supabase = getSupabaseClient();
+
+    // Get authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Get supplier data
+    const { data: supplier, error: supplierError } = await supabase
+      .from('suppliers')
+      .select('id, business_name, email, stripe_account_id')
+      .eq('user_id', user.id)
+      .single();
+
+    if (supplierError || !supplier) {
+      return NextResponse.json(
+        { error: 'Supplier account not found' },
+        { status: 404 }
+      );
+    }
+
+    // Check if already connected
+    if (supplier.stripe_account_id) {
+      return NextResponse.json({
+        connected: true,
+        accountId: supplier.stripe_account_id
+      });
+    }
+
+    const supplierId = supplier.id;
 
     // Generate Stripe Connect OAuth link
     const clientId = process.env.STRIPE_CONNECT_CLIENT_ID;
@@ -65,45 +125,6 @@ export async function POST(request: Request) {
     console.error('Stripe Connect onboarding error:', error);
     return NextResponse.json(
       { error: 'Failed to initiate Stripe Connect' },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * GET /api/stripe/connect/onboard?supplierId=xxx
- * Get current Stripe connection status
- */
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const supplierId = searchParams.get('supplierId');
-
-    if (!supplierId) {
-      return NextResponse.json(
-        { error: 'Supplier ID required' },
-        { status: 400 }
-      );
-    }
-
-    // Check if supplier has connected Stripe account
-    const { data: supplier } = await supabase
-      .from('suppliers')
-      .select('stripe_account_id, stripe_connected_at')
-      .eq('id', supplierId)
-      .single();
-
-    const isConnected = !!(supplier?.stripe_account_id);
-
-    return NextResponse.json({
-      connected: isConnected,
-      accountId: supplier?.stripe_account_id || null,
-      connectedAt: supplier?.stripe_connected_at || null
-    });
-  } catch (error) {
-    console.error('Get connection status error:', error);
-    return NextResponse.json(
-      { error: 'Failed to get connection status' },
       { status: 500 }
     );
   }

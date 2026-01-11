@@ -1,6 +1,14 @@
 # Role-Based Access Control (RBAC) & Security Implementation
 
-## 🔐 Overview
+## � **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
+## �🔐 Overview
 
 The AI Commerce City now has a complete **Role-Based Access Control (RBAC)** system with three primary roles, comprehensive audit trails, and Row Level Security (RLS) policies to ensure data isolation and security.
 

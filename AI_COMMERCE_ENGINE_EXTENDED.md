@@ -1,5 +1,13 @@
 # AI Commerce Engine - Extended Features
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 This document describes the **extended features** added to the AI Commerce Engine. These features complement the core 5-pillar scoring system and expand the engine's capabilities across product intelligence, supplier management, bundling, personalization, and more.
 
 ---

@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Home, Compass, ShoppingBag, Sparkles, TrendingUp, Search } from 'lucide-react';
+import { Home, Compass, ShoppingBag, Sparkles, TrendingUp, Search, Globe, Heart, Star, Gift, Layers, User } from 'lucide-react';
 import { CartIcon } from './CartIcon';
 import { CurrencySelector } from './CurrencySelector';
 import UserMenu from './UserMenu';
@@ -54,6 +54,55 @@ export function MainNavigation() {
               <span>Explore</span>
             </Link>
 
+            <Link href="/commons" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
+              <Globe className="w-4 h-4" />
+              <span>Commons</span>
+            </Link>
+
+            <Link href="/collections" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
+              <Layers className="w-4 h-4" />
+              <span>Collections</span>
+            </Link>
+
+            <Link href="/gifts" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
+              <Gift className="w-4 h-4" />
+              <span>Gifts</span>
+            </Link>
+
+            {user && (
+              <Link href="/loyalty" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
+                <Star className="w-4 h-4" />
+                <span>Loyalty</span>
+              </Link>
+            )}
+
+            {user && (
+              <Link href="/profile" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
+                <User className="w-4 h-4" />
+                <span>Profile</span>
+              </Link>
+            )}
+
+            {/* Supplier Dashboard */}
+            {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+            {/* @ts-ignore-next */}
+            {user && ((user.user_metadata as any)?.roles && (user.user_metadata as any).roles.includes('supplier')) && (
+              <Link href="/supplier" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
+                <TrendingUp className="w-4 h-4" />
+                <span>Dashboard</span>
+              </Link>
+            )}
+
+            {/* My Subscriptions for users with active subscriptions */}
+            {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+            {/* @ts-ignore-next */}
+            {user && ((user.user_metadata as any)?.has_active_subscription || (user.user_metadata as any)?.subscription_active) && (
+              <Link href="/my-subscriptions" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
+                <ShoppingBag className="w-4 h-4" />
+                <span>My Subscriptions</span>
+              </Link>
+            )}
+
             <Link href="/agents" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
               <Sparkles className="w-4 h-4" />
               <span>AI Products</span>
@@ -84,6 +133,7 @@ export function MainNavigation() {
             {((user && ((user.user_metadata as any)?.is_admin || ((user.user_metadata as any)?.roles && (user.user_metadata as any).roles.includes('admin')) || user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL)) || false) && (
               <div className="flex items-center space-x-4">
                 <Link href="/admin" className="text-gray-700 hover:text-purple-600 transition-colors">Dashboard</Link>
+                <Link href="/admin/assets" className="text-gray-700 hover:text-purple-600 transition-colors">Assets</Link>
                 <Link href="/admin/revenue" className="text-gray-700 hover:text-purple-600 transition-colors">Revenue</Link>
                 <Link href="/admin/commerce-engine" className="text-gray-700 hover:text-purple-600 transition-colors">AI Systems</Link>
               </div>
@@ -103,6 +153,11 @@ export function MainNavigation() {
             
             <CurrencySelector />
             <NotificationCenter />
+            {user && (
+              <Link href="/wishlist" className="p-2 text-gray-700 hover:text-purple-600 transition-colors" aria-label="Wishlist">
+                <Heart className="w-5 h-5" />
+              </Link>
+            )}
             <CartIcon />
             <UserMenu />
           </div>

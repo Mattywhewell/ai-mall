@@ -1,0 +1,25 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "1.0",
+  "FriendlyName": "Mythic Shader Stack",
+  "Description": "Aiverse Mythic Shader Stack for Unreal Engine",
+  "Category": "Rendering",
+  "CreatedBy": "Aiverse Core",
+  "CreatedByURL": "https://aiverse.com",
+  "DocsURL": "",
+  "MarketplaceURL": "",
+  "SupportURL": "",
+  "EnabledByDefault": true,
+  "CanContainContent": true,
+  "IsBetaVersion": false,
+  "IsExperimentalVersion": false,
+  "Installed": false,
+  "Modules": [
+    {
+      "Name": "MythicShaders",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ]
+}

@@ -80,18 +80,28 @@ export default function CityHomePage() {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
-              href="#halls"
-              className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full font-bold text-lg hover:scale-105 transition-transform"
+              href="/ai-city/explore"
+              className="group px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full font-bold text-lg hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-blue-500/25"
             >
-              <Compass className="inline mr-2" size={24} />
-              Explore Halls
+              <Compass className="inline mr-2 group-hover:rotate-12 transition-transform" size={24} />
+              Wander
+              <span className="block text-sm opacity-80">Free exploration</span>
             </Link>
             <Link 
-              href="#streets"
-              className="px-8 py-4 bg-white/10 backdrop-blur-md text-white rounded-full font-bold text-lg hover:bg-white/20 transition-all border border-white/20"
+              href="/commons"
+              className="group px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full font-bold text-lg hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-purple-500/25"
             >
-              <MapPin className="inline mr-2" size={24} />
-              Discover Streets
+              <Heart className="inline mr-2 group-hover:animate-pulse" size={24} />
+              Seek
+              <span className="block text-sm opacity-80">Guided path</span>
+            </Link>
+            <Link 
+              href="/creator"
+              className="group px-8 py-4 bg-white/10 backdrop-blur-md text-white rounded-full font-bold text-lg hover:bg-white/20 transition-all border border-white/20 shadow-lg"
+            >
+              <Sparkles className="inline mr-2 group-hover:animate-spin" size={24} />
+              Create
+              <span className="block text-sm opacity-80">Build & innovate</span>
             </Link>
           </div>
         </div>

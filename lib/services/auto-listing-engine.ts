@@ -154,49 +154,141 @@ export class AutoListingEngine {
    * Extract using Open Graph and meta tags
    */
   private async extractWithMetaTags(url: string): Promise<any> {
-    // This would use a web scraping library or API
-    // For now, returning a structure to demonstrate the flow
-    
-    // In production, you'd use:
-    // - Puppeteer/Playwright for JS-heavy sites
-    // - Cheerio for static HTML
-    // - External APIs like ScrapingBee, Apify, etc.
-    
-    return {
-      title: null,
-      description: null,
-      images: [],
-      price: null
-    };
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+      });
+
+      if (!response.ok) {
+        return {};
+      }
+
+      const html = await response.text();
+      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+      const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["'][^>]*>/i);
+      const descriptionMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["'][^>]*>/i);
+      const ogDescriptionMatch = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["'][^>]*>/i);
+      const ogImageMatches = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["'][^>]*>/gi);
+      const priceMatch = html.match(/\$?(\d+(?:\.\d{2})?)/);
+
+      const images: string[] = [];
+      if (ogImageMatches) {
+        ogImageMatches.forEach(match => {
+          const imgMatch = match.match(/content=["']([^"']+)["']/);
+          if (imgMatch && imgMatch[1]) {
+            images.push(imgMatch[1]);
+          }
+        });
+      }
+
+      return {
+        title: ogTitleMatch?.[1] || titleMatch?.[1] || null,
+        description: ogDescriptionMatch?.[1] || descriptionMatch?.[1] || null,
+        images: images,
+        price: priceMatch?.[1] || null
+      };
+    } catch (error) {
+      console.error('Meta tags extraction error:', error);
+      return {};
+    }
   }
 
   /**
    * Extract using JSON-LD structured data
    */
   private async extractWithStructuredData(url: string): Promise<any> {
-    // Look for schema.org Product markup
-    return {
-      specifications: {},
-      category: null,
-      brand: null
-    };
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+      });
+
+      if (!response.ok) {
+        return {};
+      }
+
+      const html = await response.text();
+      const jsonLdMatches = html.match(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([^<]+)<\/script>/gi);
+
+      if (jsonLdMatches) {
+        for (const match of jsonLdMatches) {
+          const jsonMatch = match.match(/<script[^>]*>([^<]+)<\/script>/);
+          if (jsonMatch && jsonMatch[1]) {
+            try {
+              const data = JSON.parse(jsonMatch[1].trim());
+              if (data['@type'] === 'Product' || (Array.isArray(data) && data.some(item => item['@type'] === 'Product'))) {
+                const product = Array.isArray(data) ? data.find(item => item['@type'] === 'Product') : data;
+
+                return {
+                  specifications: product.additionalProperty || {},
+                  category: product.category || null,
+                  brand: product.brand?.name || product.manufacturer?.name || null
+                };
+              }
+            } catch (parseError) {
+              // Continue to next match
+            }
+          }
+        }
+      }
+
+      return {};
+    } catch (error) {
+      console.error('Structured data extraction error:', error);
+      return {};
+    }
   }
 
   /**
    * Extract using common HTML selectors
    */
   private async extractWithCommonSelectors(url: string): Promise<any> {
-    // Common e-commerce selectors
-    const selectors = {
-      title: ['h1.product-title', '.product-name', '[itemprop="name"]'],
-      price: ['.price', '.product-price', '[itemprop="price"]'],
-      description: ['.product-description', '.description', '[itemprop="description"]'],
-      images: ['img.product-image', '.product-gallery img', '[itemprop="image"]']
-    };
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+      });
 
-    return {
-      variants: []
-    };
+      if (!response.ok) {
+        return {};
+      }
+
+      const html = await response.text();
+
+      // Simple regex-based extraction (very basic)
+      const h1Match = html.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+      const priceRegex = /\$?(\d+(?:\.\d{2})?)/g;
+      const prices = [];
+      let priceMatch;
+      while ((priceMatch = priceRegex.exec(html)) !== null) {
+        prices.push(priceMatch[1]);
+      }
+
+      const imgMatches = html.match(/<img[^>]*src=["']([^"']+)["'][^>]*>/gi);
+      const images: string[] = [];
+      if (imgMatches) {
+        imgMatches.slice(0, 5).forEach(match => {
+          const srcMatch = match.match(/src=["']([^"']+)["']/);
+          if (srcMatch && srcMatch[1] && !srcMatch[1].includes('icon') && !srcMatch[1].includes('logo')) {
+            images.push(srcMatch[1]);
+          }
+        });
+      }
+
+      return {
+        title: h1Match?.[1]?.trim() || null,
+        price: prices.length > 0 ? prices[0] : null,
+        images: images,
+        variants: []
+      };
+    } catch (error) {
+      console.error('Common selectors extraction error:', error);
+      return {};
+    }
   }
 
   /**

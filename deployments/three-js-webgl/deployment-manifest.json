@@ -1,0 +1,25 @@
+{
+  "platform": "three-js-webgl",
+  "version": "1.0.0",
+  "packageName": "mythic-shaders-threejs-1.0.0.tgz",
+  "deployTarget": "npm",
+  "description": "Mythic Shader Stack integration for three-js-webgl",
+  "files": [
+    "index.js",
+    "package.json",
+    "shaders",
+    "shaders\\architectural.runic-glow.medium.js",
+    "shaders\\elemental.bloom.cinematic.js",
+    "shaders\\elemental.fog.mystic.js",
+    "shaders\\elemental.fog.volumetric.js",
+    "shaders\\emotional.color-grade.melancholy.js",
+    "shaders\\ritual.vignette.sacral.js"
+  ],
+  "deploymentInstructions": [
+    "cd integrations/three-js-webgl",
+    "npm publish --dry-run",
+    "npm publish  # Remove --dry-run for actual publish"
+  ],
+  "created": "2026-01-09T10:25:22.382Z",
+  "author": "Aiverse Core"
+}

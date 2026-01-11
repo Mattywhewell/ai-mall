@@ -286,4 +286,34 @@ Suggest spirit evolution.`;
       interaction_style: 'Gentle and guiding',
     };
   }
+
+  /**
+   * Generate personalized welcome message for city homepage
+   */
+  static async generateWelcomeMessage(
+    halls: Hall[],
+    trendingStreets: Street[],
+    timeOfDay: string
+  ): Promise<string> {
+    const systemPrompt = `You are a poetic AI city guide. Create a welcoming message for visitors to the AI City.
+
+Return a single, evocative sentence (max 20 words) that captures the city's essence.`;
+
+    const hallNames = halls.map(h => h.name).join(', ');
+    const streetNames = trendingStreets.map(s => s.name).join(', ');
+
+    const userPrompt = `Time: ${timeOfDay}
+Available Halls: ${hallNames}
+Trending Streets: ${streetNames}
+
+Create a magical welcome message that makes visitors feel the city's living spirit.`;
+
+    try {
+      const response = await callOpenAI(systemPrompt, userPrompt, 0.8);
+      return response.trim();
+    } catch (error) {
+      console.error('Error generating welcome message:', error);
+      return "Welcome to the AI City, where every space breathes with possibility.";
+    }
+  }
 }

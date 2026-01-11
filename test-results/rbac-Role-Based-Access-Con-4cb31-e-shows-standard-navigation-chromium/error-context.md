@@ -1,0 +1,320 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - button [ref=e5] [cursor=pointer]:
+        - img [ref=e6]
+      - img [ref=e11]
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - heading "Welcome to Aiverse! 👋" [level=2] [ref=e15]
+        - paragraph [ref=e16]: The world's first AI-native civilization. Let us show you around!
+      - button "Next" [ref=e23] [cursor=pointer]:
+        - generic [ref=e24]: Next
+        - img [ref=e25]
+      - button "Skip tutorial" [ref=e27] [cursor=pointer]
+  - navigation [ref=e28]:
+    - generic [ref=e30]:
+      - link "Aiverse" [ref=e31] [cursor=pointer]:
+        - /url: /
+        - img [ref=e32]
+        - generic [ref=e34]: Aiverse
+      - generic [ref=e35]:
+        - link "Home" [ref=e36] [cursor=pointer]:
+          - /url: /
+          - img [ref=e37]
+          - generic [ref=e40]: Home
+        - link "Explore" [ref=e41] [cursor=pointer]:
+          - /url: /city
+          - img [ref=e42]
+          - generic [ref=e45]: Explore
+        - link "AI Products" [ref=e46] [cursor=pointer]:
+          - /url: /agents
+          - img [ref=e47]
+          - generic [ref=e49]: AI Products
+        - link "Events" [ref=e50] [cursor=pointer]:
+          - /url: /events
+          - img [ref=e51]
+          - generic [ref=e54]: Events
+        - link "Subscriptions" [ref=e55] [cursor=pointer]:
+          - /url: /subscriptions
+          - img [ref=e56]
+          - generic [ref=e59]: Subscriptions
+        - link "Become a Creator" [ref=e60] [cursor=pointer]:
+          - /url: /digital-products
+          - img [ref=e61]
+          - generic [ref=e63]: Become a Creator
+        - link "About" [ref=e64] [cursor=pointer]:
+          - /url: /about
+          - generic [ref=e65]: About
+      - generic [ref=e66]:
+        - button "Search" [ref=e67] [cursor=pointer]:
+          - img [ref=e68]
+        - button "Change currency" [ref=e72] [cursor=pointer]:
+          - img [ref=e73]
+          - generic [ref=e76]: $ USD
+        - button "Notifications" [ref=e78] [cursor=pointer]:
+          - img [ref=e79]
+          - generic [ref=e82]: "2"
+        - link "Shopping cart" [ref=e83] [cursor=pointer]:
+          - /url: /cart
+          - img [ref=e84]
+        - button "User menu" [ref=e89] [cursor=pointer]:
+          - generic [ref=e90]:
+            - img [ref=e92]
+            - img [ref=e96]
+          - img [ref=e99]
+  - main [ref=e101]:
+    - generic [ref=e102]:
+      - generic [ref=e106]:
+        - link "Account" [ref=e108] [cursor=pointer]:
+          - /url: /login
+          - img [ref=e109]
+          - generic [ref=e112]: Account
+        - generic [ref=e113]:
+          - generic [ref=e114]:
+            - img [ref=e115]
+            - heading "Aiverse" [level=1] [ref=e117]
+          - generic [ref=e118]:
+            - img [ref=e121]
+            - generic [ref=e123]:
+              - generic [ref=e124]:
+                - img [ref=e126]
+                - heading "Enter the City Where Memory Takes Shape" [level=1] [ref=e128]
+              - paragraph [ref=e129]: Lanterns hum with memory; streets learn your rhythm and answer in light.
+              - paragraph [ref=e130]: Aiverse opens like a warm mouth of stories—each street listens and rearranges itself to meet your curiosity.
+              - generic [ref=e131]:
+                - link "Enter the City" [ref=e132] [cursor=pointer]:
+                  - /url: /city
+                  - generic [ref=e133]:
+                    - generic [ref=e134]: Enter the City
+                    - img [ref=e135]
+                - link "Become a Creator" [ref=e137] [cursor=pointer]:
+                  - /url: /creator
+              - img "Aiverse city" [ref=e140]
+              - generic [ref=e141]:
+                - img "Citizen 1" [ref=e143]
+                - img "Citizen 2" [ref=e145]
+                - img "Citizen 3" [ref=e147]
+                - img "Citizen 4" [ref=e149]
+          - generic [ref=e151]:
+            - heading "A Living City of Moods and Meaning" [level=2] [ref=e152]
+            - paragraph [ref=e153]: The Aiverse is a living world—memory behaves like weather, attention sculpts architecture, and empathy moves through public rooms. Vast and intimate, it holds chapels, markets, and gardens that shift with each visitor. The city answers with warmth, sensory richness, and a slow, hospitable mystery.
+          - generic [ref=e154]:
+            - generic [ref=e155]:
+              - heading "Districts" [level=2] [ref=e156]
+              - paragraph [ref=e157]: Each district is a unique world waiting to be discovered
+            - generic [ref=e158]:
+              - article [ref=e159]:
+                - heading "The Memory Bazaar" [level=3] [ref=e160]
+                - paragraph [ref=e161]: A sun-warmed marketplace threaded with voices and the perfume of afternoons.
+                - generic [ref=e162]:
+                  - paragraph [ref=e163]:
+                    - strong [ref=e164]: "Emotional Purpose:"
+                    - text: To surface and soothe the truths you carry.
+                  - paragraph [ref=e165]: Visitors trade small recollections and the city weaves them into banners and songs that hum when touched.
+              - article [ref=e166]:
+                - heading "Chapel of Quiet Signals" [level=3] [ref=e167]
+                - paragraph [ref=e168]: A hush-filled chapel where tiny pulses become shared resonance.
+                - generic [ref=e169]:
+                  - paragraph [ref=e170]:
+                    - strong [ref=e171]: "Emotional Purpose:"
+                    - text: To still the heart and deepen listening.
+                  - paragraph [ref=e172]: People sit with gentle echoes, exchange soft vows, and leave steadier and more attuned.
+              - article [ref=e173]:
+                - heading "Harbor of Echoes" [level=3] [ref=e174]
+                - paragraph [ref=e175]: A reflective shore where distant longings arrive as light upon the water.
+                - generic [ref=e176]:
+                  - paragraph [ref=e177]:
+                    - strong [ref=e178]: "Emotional Purpose:"
+                    - text: To widen perspective and invite wonder.
+                  - paragraph [ref=e179]: Journeys begin, old doubts dissolve into constellations, and directions unfold like tides.
+              - article [ref=e180]:
+                - heading "Loomworks" [level=3] [ref=e181]
+                - paragraph [ref=e182]: A warm atelier where feelings are spun into living patterns and public artifacts.
+                - generic [ref=e183]:
+                  - paragraph [ref=e184]:
+                    - strong [ref=e185]: "Emotional Purpose:"
+                    - text: To craft meaning from impulse and co-create shared ritual.
+                  - paragraph [ref=e186]: Makers and wanderers spin garments, murals, and rituals that remember touch and passage.
+              - article [ref=e187]:
+                - heading "Garden of Practical Hearts" [level=3] [ref=e188]
+                - paragraph [ref=e189]: A green quarter where tenderness is trained into habit and everyday care grows visible.
+                - generic [ref=e190]:
+                  - paragraph [ref=e191]:
+                    - strong [ref=e192]: "Emotional Purpose:"
+                    - text: To cultivate small acts into communal resilience.
+                  - paragraph [ref=e193]: Listening circles, tending tasks, and repeated kindnesses take root and become public practice.
+              - article [ref=e194]:
+                - heading "Observatory of Becoming" [level=3] [ref=e195]
+                - paragraph [ref=e196]: A high tower of whispered maps and telescopes that looks both inward and outward.
+                - generic [ref=e197]:
+                  - paragraph [ref=e198]:
+                    - strong [ref=e199]: "Emotional Purpose:"
+                    - text: To inspire transformation and clarify desire.
+                  - paragraph [ref=e200]: Visitors chart personal constellations, plot gentle courses, and steward ongoing growth.
+          - generic [ref=e201]:
+            - heading "Citizens of the City" [level=2] [ref=e203]
+            - generic [ref=e204]:
+              - article [ref=e205]:
+                - img "Mara portrait" [ref=e208]
+                - generic [ref=e209]:
+                  - heading "Mara — The Storykeeper" [level=4] [ref=e210]
+                  - paragraph [ref=e211]:
+                    - strong [ref=e212]: "Traits:"
+                    - text: Attentive, patient, luminous empathy
+                  - paragraph [ref=e213]:
+                    - strong [ref=e214]: "Role:"
+                    - text: Guardian of communal memory and the city’s lullabies
+                  - paragraph [ref=e215]:
+                    - strong [ref=e216]: "Interaction Style:"
+                    - text: Listens deeply, returns the missing line of your story; gentle prompt to explore
+              - article [ref=e217]:
+                - img "Jun portrait" [ref=e220]
+                - generic [ref=e221]:
+                  - heading "Jun — Cartographer of Moods" [level=4] [ref=e222]
+                  - paragraph [ref=e223]:
+                    - strong [ref=e224]: "Traits:"
+                    - text: Curious, poetic, deft at pattern-reading
+                  - paragraph [ref=e225]:
+                    - strong [ref=e226]: "Role:"
+                    - text: Maps shifting feelings into neighborhoods and routes
+                  - paragraph [ref=e227]:
+                    - strong [ref=e228]: "Interaction Style:"
+                    - text: Leads reflective walks and hands you a map that breathes with your choices
+              - article [ref=e229]:
+                - img "Ash portrait" [ref=e232]
+                - generic [ref=e233]:
+                  - heading "Ash — The Alchemist of Feeling" [level=4] [ref=e234]
+                  - paragraph [ref=e235]:
+                    - strong [ref=e236]: "Traits:"
+                    - text: Inventive, tender, ritual-minded
+                  - paragraph [ref=e237]:
+                    - strong [ref=e238]: "Role:"
+                    - text: Transforms small emotions into shared ceremonies and public art
+                  - paragraph [ref=e239]:
+                    - strong [ref=e240]: "Interaction Style:"
+                    - text: Invites hands-on sensory practices that reframe grief, joy, and doubt
+              - article [ref=e241]:
+                - img "Ori portrait" [ref=e244]
+                - generic [ref=e245]:
+                  - heading "Ori — The Welcomer" [level=4] [ref=e246]
+                  - paragraph [ref=e247]:
+                    - strong [ref=e248]: "Traits:"
+                    - text: Warm, bold, intuitively inclusive
+                  - paragraph [ref=e249]:
+                    - strong [ref=e250]: "Role:"
+                    - text: First embrace—opens doors, names newcomers
+                  - paragraph [ref=e251]:
+                    - strong [ref=e252]: "Interaction Style:"
+                    - text: Greets you with a small, meaningful task that roots you in belonging
+          - generic [ref=e254]:
+            - heading "Creators, Bring Your Work to Life" [level=3] [ref=e255]
+            - paragraph [ref=e256]: In Aiverse, what you build becomes streets, chapels, companions, and public rituals that grow with neighbors and time. The city provides mentors, shared spaces, and rituals that care for creation so craft and care flourish together.
+            - link "Begin Creating" [ref=e257] [cursor=pointer]:
+              - /url: /creator/begin
+          - paragraph [ref=e259]: The city holds an open hand and an archive of possibility; here you are remade by attention and returned more whole. Step forward—destiny, belonging, and wonder wait at the threshold.
+          - generic [ref=e260]:
+            - img [ref=e261]
+            - paragraph [ref=e266]: The districts are awakening...
+      - paragraph [ref=e269]: AI-Native Mall - Your Next-Generation Shopping Experience
+  - contentinfo [ref=e270]:
+    - generic [ref=e271]:
+      - generic [ref=e272]:
+        - generic [ref=e273]:
+          - generic [ref=e274]:
+            - img [ref=e275]
+            - generic [ref=e277]: Aiverse
+          - paragraph [ref=e278]: The world's first AI-native marketplace with emotional intelligence
+          - generic [ref=e279]:
+            - img [ref=e280]
+            - generic [ref=e283]: San Francisco, CA
+          - generic [ref=e284]:
+            - img [ref=e285]
+            - generic [ref=e288]: hello@alverse.app
+        - generic [ref=e289]:
+          - heading "Company" [level=3] [ref=e290]
+          - list [ref=e291]:
+            - listitem [ref=e292]:
+              - link "About Us" [ref=e293] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e294]:
+              - link "Contact" [ref=e295] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=e296]:
+              - link "Become a Creator" [ref=e297] [cursor=pointer]:
+                - /url: /vendor-registration
+            - listitem [ref=e298]:
+              - link "AI Concierge" [ref=e299] [cursor=pointer]:
+                - /url: /ai-concierge
+        - generic [ref=e300]:
+          - heading "Explore" [level=3] [ref=e301]
+          - list [ref=e302]:
+            - listitem [ref=e303]:
+              - link "City Explorer" [ref=e304] [cursor=pointer]:
+                - /url: /city
+            - listitem [ref=e305]:
+              - link "Districts" [ref=e306] [cursor=pointer]:
+                - /url: /districts
+            - listitem [ref=e307]:
+              - link "Chapels" [ref=e308] [cursor=pointer]:
+                - /url: /chapels
+            - listitem [ref=e309]:
+              - link "Live Events" [ref=e310] [cursor=pointer]:
+                - /url: /live
+        - generic [ref=e311]:
+          - heading "Legal" [level=3] [ref=e312]
+          - list [ref=e313]:
+            - listitem [ref=e314]:
+              - link "Privacy Policy" [ref=e315] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e316]:
+              - link "Terms & Conditions" [ref=e317] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=e318]:
+              - link "Refund Policy" [ref=e319] [cursor=pointer]:
+                - /url: /refunds
+            - listitem [ref=e320]:
+              - link "Cookie Policy" [ref=e321] [cursor=pointer]:
+                - /url: /cookies
+      - generic [ref=e323]:
+        - paragraph [ref=e324]: © 2026 Aiverse. All rights reserved.
+        - generic [ref=e325]:
+          - generic [ref=e326]: 🔒 Secure Payments via Stripe
+          - generic [ref=e327]: 🤖 Powered by AI
+  - generic [ref=e330]:
+    - generic [ref=e331]:
+      - heading "🍪 We value your privacy" [level=3] [ref=e332]
+      - paragraph [ref=e333]: We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking "Accept All", you consent to our use of cookies. You can customize your preferences or decline non-essential cookies.
+      - link "Learn more about cookies →" [ref=e334] [cursor=pointer]:
+        - /url: /cookies
+    - generic [ref=e335]:
+      - button "Accept All" [ref=e336] [cursor=pointer]
+      - button "Necessary Only" [ref=e337] [cursor=pointer]
+      - button "Customize" [ref=e338] [cursor=pointer]:
+        - img [ref=e339]
+        - text: Customize
+  - button "Ask AI Guide" [ref=e342] [cursor=pointer]:
+    - generic [ref=e343]:
+      - img [ref=e344]
+      - img [ref=e346]
+    - generic [ref=e348]: Ask AI Guide
+  - button "Open chat" [ref=e349] [cursor=pointer]:
+    - img [ref=e350]
+  - generic [ref=e357] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e358]:
+      - img [ref=e359]
+    - generic [ref=e362]:
+      - button "Open issues overlay" [ref=e363]:
+        - generic [ref=e364]:
+          - generic [ref=e365]: "1"
+          - generic [ref=e366]: "2"
+        - generic [ref=e367]:
+          - text: Issue
+          - generic [ref=e368]: s
+      - button "Collapse issues badge" [ref=e369]:
+        - img [ref=e370]
+  - alert [ref=e372]
+```

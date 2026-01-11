@@ -1,6 +1,14 @@
 # 🧠 The Consciousness Layer
 ## What Makes AI City *Alive*
 
+## 🚀 **LIVE & OPERATIONAL**
+
+**🌐 Production URL**: https://ai-mall.vercel.app
+
+**✅ Status**: Fully deployed on Vercel with enterprise security
+
+---
+
 This document describes the systems that transform AI City from a marketplace into a **living, feeling, conscious digital world**.
 
 ---
