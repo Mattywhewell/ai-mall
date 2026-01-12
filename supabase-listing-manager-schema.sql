@@ -232,19 +232,19 @@ ALTER TABLE supported_channels ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
 CREATE POLICY "Users can manage their own channel connections" ON seller_channel_connections
-  FOR ALL USING (auth.uid() = seller_id);
+  FOR ALL USING (auth.uid()::text = seller_id);
 
 CREATE POLICY "Users can manage their own product mappings" ON channel_product_mappings
-  FOR ALL USING (auth.uid() = seller_id);
+  FOR ALL USING (auth.uid()::text = seller_id);
 
 CREATE POLICY "Users can view their own channel orders" ON channel_orders
-  FOR ALL USING (auth.uid() = seller_id);
+  FOR ALL USING (auth.uid()::text = seller_id);
 
 CREATE POLICY "Users can view their own inventory sync logs" ON inventory_sync_log
-  FOR ALL USING (auth.uid() = seller_id);
+  FOR ALL USING (auth.uid()::text = seller_id);
 
 CREATE POLICY "Users can view their own price sync logs" ON price_sync_log
-  FOR ALL USING (auth.uid() = seller_id);
+  FOR ALL USING (auth.uid()::text = seller_id);
 
 CREATE POLICY "Everyone can view supported channels" ON supported_channels
   FOR SELECT USING (true);

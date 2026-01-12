@@ -39,7 +39,7 @@ ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
 
 -- Suppliers can view and manage their own supplier account
 CREATE POLICY "Suppliers can manage own account" ON suppliers
-  FOR ALL USING (auth.uid() = user_id);
+  FOR ALL USING (auth.uid()::text = user_id);
 
 -- Admins can view all suppliers
 CREATE POLICY "Admins can manage all suppliers" ON suppliers

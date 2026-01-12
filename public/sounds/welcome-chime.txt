@@ -1,0 +1,6 @@
+# Welcome Chime Sound
+# Description: Gentle chime for welcome sequence transitions
+# Duration: 0.5 seconds
+# Characteristics: Bell-like tone, crystalline quality, subtle reverb
+# Volume: Soft, welcoming
+# File: welcome-chime.mp3

@@ -428,11 +428,11 @@ CREATE POLICY "Public can view active collections" ON ai_collections
 
 -- Users can read their own affinity data
 CREATE POLICY "Users can view their own affinity" ON user_collection_affinity
-  FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (auth.uid()::text = user_id);
 
 -- Users can update their own affinity
 CREATE POLICY "Users can update their own affinity" ON user_collection_affinity
-  FOR UPDATE USING (auth.uid() = user_id);
+  FOR UPDATE USING (auth.uid()::text = user_id);
 
 -- Public can read analytics (for transparency)
 CREATE POLICY "Public can view collection analytics" ON collection_analytics

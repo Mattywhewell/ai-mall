@@ -134,6 +134,7 @@ export function MainNavigation() {
               <div className="flex items-center space-x-4">
                 <Link href="/admin" className="text-gray-700 hover:text-purple-600 transition-colors">Dashboard</Link>
                 <Link href="/admin/assets" className="text-gray-700 hover:text-purple-600 transition-colors">Assets</Link>
+                <Link href="/admin/audio" className="text-gray-700 hover:text-purple-600 transition-colors">Audio</Link>
                 <Link href="/admin/revenue" className="text-gray-700 hover:text-purple-600 transition-colors">Revenue</Link>
                 <Link href="/admin/commerce-engine" className="text-gray-700 hover:text-purple-600 transition-colors">AI Systems</Link>
               </div>

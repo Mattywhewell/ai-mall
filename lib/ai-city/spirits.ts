@@ -213,24 +213,15 @@ Suggest spirit evolution.`;
       const evolution = JSON.parse(response);
 
       // Update spirit with evolved traits
-      const evolvedSpirit = {
-        ...currentSpirit,
-        personality_traits: [
-          ...currentSpirit.personality_traits.slice(0, 2),
-          ...evolution.evolved_traits,
-        ],
-        voice_style: evolution.updated_voice_style || currentSpirit.voice_style,
-        insights: [...currentSpirit.insights.slice(0, 2), ...evolution.new_insights],
-      };
+      const evolutionEntry = { date: new Date().toISOString(), ...evolution };
+      const currentHistory = spiritData.evolution_history || [];
+      const updatedHistory = [...currentHistory, evolutionEntry];
 
       await supabase
         .from('ai_spirits')
         .update({
           spirit_data: evolvedSpirit,
-          evolution_history: supabase.raw(
-            `COALESCE(evolution_history, '[]'::jsonb) || ?::jsonb`,
-            [JSON.stringify({ date: new Date().toISOString(), ...evolution })]
-          ),
+          evolution_history: updatedHistory,
         })
         .eq('entity_type', entityType)
         .eq('entity_id', entityId);

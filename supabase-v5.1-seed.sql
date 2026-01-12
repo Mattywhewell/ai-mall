@@ -10,57 +10,68 @@
 -- 1. AI SHOPPING CONCIERGE SEED DATA
 -- =====================================================
 
--- Sample Shopping Agents (3 demo users)
-INSERT INTO shopping_agents (user_id, agent_name, personality, style_preferences, budget_range, favorite_categories, color_preferences, total_interactions, recommendation_accuracy, active) VALUES
-('demo-user-1', 'Ava', 'helpful', 
- '{"style": "modern", "occasion": "casual"}', 
- '{"min": 20, "max": 100}', 
- ARRAY['fashion', 'jewelry', 'beauty'], 
+-- Sample Shopping Agents (3 demo users) - Only insert if they don't exist
+INSERT INTO shopping_agents (user_id, agent_name, personality, style_preferences, budget_range, favorite_categories, color_preferences, total_interactions, recommendation_accuracy, active)
+SELECT 'demo-user-1', 'Ava', 'helpful',
+ '{"style": "modern", "occasion": "casual"}',
+ '{"min": 20, "max": 100}',
+ ARRAY['fashion', 'jewelry', 'beauty'],
  ARRAY['blue', 'purple', 'gold'],
- 25, 0.85, true),
+ 25, 0.85, true
+WHERE NOT EXISTS (SELECT 1 FROM shopping_agents WHERE user_id = 'demo-user-1');
 
-('demo-user-2', 'Leo', 'enthusiastic', 
- '{"style": "minimalist", "occasion": "professional"}', 
- '{"min": 50, "max": 300}', 
- ARRAY['tech', 'home', 'art'], 
+INSERT INTO shopping_agents (user_id, agent_name, personality, style_preferences, budget_range, favorite_categories, color_preferences, total_interactions, recommendation_accuracy, active)
+SELECT 'demo-user-2', 'Leo', 'enthusiastic',
+ '{"style": "minimalist", "occasion": "professional"}',
+ '{"min": 50, "max": 300}',
+ ARRAY['tech', 'home', 'art'],
  ARRAY['black', 'white', 'silver'],
- 42, 0.78, true),
+ 42, 0.78, true
+WHERE NOT EXISTS (SELECT 1 FROM shopping_agents WHERE user_id = 'demo-user-2');
 
-('demo-user-3', 'Maya', 'friendly', 
- '{"style": "bohemian", "occasion": "gifts"}', 
- '{"min": 10, "max": 75}', 
- ARRAY['craft', 'wellness', 'art'], 
+INSERT INTO shopping_agents (user_id, agent_name, personality, style_preferences, budget_range, favorite_categories, color_preferences, total_interactions, recommendation_accuracy, active)
+SELECT 'demo-user-3', 'Maya', 'friendly',
+ '{"style": "bohemian", "occasion": "gifts"}',
+ '{"min": 10, "max": 75}',
+ ARRAY['craft', 'wellness', 'art'],
  ARRAY['earth-tones', 'pastels', 'green'],
- 18, 0.92, true);
+ 18, 0.92, true
+WHERE NOT EXISTS (SELECT 1 FROM shopping_agents WHERE user_id = 'demo-user-3');
 
--- Sample Agent Conversations
-WITH agents AS (SELECT id, user_id FROM shopping_agents LIMIT 3)
-INSERT INTO agent_conversations (agent_id, user_id, message_type, message, intent) 
-SELECT 
-  id, 
-  user_id, 
-  'user', 
+-- Sample Agent Conversations - Only insert if they don't exist
+INSERT INTO agent_conversations (agent_id, user_id, message_type, message, intent)
+SELECT
+  sa.id,
+  sa.user_id,
+  'user',
   'Show me some handmade jewelry under $50',
   'product_search'
-FROM agents
-LIMIT 1;
+FROM shopping_agents sa
+WHERE sa.user_id = 'demo-user-1'
+AND NOT EXISTS (
+  SELECT 1 FROM agent_conversations ac
+  WHERE ac.agent_id = sa.id AND ac.message_type = 'user'
+);
 
-WITH agents AS (SELECT id, user_id FROM shopping_agents LIMIT 3)
-INSERT INTO agent_conversations (agent_id, user_id, message_type, message) 
-SELECT 
-  id, 
-  user_id, 
-  'agent', 
+INSERT INTO agent_conversations (agent_id, user_id, message_type, message)
+SELECT
+  sa.id,
+  sa.user_id,
+  'agent',
   'I found 3 beautiful handmade pieces that match your style! Check out these artisan necklaces...'
-FROM agents
-LIMIT 1;
+FROM shopping_agents sa
+WHERE sa.user_id = 'demo-user-1'
+AND NOT EXISTS (
+  SELECT 1 FROM agent_conversations ac
+  WHERE ac.agent_id = sa.id AND ac.message_type = 'agent'
+);
 
 -- =====================================================
 -- 2. LIVE SHOPPING EVENTS SEED DATA
 -- =====================================================
 
 -- Sample Live Events (assuming creator_storefronts exist)
--- You'll need to replace the creator_id values with actual IDs from your database
+-- Only insert if they don't already exist
 DO $$
 DECLARE
   creator1_id UUID;
@@ -72,8 +83,8 @@ BEGIN
   SELECT id INTO creator2_id FROM creator_storefronts ORDER BY created_at LIMIT 1 OFFSET 1;
   SELECT id INTO creator3_id FROM creator_storefronts ORDER BY created_at LIMIT 1 OFFSET 2;
 
-  -- Insert sample live events if creators exist
-  IF creator1_id IS NOT NULL THEN
+  -- Insert sample live events if creators exist and events don't already exist
+  IF creator1_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM live_shopping_events WHERE creator_id = creator1_id) THEN
     INSERT INTO live_shopping_events (
       creator_id, title, description, cover_image,
       scheduled_start, scheduled_end, status,
@@ -92,7 +103,7 @@ BEGIN
     );
   END IF;
 
-  IF creator2_id IS NOT NULL THEN
+  IF creator2_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM live_shopping_events WHERE creator_id = creator2_id) THEN
     INSERT INTO live_shopping_events (
       creator_id, title, description, cover_image,
       scheduled_start, scheduled_end, status,
@@ -113,7 +124,7 @@ BEGIN
     );
   END IF;
 
-  IF creator3_id IS NOT NULL THEN
+  IF creator3_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM live_shopping_events WHERE creator_id = creator3_id) THEN
     INSERT INTO live_shopping_events (
       creator_id, title, description, cover_image,
       scheduled_start, scheduled_end, actual_start, actual_end, status,
@@ -138,36 +149,38 @@ BEGIN
   END IF;
 END $$;
 
--- Sample Event Chat Messages (for the live event)
-WITH live_event AS (
-  SELECT id FROM live_shopping_events WHERE status = 'live' LIMIT 1
-)
+-- Sample Event Chat Messages (for the live event) - Only if they don't exist
 INSERT INTO event_chat_messages (event_id, user_id, message, message_type)
-SELECT 
-  id,
+SELECT
+  le.id,
   'demo-user-1',
   'This is amazing! Love the craftsmanship 🎨',
   'text'
-FROM live_event
-WHERE id IS NOT NULL;
+FROM live_shopping_events le
+WHERE le.status = 'live'
+AND NOT EXISTS (
+  SELECT 1 FROM event_chat_messages ecm
+  WHERE ecm.event_id = le.id AND ecm.user_id = 'demo-user-1'
+);
 
-WITH live_event AS (
-  SELECT id FROM live_shopping_events WHERE status = 'live' LIMIT 1
-)
 INSERT INTO event_chat_messages (event_id, user_id, message, message_type)
-SELECT 
-  id,
+SELECT
+  le.id,
   'demo-user-2',
   'How long does shipping take?',
   'text'
-FROM live_event
-WHERE id IS NOT NULL;
+FROM live_shopping_events le
+WHERE le.status = 'live'
+AND NOT EXISTS (
+  SELECT 1 FROM event_chat_messages ecm
+  WHERE ecm.event_id = le.id AND ecm.user_id = 'demo-user-2'
+);
 
 -- =====================================================
 -- 3. SUBSCRIPTION BOXES SEED DATA
 -- =====================================================
 
--- Sample Subscription Plans (assuming creators exist)
+-- Sample Subscription Plans (assuming creators exist) - Only insert if they don't exist
 DO $$
 DECLARE
   creator1_id UUID;
@@ -178,7 +191,7 @@ BEGIN
   SELECT id INTO creator2_id FROM creator_storefronts ORDER BY created_at LIMIT 1 OFFSET 1;
   SELECT id INTO creator3_id FROM creator_storefronts ORDER BY created_at LIMIT 1 OFFSET 2;
 
-  IF creator1_id IS NOT NULL THEN
+  IF creator1_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM subscription_plans WHERE creator_id = creator1_id) THEN
     INSERT INTO subscription_plans (
       creator_id, name, description, tagline, image_url,
       price_monthly, price_quarterly, price_annual,
@@ -209,7 +222,7 @@ BEGIN
     );
   END IF;
 
-  IF creator2_id IS NOT NULL THEN
+  IF creator2_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM subscription_plans WHERE creator_id = creator2_id) THEN
     INSERT INTO subscription_plans (
       creator_id, name, description, tagline, image_url,
       price_monthly, price_quarterly, price_annual,
@@ -240,7 +253,7 @@ BEGIN
     );
   END IF;
 
-  IF creator3_id IS NOT NULL THEN
+  IF creator3_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM subscription_plans WHERE creator_id = creator3_id) THEN
     INSERT INTO subscription_plans (
       creator_id, name, description, tagline, image_url,
       price_monthly, price_quarterly, price_annual,
@@ -273,7 +286,7 @@ BEGIN
   END IF;
 END $$;
 
--- Sample User Subscriptions (for demo users)
+-- Sample User Subscriptions (for demo users) - Only insert if they don't exist
 DO $$
 DECLARE
   plan1_id UUID;
@@ -282,7 +295,7 @@ BEGIN
   SELECT id INTO plan1_id FROM subscription_plans ORDER BY created_at LIMIT 1;
   SELECT id INTO plan2_id FROM subscription_plans ORDER BY created_at LIMIT 1 OFFSET 1;
 
-  IF plan1_id IS NOT NULL THEN
+  IF plan1_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM user_subscriptions WHERE plan_id = plan1_id AND user_id = 'demo-user-1') THEN
     INSERT INTO user_subscriptions (
       plan_id, user_id, billing_cycle, price_paid, status,
       start_date, next_billing_date,
@@ -303,7 +316,7 @@ BEGIN
     );
   END IF;
 
-  IF plan2_id IS NOT NULL THEN
+  IF plan2_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM user_subscriptions WHERE plan_id = plan2_id AND user_id = 'demo-user-2') THEN
     INSERT INTO user_subscriptions (
       plan_id, user_id, billing_cycle, price_paid, status,
       start_date, next_billing_date,
@@ -325,7 +338,7 @@ BEGIN
   END IF;
 END $$;
 
--- Sample Subscription Boxes (past deliveries)
+-- Sample Subscription Boxes (past deliveries) - Only insert if they don't exist
 DO $$
 DECLARE
   sub1_id UUID;
@@ -333,7 +346,7 @@ DECLARE
 BEGIN
   SELECT id, plan_id INTO sub1_id, sub1_plan_id FROM user_subscriptions ORDER BY created_at LIMIT 1;
 
-  IF sub1_id IS NOT NULL THEN
+  IF sub1_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM subscription_boxes WHERE subscription_id = sub1_id AND box_number = 1) THEN
     -- November Box (delivered)
     INSERT INTO subscription_boxes (
       subscription_id, plan_id, box_number, month, year,
@@ -360,7 +373,9 @@ BEGIN
       'Absolutely loved everything! The amber necklace is stunning and the quality is incredible. Worth every penny!',
       NOW() - INTERVAL '2 months 18 days'
     );
+  END IF;
 
+  IF sub1_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM subscription_boxes WHERE subscription_id = sub1_id AND box_number = 2) THEN
     -- December Box (delivered)
     INSERT INTO subscription_boxes (
       subscription_id, plan_id, box_number, month, year,
@@ -387,7 +402,9 @@ BEGIN
       'Perfect timing for the holidays! Got so many compliments on the crystal earrings.',
       NOW() - INTERVAL '1 month 19 days'
     );
+  END IF;
 
+  IF sub1_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM subscription_boxes WHERE subscription_id = sub1_id AND box_number = 3) THEN
     -- January Box (shipped)
     INSERT INTO subscription_boxes (
       subscription_id, plan_id, box_number, month, year,
@@ -435,9 +452,12 @@ SELECT 'Subscription Boxes', COUNT(*) FROM subscription_boxes;
 DO $$
 BEGIN
   RAISE NOTICE '✅ Seed data successfully loaded for AI City v5.1!';
-  RAISE NOTICE '   - 3 AI Shopping Agents created';
-  RAISE NOTICE '   - 3 Live Shopping Events created';
-  RAISE NOTICE '   - 3 Subscription Plans created';
-  RAISE NOTICE '   - 2 Active User Subscriptions created';
-  RAISE NOTICE '   - 3 Sample Subscription Boxes created';
+  RAISE NOTICE '   - Data inserted (or skipped if already exists)';
+  RAISE NOTICE '   - 3 AI Shopping Agents';
+  RAISE NOTICE '   - 2 Agent Conversations';
+  RAISE NOTICE '   - 3 Live Shopping Events (if creators exist)';
+  RAISE NOTICE '   - 2 Event Messages (if live events exist)';
+  RAISE NOTICE '   - 3 Subscription Plans (if creators exist)';
+  RAISE NOTICE '   - 2 User Subscriptions (if plans exist)';
+  RAISE NOTICE '   - 3 Subscription Boxes (if subscriptions exist)';
 END $$;

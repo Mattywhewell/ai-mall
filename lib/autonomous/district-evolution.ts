@@ -382,14 +382,15 @@ Suggest brand voice evolution.`;
 
       // Update brand voice
       if (district.district_personalities?.[0]) {
+        const evolutionEntry = { date: new Date().toISOString(), ...evolution };
+        const currentHistory = district.district_personalities[0].voice_evolution_history || [];
+        const updatedHistory = [...currentHistory, evolutionEntry];
+
         await supabase
           .from('district_personalities')
           .update({
             brand_voice: evolution.evolved_voice,
-            voice_evolution_history: supabase.raw(
-              `COALESCE(voice_evolution_history, '[]'::jsonb) || ?::jsonb`,
-              [JSON.stringify({ date: new Date().toISOString(), ...evolution })]
-            ),
+            voice_evolution_history: updatedHistory,
           })
           .eq('microstore_id', district.id);
       }

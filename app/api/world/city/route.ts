@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     const featuredChapels = (chapels || []).slice(0, 3);
 
     // Generate personalized welcome message
-    let welcomeMessage = null;
+    let welcomeMessage: string | null = null;
     try {
       const timeOfDay = new Date().getHours();
       const timeContext = timeOfDay < 12 ? 'morning' : timeOfDay < 18 ? 'afternoon' : 'evening';

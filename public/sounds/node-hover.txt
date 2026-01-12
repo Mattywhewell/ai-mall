@@ -1,0 +1,6 @@
+# Node Hover Sound
+# Description: Soft energy pulse when hovering over navigation nodes
+# Duration: 0.5-1 second
+# Characteristics: Rising pitch sine wave, subtle reverb
+# Volume: Medium, attention-grabbing but not startling
+# File: node-hover.mp3

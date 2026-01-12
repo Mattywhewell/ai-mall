@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import {
-  Cube,
+  Box,
   Map,
   ShoppingBag,
   Users,
@@ -37,7 +37,7 @@ export function Admin3DDashboard({ className = '' }: Admin3DDashboardProps) {
     {
       id: 'assets',
       label: '3D Assets',
-      icon: Cube,
+      icon: Box,
       description: 'Manage 3D models, textures, and materials',
       component: AssetManager
     },
@@ -94,7 +94,7 @@ export function Admin3DDashboard({ className = '' }: Admin3DDashboardProps) {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
-                <Cube className="w-5 h-5 text-blue-600" />
+                <Box className="w-5 h-5 text-blue-600" />
                 <div>
                   <p className="text-sm text-gray-600">Total Assets</p>
                   <p className="text-2xl font-bold">247</p>

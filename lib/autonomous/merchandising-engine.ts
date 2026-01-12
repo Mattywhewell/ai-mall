@@ -230,7 +230,7 @@ export class MerchandisingEngine {
     variantB: string,
     metric: string
   ): Promise<string> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('ab_tests')
       .insert({
         name,
@@ -255,7 +255,7 @@ export class MerchandisingEngine {
     variant: 'a' | 'b',
     metricValue: number
   ) {
-    await supabase.from('ab_test_results').insert({
+    await this.supabase.from('ab_test_results').insert({
       test_id: testId,
       variant,
       metric_value: metricValue,
@@ -267,7 +267,7 @@ export class MerchandisingEngine {
    * Analyze A/B test and determine winner
    */
   static async analyzeABTest(testId: string): Promise<'a' | 'b' | null> {
-    const { data: results } = await supabase
+    const { data: results } = await this.supabase
       .from('ab_test_results')
       .select('*')
       .eq('test_id', testId);
@@ -299,7 +299,7 @@ export class MerchandisingEngine {
     console.log('🧠 Analyzing patterns to generate merchandising rules...');
 
     // Fetch top-performing products
-    const { data: topProducts } = await supabase.rpc('get_top_products', {
+    const { data: topProducts } = await this.supabase.rpc('get_top_products', {
       p_limit: 20,
     });
 
@@ -310,7 +310,7 @@ export class MerchandisingEngine {
 
     let rulesCreated = 0;
     for (const pattern of patterns) {
-      await supabase.from('merchandising_rules').insert({
+      await this.supabase.from('merchandising_rules').insert({
         name: `Auto-generated: ${pattern.description}`,
         type: 'boost',
         condition: pattern.condition,
@@ -383,7 +383,7 @@ Return JSON:
   "reasoning": "why these changes will improve conversions"
 }`;
 
-    const { data: analytics } = await supabase.rpc('get_district_analytics', {
+    const { data: analytics } = await this.supabase.rpc('get_district_analytics', {
       p_district_slug: districtSlug,
     });
 
@@ -397,7 +397,7 @@ Suggest optimal layout configuration.`;
       const layout = JSON.parse(response);
 
       // Save layout configuration
-      await supabase.from('district_layouts').upsert({
+      await this.supabase.from('district_layouts').upsert({
         district_slug: districtSlug,
         config: layout.layout,
         reasoning: layout.reasoning,

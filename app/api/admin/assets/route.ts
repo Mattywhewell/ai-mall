@@ -11,6 +11,14 @@ export async function GET() {
       .order('created_at', { ascending: false });
 
     if (error) {
+      // Check if it's a table not found error
+      if (error.code === 'PGRST205' || error.message?.includes('admin_assets')) {
+        console.log('Admin assets table not found - migration may not be applied yet');
+        return NextResponse.json({
+          assets: [],
+          message: '3D assets system not yet initialized. Please apply database migrations.'
+        });
+      }
       console.error('Error fetching assets:', error);
       return NextResponse.json({ error: 'Failed to fetch assets' }, { status: 500 });
     }

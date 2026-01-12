@@ -1,0 +1,6 @@
+# Portal Open Sound
+# Description: Powerful energy surge when gateway portal opens
+# Duration: 2-3 seconds
+# Characteristics: Building energy, multi-frequency harmonics, spatial whoosh
+# Volume: Medium-loud, cinematic impact
+# File: portal-open.mp3

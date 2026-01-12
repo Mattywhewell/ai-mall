@@ -1,0 +1,6 @@
+# Energy Hum Sound
+# Description: Low-frequency energy field emanating from the gateway core
+# Duration: Continuous loop
+# Characteristics: Sine wave base (80Hz), subtle harmonics, gentle modulation
+# Volume: Quiet but noticeable
+# File: energy-hum.mp3

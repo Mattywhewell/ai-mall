@@ -117,5 +117,4 @@ CREATE POLICY "Admins can insert generation jobs" ON asset_generation_jobs
       WHERE auth.users.id = auth.uid()
       AND (auth.users.raw_user_meta_data->>'is_admin')::boolean = true
     )
-  );</content>
-<parameter name="filePath">c:\Users\cupca\Documents\ai-mall\supabase-3d-assets-migration.sql
+  );

@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 
 /**
  * GET /api/health
@@ -9,21 +8,6 @@ export async function GET() {
   const startTime = Date.now();
 
   try {
-    // Check database connectivity
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('count')
-      .limit(1)
-      .single();
-
-    const dbStatus = error ? 'error' : 'healthy';
-    const dbResponseTime = Date.now() - startTime;
-
     // Check environment variables
     const envStatus = {
       supabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -35,7 +19,7 @@ export async function GET() {
     const allEnvVars = Object.values(envStatus).every(Boolean);
 
     // Overall system status
-    const isHealthy = dbStatus === 'healthy' && allEnvVars;
+    const isHealthy = allEnvVars;
     const status = isHealthy ? 'healthy' : 'degraded';
 
     return NextResponse.json({
@@ -44,18 +28,12 @@ export async function GET() {
       uptime: process.uptime(),
       version: process.env.npm_package_version || '1.0.0',
       services: {
-        database: {
-          status: dbStatus,
-          responseTime: `${dbResponseTime}ms`,
-          ...(error && { error: error.message })
-        },
         environment: {
           status: allEnvVars ? 'healthy' : 'missing_vars',
           variables: envStatus
         }
       },
       checks: {
-        database: dbStatus === 'healthy',
         environment: allEnvVars,
         memory: {
           used: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,

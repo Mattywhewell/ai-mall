@@ -1,0 +1,6 @@
+# Cosmic Ambient Sound
+# Description: Deep space atmosphere with subtle stellar winds and cosmic background radiation
+# Duration: 2-3 minutes (looping)
+# Characteristics: Low-frequency rumble (20-100Hz), occasional distant star sounds, subtle white noise
+# Volume: Very quiet, ambient background
+# File: cosmic-ambient.mp3

@@ -118,6 +118,19 @@ const mockShopTours: ShopTour[] = [
   }
 ];
 
+function getStatusIcon(status: string) {
+  switch (status) {
+    case 'active':
+      return <Play className="w-4 h-4 text-green-600" />;
+    case 'draft':
+      return <Pause className="w-4 h-4 text-yellow-600" />;
+    case 'archived':
+      return <Settings className="w-4 h-4 text-gray-600" />;
+    default:
+      return <Settings className="w-4 h-4" />;
+  }
+}
+
 export function ShopTourManager() {
   const [tours, setTours] = useState<ShopTour[]>(mockShopTours);
   const [selectedTour, setSelectedTour] = useState<ShopTour | null>(null);

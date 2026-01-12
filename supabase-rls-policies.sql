@@ -166,15 +166,15 @@ ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can view their own data" 
 ON public.users FOR SELECT 
-USING (auth.uid()::text = id);
+USING (auth.uid() = id);
 
 CREATE POLICY "Users can update their own data" 
 ON public.users FOR UPDATE 
-USING (auth.uid()::text = id);
+USING (auth.uid() = id);
 
 CREATE POLICY "Users can insert their own data" 
 ON public.users FOR INSERT 
-WITH CHECK (auth.uid()::text = id);
+WITH CHECK (auth.uid() = id);
 
 -- Shopping Agents: Users can manage their own agents
 ALTER TABLE public.shopping_agents ENABLE ROW LEVEL SECURITY;

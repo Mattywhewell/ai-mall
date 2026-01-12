@@ -19,7 +19,7 @@ import {
   List,
   FileText,
   Image,
-  Cube,
+  Box,
   Package
 } from 'lucide-react';
 

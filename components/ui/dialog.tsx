@@ -60,10 +60,34 @@ const DialogTitle = React.forwardRef<
 ))
 DialogTitle.displayName = "DialogTitle"
 
+const DialogDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p
+    ref={ref}
+    className={`text-sm text-muted-foreground ${className || ''}`}
+    {...props}
+  />
+))
+DialogDescription.displayName = "DialogDescription"
+
+const DialogFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={`flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 ${className || ''}`}
+    {...props}
+  />
+))
+DialogFooter.displayName = "DialogFooter"
+
 const DialogTrigger = React.forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ ...props }, ref) => <button ref={ref} {...props} />)
 DialogTrigger.displayName = "DialogTrigger"
 
-export { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger }
+export { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger }

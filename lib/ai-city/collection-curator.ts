@@ -11,8 +11,6 @@
 import { supabase } from '@/lib/supabaseClient';
 import { getOpenAI } from '../openai';
 
-const openai = { chat: { completions: { create: (...args: any[]) => getOpenAI().chat.completions.create(...args) } }, embeddings: { create: (...args: any[]) => getOpenAI().embeddings.create(...args) } };
-
 interface Product {
   id: string;
   name: string;
@@ -165,7 +163,7 @@ Respond with ONLY a JSON array of product numbers (e.g., [1, 4, 7, 12]).
 No explanation, just the array.`;
 
     try {
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAI().chat.completions.create({
         model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
         messages: [
           {
@@ -222,7 +220,7 @@ Format as JSON:
 }`;
 
     try {
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAI().chat.completions.create({
         model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.8,

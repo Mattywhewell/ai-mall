@@ -10,6 +10,7 @@ import {
   regenerateAtmosphericContent,
   aggregateWorldAnalytics
 } from '@/lib/ai-city/world-evolution-jobs';
+import { livingCityEngine } from '@/lib/ai-city/living-city-engine';
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,9 +35,10 @@ export async function POST(request: NextRequest) {
         result = await regenerateAtmosphericContent();
         break;
 
-      case 'analytics':
-        console.log('[Evolution API] Aggregating world analytics...');
-        result = await aggregateWorldAnalytics();
+      case 'living-city':
+        console.log('[Evolution API] Starting Living City Engine...');
+        await livingCityEngine.start();
+        result = { status: 'started', message: 'Living City Engine activated' };
         break;
 
       case 'all':
@@ -103,6 +105,7 @@ export async function GET(request: NextRequest) {
         'evolve-spirits',
         'atmospheric-content',
         'analytics',
+        'living-city',
         'all'
       ],
       message: 'World evolution system is ready. Use POST to trigger jobs.'

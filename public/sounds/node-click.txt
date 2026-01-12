@@ -1,0 +1,6 @@
+# Node Click Sound
+# Description: Satisfying activation sound when clicking navigation nodes
+# Duration: 1-2 seconds
+# Characteristics: Multi-layered: initial click + energy swell + portal activation
+# Volume: Medium-loud, confirming action
+# File: node-click.mp3

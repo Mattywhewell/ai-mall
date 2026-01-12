@@ -1,19 +1,54 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 
 export function Plaza() {
   const plazaRef = useRef<THREE.Group>(null);
-  const [visitorCount] = useState(Math.floor(Math.random() * 50) + 10);
+  const [visitorCount, setVisitorCount] = useState(0);
+  const [collectiveMood, setCollectiveMood] = useState({ valence: 0.5, arousal: 0.5 });
+
+  // Fetch plaza stats
+  useEffect(() => {
+    const fetchPlazaStats = async () => {
+      try {
+        // For now, simulate data - in production this would come from API
+        const mockStats = {
+          activeUsers: Math.floor(Math.random() * 20) + 5,
+          mood: {
+            valence: 0.5 + Math.random() * 0.4, // 0.5-0.9
+            arousal: 0.3 + Math.random() * 0.5  // 0.3-0.8
+          }
+        };
+        setVisitorCount(mockStats.activeUsers);
+        setCollectiveMood(mockStats.mood);
+      } catch (error) {
+        console.warn('Failed to fetch plaza stats:', error);
+        setVisitorCount(Math.floor(Math.random() * 50) + 10);
+      }
+    };
+
+    fetchPlazaStats();
+    // Update stats every 30 seconds
+    const interval = setInterval(fetchPlazaStats, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Gentle floating animation for the central monument
   useFrame((state) => {
     if (plazaRef.current) {
-      plazaRef.current.rotation.y = Math.sin(state.clock.getElapsedTime() * 0.2) * 0.1;
-      plazaRef.current.position.y = Math.sin(state.clock.getElapsedTime() * 0.5) * 0.05;
+      const time = state.clock.getElapsedTime();
+      // Mood-influenced animation
+      const floatIntensity = 0.05 + (collectiveMood.arousal * 0.1);
+      plazaRef.current.rotation.y = Math.sin(time * 0.2) * 0.1;
+      plazaRef.current.position.y = Math.sin(time * 0.5) * floatIntensity;
+
+      // Mood-based color pulsing
+      const pulseIntensity = 0.1 + (collectiveMood.valence * 0.2);
+      const pulse = Math.sin(time * 2) * pulseIntensity;
+      // We'll apply this to emissive materials
     }
   });
 
@@ -41,8 +76,13 @@ export function Plaza() {
 
         {/* Welcome Text */}
         <Html position={[0, 5, 0]} center>
-          <div style={{ color: '#2F4F4F', fontSize: '24px', textAlign: 'center' }}>
-            Aiverse Commons
+          <div style={{ color: '#2F4F4F', fontSize: '20px', textAlign: 'center', maxWidth: '300px' }}>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>
+              Aiverse Commons
+            </div>
+            <div style={{ fontSize: '14px', opacity: 0.8 }}>
+              {visitorCount} visitors • Mood: {getMoodDescription(collectiveMood)}
+            </div>
           </div>
         </Html>
       </group>
@@ -152,4 +192,17 @@ function EmotionalWeather() {
       />
     </points>
   );
+}
+
+// Helper function to describe collective mood
+function getMoodDescription(mood: { valence: number; arousal: number }): string {
+  const valence = mood.valence;
+  const arousal = mood.arousal;
+
+  if (valence > 0.7 && arousal > 0.6) return 'Energetic & Joyful';
+  if (valence > 0.7 && arousal <= 0.6) return 'Peaceful & Content';
+  if (valence > 0.4 && arousal > 0.6) return 'Active & Curious';
+  if (valence > 0.4 && arousal <= 0.6) return 'Calm & Contemplative';
+  if (valence <= 0.4 && arousal > 0.6) return 'Restless & Intense';
+  return 'Reflective & Subdued';
 }

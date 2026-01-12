@@ -29,7 +29,7 @@ DROP POLICY IF EXISTS "Users can view their own roles" ON user_roles;
 CREATE POLICY "Users can view their own roles"
   ON user_roles FOR SELECT
   TO authenticated
-  USING (auth.uid() = user_id);
+  USING (auth.uid()::text = user_id);
 
 DROP POLICY IF EXISTS "Admins can manage all roles" ON user_roles;
 CREATE POLICY "Admins can manage all roles"

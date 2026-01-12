@@ -90,15 +90,15 @@ ALTER TABLE user_avatars ENABLE ROW LEVEL SECURITY;
 
 -- Users can only see their own avatars
 CREATE POLICY "Users can view own avatars" ON user_avatars
-  FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (auth.uid()::text = user_id);
 
 -- Users can create their own avatars
 CREATE POLICY "Users can create own avatars" ON user_avatars
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK (auth.uid()::text = user_id);
 
 -- Users can update their own avatars
 CREATE POLICY "Users can update own avatars" ON user_avatars
-  FOR UPDATE USING (auth.uid() = user_id);
+  FOR UPDATE USING (auth.uid()::text = user_id);
 
 -- Admins can see all avatars
 CREATE POLICY "Admins can manage all avatars" ON user_avatars

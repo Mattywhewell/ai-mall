@@ -72,13 +72,13 @@ CREATE POLICY "Authenticated users can read admin_assets" ON admin_assets
 
 -- User avatars policies
 CREATE POLICY "Users can view own avatars" ON user_avatars
-  FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (auth.uid()::text = user_id);
 
 CREATE POLICY "Users can create own avatars" ON user_avatars
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK (auth.uid()::text = user_id);
 
 CREATE POLICY "Users can update own avatars" ON user_avatars
-  FOR UPDATE USING (auth.uid() = user_id);
+  FOR UPDATE USING (auth.uid()::text = user_id);
 
 CREATE POLICY "Admins can manage all avatars" ON user_avatars
   FOR ALL USING (

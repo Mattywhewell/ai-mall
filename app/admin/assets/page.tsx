@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Upload, Eye, Edit, Trash2, Plus, Loader2 } from 'lucide-react';
+import { Upload, Eye, Edit, Trash2, Plus, Loader2, Wand2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import AdminImageUpload from '@/components/admin/AdminImageUpload';
 
 // Dynamically import 3D components to prevent SSR issues
 const ModelViewer = dynamic(() => import('@/components/3d/ModelViewer').then(mod => mod.ModelViewer), { ssr: false });
@@ -115,6 +116,19 @@ export default function AdminAssetsPage() {
                 <Plus className="w-4 h-4" />
                 <span>Generate 3D Model</span>
               </button>
+            </div>
+            {/* Mythic Forge Section */}
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg p-6 border border-amber-500/20">
+              <div className="flex items-center space-x-3 mb-4">
+                <Wand2 className="w-6 h-6 text-amber-400" />
+                <h2 className="text-xl font-bold text-amber-400" style={{ fontFamily: 'Mythos Sans, system-ui, sans-serif' }}>
+                  The Mythic Forge
+                </h2>
+              </div>
+              <p className="text-slate-300 mb-4">
+                Transform images into living 3D artifacts for the Aiverse. Each creation expands the city's mythos.
+              </p>
+              <AdminImageUpload />
             </div>
 
             {/* Assets Grid */}

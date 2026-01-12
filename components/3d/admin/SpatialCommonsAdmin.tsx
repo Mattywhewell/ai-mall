@@ -27,7 +27,7 @@ import {
   Heart,
   MessageCircle,
   Star,
-  Cube,
+  Box,
   Move,
   RotateCw,
   Scale,
@@ -507,6 +507,21 @@ const mockHalls: Hall[] = [
     }
   }
 ];
+
+function getStatusColor(status: string) {
+  switch (status) {
+    case 'active':
+      return 'bg-green-100 text-green-800';
+    case 'maintenance':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'vacant':
+      return 'bg-gray-100 text-gray-800';
+    case 'closed':
+      return 'bg-red-100 text-red-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+}
 
 export function SpatialCommonsAdmin() {
   const [districts, setDistricts] = useState<District[]>(mockDistricts);
@@ -1021,7 +1036,7 @@ export function SpatialCommonsAdmin() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
-                    <Cube className="w-5 h-5" />
+                    <Box className="w-5 h-5" />
                     <span>Model Placement</span>
                   </CardTitle>
                   <CardDescription>
@@ -1416,7 +1431,7 @@ export function SpatialCommonsAdmin() {
                         className="flex items-center justify-between p-3 border rounded-lg"
                       >
                         <div className="flex items-center space-x-3">
-                          <Cube className="w-8 h-8 text-blue-600" />
+                          <Box className="w-8 h-8 text-blue-600" />
                           <div>
                             <h4 className="font-medium">{model.assetName}</h4>
                             <p className="text-sm text-gray-600">
@@ -1458,7 +1473,7 @@ export function SpatialCommonsAdmin() {
 
                     {placedModels.length === 0 && (
                       <div className="text-center py-8 text-gray-500">
-                        <Cube className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <Box className="w-12 h-12 mx-auto mb-4 opacity-50" />
                         <p>No models placed yet</p>
                         <p className="text-sm">Select a district and asset to start placing models</p>
                       </div>

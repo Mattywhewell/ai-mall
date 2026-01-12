@@ -90,6 +90,21 @@ const mockScenes: Scene[] = [
   }
 ];
 
+function getTypeIcon(type: string) {
+  switch (type) {
+    case 'commons':
+      return <Users className="w-4 h-4" />;
+    case 'shop':
+      return <Map className="w-4 h-4" />;
+    case 'district':
+      return <Settings className="w-4 h-4" />;
+    case 'custom':
+      return <Edit className="w-4 h-4" />;
+    default:
+      return <Settings className="w-4 h-4" />;
+  }
+}
+
 export function SceneManager() {
   const [scenes, setScenes] = useState<Scene[]>(mockScenes);
   const [selectedScene, setSelectedScene] = useState<Scene | null>(null);

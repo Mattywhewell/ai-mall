@@ -7,11 +7,6 @@
 
 import { getOpenAI } from '../openai';
 
-const openai = {
-  chat: { completions: { create: (...args: any[]) => getOpenAI().chat.completions.create(...args) } },
-  embeddings: { create: (...args: any[]) => getOpenAI().embeddings.create(...args) },
-};
-
 // ==================== CURATOR PERSONALITIES ====================
 
 export const CURATORS = {
@@ -174,7 +169,7 @@ ${context.user_name ? `- User's name: ${context.user_name}` : ''}
 Generate a brief message (2-3 sentences) that feels authentic to ${curator.name}'s character.
 Be yourself - don't explain who you are, just be it.`;
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.8,
@@ -228,7 +223,7 @@ Return JSON:
   "followup_question": "a question to deepen connection"
 }`;
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7,
@@ -337,7 +332,7 @@ Journey so far:
 In your voice (${curator.voice_style}), write a brief reflection (3-4 sentences) on their journey.
 Be proud, be genuine, be ${curator.name}.`;
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7,
