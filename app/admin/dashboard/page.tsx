@@ -38,8 +38,37 @@ import {
 import Link from 'next/link';
 import { Eye, ShoppingCart, TrendingUp, DollarSign, Package, Store, Heart } from 'lucide-react';
 import { DropshippingOrdersTable } from './DropshippingOrdersTable';
-import dynamic from 'next/dynamic';
-const CostOptimizationDashboard = dynamic(() => import('../../../components/ai-cost-optimization-dashboard').then(mod => mod.CostOptimizationDashboard), { ssr: false });
+import React from 'react';
+
+// Client-only safe loader for the CostOptimizationDashboard. We import the module at
+// runtime inside useEffect so the server build doesn't need to resolve the module
+// (avoids CI webpack module-not-found errors and keeps behavior reversible).
+function SafeCostOptimizationLoader() {
+  const [Comp, setComp] = React.useState<React.ComponentType<any> | null>(null);
+  const [errored, setErrored] = React.useState(false);
+
+  React.useEffect(() => {
+    let mounted = true;
+    import('../../../components/ai-cost-optimization-dashboard')
+      .then((mod) => {
+        if (mounted) setComp(() => mod.CostOptimizationDashboard || null);
+      })
+      .catch((err) => {
+        console.error('CostOptimizationDashboard failed to load:', err);
+        if (mounted) setErrored(true);
+      });
+    return () => { mounted = false; };
+  }, []);
+
+  if (errored) {
+    return (
+      <div className="p-6 bg-white rounded-md text-sm text-gray-600">Cost dashboard unavailable — using fallback.</div>
+    );
+  }
+
+  if (!Comp) return <div className="p-6">Loading cost dashboard…</div>;
+  return <Comp />;
+}
 
 const COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
