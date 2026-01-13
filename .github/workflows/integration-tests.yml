@@ -61,9 +61,9 @@ jobs:
       - name: Run integration tests
         # Run only the integration tests (mocked flows). Use single worker for DB isolation.
         run: |
-          # Skip gracefully when there are no integration tests to avoid false-negative failures
-          if [ ! -d tests/integration ] || [ -z "$(ls -A tests/integration 2>/dev/null)" ]; then
-            echo "No integration tests found under tests/integration — skipping integration tests (success)."
+          # Skip gracefully when there are no Playwright test files under tests/integration
+          if [ -z "$(find tests/integration -type f \( -name '*.spec.ts' -o -name '*.spec.tsx' -o -name '*.test.ts' -o -name '*.test.tsx' \) -print -quit 2>/dev/null)" ]; then
+            echo "No Playwright integration tests found under tests/integration — skipping integration tests (success)."
           else
             # Run Playwright integration tests
             npx playwright test tests/integration --workers=1 --reporter=github
