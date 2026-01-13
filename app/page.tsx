@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, MapPin, Users, Sparkles, Heart, Zap, Building2, Crown } from 'lucide-react';
 import ProgressiveNavigation from '@/components/ProgressiveNavigation';
+import AccessDeniedBanner from '@/components/AccessDeniedBanner';
 
 // Hero Section Options
 const HERO_OPTIONS = {
@@ -75,6 +76,11 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Access denied banner (test flow) */}
+      <div className="w-full">
+        <AccessDeniedBanner />
+      </div>
+
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 animate-pulse"></div>

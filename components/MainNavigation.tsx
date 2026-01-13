@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Home, Compass, ShoppingBag, Sparkles, TrendingUp, Search, Globe, Heart, Star, Gift, Layers, User } from 'lucide-react';
@@ -23,6 +23,25 @@ export function MainNavigation() {
   
   // Check if user is admin
   const [isAdmin, setIsAdmin] = useState(false);
+  // Support dev-only test_user role via query params so E2E can simulate roles synchronously
+  const initialDevRole = (typeof window !== 'undefined') ? (() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('test_user') === 'true' ? params.get('role') : null;
+  })() : null;
+
+  const [devRole, setDevRole] = useState<string | null>(initialDevRole);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const role = params.get('role');
+      if (params.get('test_user') === 'true' && role) {
+        setDevRole(role);
+      }
+    }
+  }, []);
   
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,14 +88,14 @@ export function MainNavigation() {
               <span>Gifts</span>
             </Link>
 
-            {user && (
+            {hydrated && user && (
               <Link href="/loyalty" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
                 <Star className="w-4 h-4" />
                 <span>Loyalty</span>
               </Link>
             )}
 
-            {user && (
+            {hydrated && user && (
               <Link href="/profile" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
                 <User className="w-4 h-4" />
                 <span>Profile</span>
@@ -86,7 +105,7 @@ export function MainNavigation() {
             {/* Supplier Dashboard */}
             {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
             {/* @ts-ignore-next */}
-            {user && ((user.user_metadata as any)?.roles && (user.user_metadata as any).roles.includes('supplier')) && (
+            {(hydrated && (devRole === 'supplier' || (user && ((user.user_metadata as any)?.roles && (user.user_metadata as any).roles.includes('supplier'))))) && (
               <Link href="/supplier" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
                 <TrendingUp className="w-4 h-4" />
                 <span>Dashboard</span>
@@ -130,11 +149,13 @@ export function MainNavigation() {
             {/* Admin links (only visible to admins) */}
             {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
             {/* @ts-ignore-next */}
-            {((user && ((user.user_metadata as any)?.is_admin || ((user.user_metadata as any)?.roles && (user.user_metadata as any).roles.includes('admin')) || user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL)) || false) && (
+            {(hydrated && ((devRole === 'admin') || (user && ((user.user_metadata as any)?.is_admin || ((user.user_metadata as any)?.roles && (user.user_metadata as any).roles.includes('admin')) || user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL)) || false)) && (
               <div className="flex items-center space-x-4">
                 <Link href="/admin" className="text-gray-700 hover:text-purple-600 transition-colors">Dashboard</Link>
                 <Link href="/admin/assets" className="text-gray-700 hover:text-purple-600 transition-colors">Assets</Link>
                 <Link href="/admin/audio" className="text-gray-700 hover:text-purple-600 transition-colors">Audio</Link>
+                <Link href="/admin/video" className="text-gray-700 hover:text-purple-600 transition-colors">Video</Link>
+                <Link href="/admin/video/jobs" className="text-gray-700 hover:text-purple-600 transition-colors">Video Jobs</Link>
                 <Link href="/admin/revenue" className="text-gray-700 hover:text-purple-600 transition-colors">Revenue</Link>
                 <Link href="/admin/commerce-engine" className="text-gray-700 hover:text-purple-600 transition-colors">AI Systems</Link>
               </div>

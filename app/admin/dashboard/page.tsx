@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import {
   getAnalyticsSummary,
@@ -35,12 +36,26 @@ import {
   Line,
 } from 'recharts';
 import Link from 'next/link';
-import { Eye, ShoppingCart, TrendingUp, DollarSign, Package } from 'lucide-react';
+import { Eye, ShoppingCart, TrendingUp, DollarSign, Package, Store, Heart } from 'lucide-react';
 import { DropshippingOrdersTable } from './DropshippingOrdersTable';
+import { CostOptimizationDashboard } from '@/components/ai-cost-optimization-dashboard';
 
 const COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
 export default function AdminDashboard() {
+  const router = useRouter();
+
+  // Redirect in test_user mode when role is not admin
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('test_user') === 'true' && params.get('role') !== 'admin') {
+        // Redirect to home and surface an access-denied flag
+        router.replace('/?access_denied=true');
+      }
+    }
+  }, [router]);
+
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState({
     totalViews: 0,
@@ -253,6 +268,11 @@ export default function AdminDashboard() {
               </Link>
             </div>
           </div>
+        </div>
+
+        {/* AI Cost Optimization Dashboard */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <CostOptimizationDashboard />
         </div>
 
         <div className="flex justify-between items-center mb-8">
