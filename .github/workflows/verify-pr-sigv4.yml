@@ -25,13 +25,18 @@ jobs:
 
             core.info(`Verifying PR #${prNumber} (sha ${headSha}) for required check: ${requiredCheckName}`);
 
-            // Get check runs for this commit
-            const { data: checkRuns } = await github.rest.checks.listForRef({ owner, repo, ref: headSha });
+            // Also check the merge ref (the workflow runs against refs/pull/<pr>/merge)
+            const mergeRef = `refs/pull/${prNumber}/merge`;
 
-            const matching = (checkRuns.check_runs || []).filter(c => c.name === requiredCheckName && c.conclusion === 'success');
+            // Get check runs for both the head sha and the merge ref
+            const { data: headCheckRuns } = await github.rest.checks.listForRef({ owner, repo, ref: headSha });
+            const { data: mergeCheckRuns } = await github.rest.checks.listForRef({ owner, repo, ref: mergeRef });
+
+            const combined = [...(headCheckRuns.check_runs || []), ...(mergeCheckRuns.check_runs || [])];
+            const matching = combined.filter(c => c.name === requiredCheckName && c.conclusion === 'success');
 
             if (!matching || matching.length === 0) {
-              core.setFailed(`Required check "${requiredCheckName}" has not succeeded for commit ${headSha}. Please ensure the workflow runs and completes.`);
+              core.setFailed(`Required check "${requiredCheckName}" has not succeeded for commit ${headSha} or merge ref ${mergeRef}. Please ensure the workflow runs and completes.`);
             } else {
-              core.info(`Found successful check run: ${matching.map(m => m.name).join(', ')}`);
+              core.info(`Found successful check run: ${matching.map(m => `${m.name}@${m.head_sha}`).join(', ')}`);
             }
