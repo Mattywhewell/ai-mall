@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight, MapPin, Users, Sparkles, Heart, Zap, Building2, Crown } from 'lucide-react';
+import ProgressiveNavigation from '@/components/ProgressiveNavigation';
 
 // Hero Section Options
 const HERO_OPTIONS = {
@@ -92,25 +93,6 @@ export default function HomePage() {
               {heroData.description}
             </p>
           )}
-
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <Link
-              href="/city"
-              className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full text-white font-semibold text-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-purple-500/25"
-            >
-              {heroData.ctaPrimary}
-              <ArrowRight className="inline ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-
-            {heroData.ctaSecondary && (
-              <Link
-                href="/creator"
-                className="px-8 py-4 border-2 border-purple-400 rounded-full text-purple-300 font-semibold text-lg hover:bg-purple-400 hover:text-white transition-all duration-300"
-              >
-                {heroData.ctaSecondary}
-              </Link>
-            )}
-          </div>
         </div>
 
         {/* Animated background elements */}
@@ -125,28 +107,10 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-8">What Is Alverse?</h2>
 
-          <p className="text-xl md:text-2xl text-gray-300 leading-relaxed mb-12">
-            Alverse is the world's first living AI city. A place where creators, AI citizens, and conscious commerce coexist.
-            Every district has a purpose. Every product has a story. Every interaction has emotional intelligence.
-            <span className="text-purple-400 font-semibold"> This is not a marketplace. This is a civilization.</span>
-          </p>
+          <p className="text-xl md:text-2xl text-gray-300 leading-relaxed mb-12">Alverse is the world's first living AI city. A place where creators, AI citizens, and conscious commerce coexist. Every district has a purpose. Every product has a story. Every interaction has emotional intelligence. <span className="text-purple-400 font-semibold"> This is not a marketplace. This is a civilization.</span></p>
 
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Link
-              href="/city"
-              className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full text-white font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
-            >
-              Explore the City
-              <ArrowRight className="inline ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-
-            <Link
-              href="/creator"
-              className="px-8 py-4 border-2 border-purple-400 rounded-full text-purple-300 font-semibold hover:bg-purple-400 hover:text-white transition-all duration-300"
-            >
-              Become a Creator
-            </Link>
-          </div>
+          {/* Progressive Navigation - Adapts to user experience level */}
+          <ProgressiveNavigation />
         </div>
       </section>
 
