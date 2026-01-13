@@ -68,8 +68,16 @@ jobs:
             echo "No Playwright integration tests found under tests/integration — skipping integration tests (success)."
             exit 0
           fi
-          # Run Playwright integration tests
-          npx playwright test tests/integration --workers=1 --reporter=github
+          # Run Playwright integration tests (fail-fast unless no tests exist)
+          TMP_OUTPUT=$(mktemp)
+          if ! npx playwright test tests/integration --workers=1 --reporter=github 2>&1 | tee "$TMP_OUTPUT"; then
+            if grep -q "No tests found" "$TMP_OUTPUT" || grep -q "Error: No tests found" "$TMP_OUTPUT"; then
+              echo "No Playwright integration tests found under tests/integration — skipping integration tests (success)."
+              exit 0
+            fi
+            echo "Playwright integration tests failed:"; cat "$TMP_OUTPUT"
+            exit 1
+          fi
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}}
