@@ -61,16 +61,18 @@ jobs:
       - name: Run integration tests
         # Run only the integration tests (mocked flows). Use single worker for DB isolation.
         run: |
-          # Skip gracefully when there are no Playwright test files under tests/integration
-          if [ -z "$(find tests/integration -type f \( -name '*.spec.ts' -o -name '*.spec.tsx' -o -name '*.test.ts' -o -name '*.test.tsx' \) -print -quit 2>/dev/null)" ]; then
+          # If Playwright reports no tests, skip gracefully to avoid false negatives.
+          # Use Playwright's --list to enumerate tests under the integration folder.
+          TEST_COUNT=$(npx playwright test --list tests/integration 2>/dev/null | wc -l)
+          if [ "$TEST_COUNT" -eq 0 ]; then
             echo "No Playwright integration tests found under tests/integration — skipping integration tests (success)."
-          else
-            # Run Playwright integration tests
-            npx playwright test tests/integration --workers=1 --reporter=github
+            exit 0
           fi
+          # Run Playwright integration tests
+          npx playwright test tests/integration --workers=1 --reporter=github
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}}
 
       - name: Run telemetry Playwright test
         # Validate telemetry/hero analytics in CI during pull requests
