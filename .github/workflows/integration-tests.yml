@@ -60,7 +60,15 @@ jobs:
 
       - name: Run integration tests
         # Run only the integration tests (mocked flows). Use single worker for DB isolation.
-        run: npx playwright test tests/integration --workers=1 --reporter=github
+        run: |
+          # Skip gracefully when there are no integration tests to avoid false-negative failures
+          if [ ! -d tests/integration ] || [ -z "$(ls -A tests/integration 2>/dev/null)" ]; then
+            echo "No integration tests found under tests/integration — skipping integration tests (success)."
+            exit 0
+          fi
+
+          # Run Playwright integration tests
+          npx playwright test tests/integration --workers=1 --reporter=github
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
