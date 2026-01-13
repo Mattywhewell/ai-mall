@@ -3,8 +3,36 @@
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
 
-// Dynamically import the 3D renderer to prevent SSR issues
-const VisualLayerRenderer = dynamic(() => import("@/components/visual-layer/Renderer"), { ssr: false });
+// Dynamically import the 3D renderer to prevent SSR issues, but load it safely with a client-side try/catch
+// to avoid bubbling import/runtime errors (which previously caused the demo to crash in some CI environments).
+function SafeVisualLayerLoader({ strength, tint }: { strength: number; tint: string }) {
+  const [Comp, setComp] = useState<React.ComponentType<any> | null>(null);
+  const [errored, setErrored] = useState(false);
+
+  React.useEffect(() => {
+    let mounted = true;
+    import("@/components/visual-layer/Renderer")
+      .then((mod) => {
+        if (mounted) setComp(() => mod.default || null);
+      })
+      .catch((err) => {
+        console.error('VisualLayerRenderer failed to load:', err);
+        if (mounted) setErrored(true);
+      });
+    return () => { mounted = false; };
+  }, []);
+
+  if (errored) {
+    return (
+      <div style={{ width: '100%', height: '500px', borderRadius: 12, overflow: 'hidden', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <img src="/shader-previews/runic-medium.svg" alt="Runic glow preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      </div>
+    );
+  }
+
+  if (!Comp) return <div>Loading renderer…</div>;
+  return <Comp strength={strength} tint={tint} />;
+}
 
 export default function DemoPage() {
   const [strength, setStrength] = useState(0.6);
@@ -17,7 +45,7 @@ export default function DemoPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <VisualLayerRenderer strength={strength} tint={tint} />
+          <SafeVisualLayerLoader strength={strength} tint={tint} />
         </div>
 
         <div className="space-y-4">

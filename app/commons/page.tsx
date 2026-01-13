@@ -1,5 +1,8 @@
 'use client';
 
+// Patch React internals early to satisfy react-reconciler expectations
+import '@/lib/patchReactInternals';
+
 import dynamic from 'next/dynamic';
 
 // Dynamically import the 3D canvas to prevent SSR issues
