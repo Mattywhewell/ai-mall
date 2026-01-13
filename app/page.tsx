@@ -107,15 +107,10 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-8">What Is Alverse?</h2>
 
-          <p className="text-xl md:text-2xl text-gray-300 leading-relaxed mb-12">
-            Alverse is the world's first living AI city. A place where creators, AI citizens, and conscious commerce coexist.
-            Every district has a purpose. Every product has a story. Every interaction has emotional intelligence.
-            <span className="text-purple-400 font-semibold"> This is not a marketplace. This is a civilization.</span>
-          </p>
+          <p className="text-xl md:text-2xl text-gray-300 leading-relaxed mb-12">Alverse is the world's first living AI city. A place where creators, AI citizens, and conscious commerce coexist. Every district has a purpose. Every product has a story. Every interaction has emotional intelligence. <span className="text-purple-400 font-semibold"> This is not a marketplace. This is a civilization.</span></p>
 
           {/* Progressive Navigation - Adapts to user experience level */}
           <ProgressiveNavigation />
-          </div>
         </div>
       </section>
 
