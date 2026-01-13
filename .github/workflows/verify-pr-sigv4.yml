@@ -6,6 +6,8 @@ on:
 
 jobs:
   check-sigv4:
+    permissions:
+      checks: read
     runs-on: ubuntu-latest
     steps:
       - name: Check PR for SigV4 status

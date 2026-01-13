@@ -38,7 +38,8 @@ import {
 import Link from 'next/link';
 import { Eye, ShoppingCart, TrendingUp, DollarSign, Package, Store, Heart } from 'lucide-react';
 import { DropshippingOrdersTable } from './DropshippingOrdersTable';
-import { CostOptimizationDashboard } from '@/components/ai-cost-optimization-dashboard';
+import dynamic from 'next/dynamic';
+const CostOptimizationDashboard = dynamic(() => import('@/components/ai-cost-optimization-dashboard').then(mod => mod.CostOptimizationDashboard), { ssr: false });
 
 const COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
