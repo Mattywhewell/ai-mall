@@ -24,6 +24,8 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          NEXT_PUBLIC_CI_ROUTER_LOGS: '1'
 
       - name: Start production server
         run: |
@@ -73,6 +75,8 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          NEXT_PUBLIC_CI_ROUTER_LOGS: '1'
 
       - name: Start production server
         run: |
