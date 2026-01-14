@@ -1,0 +1,15 @@
+1:"$Sreact.fragment"
+2:I[9766,[],""]
+3:I[98924,[],""]
+4:I[81959,[],"ClientPageRoot"]
+5:I[60944,["7480","static/chunks/app/city/page-783b05cac8ff11e4.js"],"default"]
+6:I[24431,[],"OutletBoundary"]
+8:I[15278,[],"AsyncMetadataOutlet"]
+a:I[24431,[],"ViewportBoundary"]
+c:I[24431,[],"MetadataBoundary"]
+d:"$Sreact.suspense"
+0:{"b":"E2pH7AaV1AyBJYvuNShzG","f":[["children","city",["city",{"children":["__PAGE__",{}]}],["city",["$","$1","c",{"children":[null,["$","$L2",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L3",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":[["$","$L4",null,{"Component":"$5","searchParams":{},"params":{}}],null,["$","$L6",null,{"children":["$L7",["$","$L8",null,{"promise":"$@9"}]]}]]}],{},null,false]},null,false],["$","$1","h",{"children":[null,["$","$1","8SIuQfEEID2CilRk5Y8RJv",{"children":[["$","$La",null,{"children":"$Lb"}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],["$","$Lc","8SIuQfEEID2CilRk5Y8RJm",{"children":["$","div",null,{"hidden":true,"children":["$","$d",null,{"fallback":null,"children":"$Le"}]}]}]]}],false]],"S":false}
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+7:null
+9:{"metadata":[["$","title","0",{"children":"Alverse - Conscious Commerce"}],["$","meta","1",{"name":"description","content":"Experience a living AI city where creators, AI citizens, and conscious commerce coexist"}]],"error":null,"digest":"$undefined"}
+e:"$9:metadata"

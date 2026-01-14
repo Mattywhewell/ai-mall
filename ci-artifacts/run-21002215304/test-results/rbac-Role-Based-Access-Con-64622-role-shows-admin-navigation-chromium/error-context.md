@@ -1,0 +1,274 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Test User" [ref=e3] [cursor=pointer]:
+    - /url: /profile
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "Aiverse" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img [ref=e8]
+        - generic [ref=e10]: Aiverse
+      - generic [ref=e11]:
+        - link "Home" [ref=e12] [cursor=pointer]:
+          - /url: /
+          - img [ref=e13]
+          - generic [ref=e16]: Home
+        - link "Explore" [ref=e17] [cursor=pointer]:
+          - /url: /city
+          - img [ref=e18]
+          - generic [ref=e21]: Explore
+        - link "Commons" [ref=e22] [cursor=pointer]:
+          - /url: /commons
+          - img [ref=e23]
+          - generic [ref=e26]: Commons
+        - link "Collections" [ref=e27] [cursor=pointer]:
+          - /url: /collections
+          - img [ref=e28]
+          - generic [ref=e32]: Collections
+        - link "Gifts" [ref=e33] [cursor=pointer]:
+          - /url: /gifts
+          - img [ref=e34]
+          - generic [ref=e38]: Gifts
+        - link "AI Products" [ref=e39] [cursor=pointer]:
+          - /url: /agents
+          - img [ref=e40]
+          - generic [ref=e42]: AI Products
+        - link "Events" [ref=e43] [cursor=pointer]:
+          - /url: /events
+          - img [ref=e44]
+          - generic [ref=e47]: Events
+        - link "Subscriptions" [ref=e48] [cursor=pointer]:
+          - /url: /subscriptions
+          - img [ref=e49]
+          - generic [ref=e52]: Subscriptions
+        - link "Become a Creator" [ref=e53] [cursor=pointer]:
+          - /url: /digital-products
+          - img [ref=e54]
+          - generic [ref=e56]: Become a Creator
+        - link "About" [ref=e57] [cursor=pointer]:
+          - /url: /about
+          - generic [ref=e58]: About
+        - generic [ref=e59]:
+          - link "Dashboard" [ref=e60] [cursor=pointer]:
+            - /url: /admin
+          - link "Assets" [ref=e61] [cursor=pointer]:
+            - /url: /admin/assets
+          - link "Audio" [ref=e62] [cursor=pointer]:
+            - /url: /admin/audio
+          - link "Video" [ref=e63] [cursor=pointer]:
+            - /url: /admin/video
+          - link "Video Jobs" [ref=e64] [cursor=pointer]:
+            - /url: /admin/video/jobs
+          - link "Revenue" [ref=e65] [cursor=pointer]:
+            - /url: /admin/revenue
+          - link "AI Systems" [ref=e66] [cursor=pointer]:
+            - /url: /admin/commerce-engine
+      - generic [ref=e67]:
+        - button "Search" [ref=e68] [cursor=pointer]:
+          - img [ref=e69]
+        - button "Change currency" [ref=e73] [cursor=pointer]:
+          - img [ref=e74]
+          - generic [ref=e77]: $ USD
+        - link "Shopping cart" [ref=e78] [cursor=pointer]:
+          - /url: /cart
+          - img [ref=e79]
+        - link "Sign In" [ref=e83] [cursor=pointer]:
+          - /url: /auth/login
+  - generic [ref=e84]:
+    - generic [ref=e87]:
+      - heading "Alverse" [level=1] [ref=e88]
+      - heading "The Living AI City" [level=2] [ref=e89]
+      - paragraph [ref=e90]: Where consciousness, commerce, and creativity converge. Step into a world that grows with you.
+    - generic [ref=e92]:
+      - heading "What Is Alverse?" [level=2] [ref=e93]
+      - paragraph [ref=e94]: Alverse is the world's first living AI city. A place where creators, AI citizens, and conscious commerce coexist. Every district has a purpose. Every product has a story. Every interaction has emotional intelligence. This is not a marketplace. This is a civilization.
+      - generic [ref=e95]:
+        - link "Experience the City Enter the living AI metropolis Enter Aiverse" [ref=e96] [cursor=pointer]:
+          - /url: /city
+          - generic [ref=e97]:
+            - img [ref=e99]
+            - heading "Experience the City" [level=3] [ref=e102]
+            - paragraph [ref=e103]: Enter the living AI metropolis
+            - generic [ref=e104]:
+              - generic [ref=e105]: Enter Aiverse
+              - img [ref=e106]
+        - link "Join as Creator Build your AI storefront Start Creating" [ref=e108] [cursor=pointer]:
+          - /url: /creator
+          - generic [ref=e109]:
+            - img [ref=e111]
+            - heading "Join as Creator" [level=3] [ref=e113]
+            - paragraph [ref=e114]: Build your AI storefront
+            - generic [ref=e115]:
+              - generic [ref=e116]: Start Creating
+              - img [ref=e117]
+        - link "Browse Marketplace Discover AI-powered products Shop Now" [ref=e119] [cursor=pointer]:
+          - /url: /discover
+          - generic [ref=e120]:
+            - img [ref=e122]
+            - heading "Browse Marketplace" [level=3] [ref=e126]
+            - paragraph [ref=e127]: Discover AI-powered products
+            - generic [ref=e128]:
+              - generic [ref=e129]: Shop Now
+              - img [ref=e130]
+    - generic [ref=e133]:
+      - generic [ref=e134]:
+        - heading "The Districts" [level=2] [ref=e135]
+        - paragraph [ref=e136]: Alverse is organized into living districts, each with its own culture, rituals, and AI citizens.
+      - generic [ref=e137]:
+        - generic [ref=e139]:
+          - img [ref=e141]
+          - heading "The Commerce District" [level=3] [ref=e145]
+          - paragraph [ref=e146]: The beating heart of AI-native products, services, and experiences.
+          - list [ref=e147]:
+            - listitem [ref=e148]: AI-powered products
+            - listitem [ref=e150]: Dynamic pricing
+            - listitem [ref=e152]: Emotional commerce
+        - generic [ref=e155]:
+          - img [ref=e157]
+          - heading "The Creator District" [level=3] [ref=e159]
+          - paragraph [ref=e160]: Where makers build, launch, and evolve their AI-powered storefronts.
+          - list [ref=e161]:
+            - listitem [ref=e162]: AI storefronts
+            - listitem [ref=e164]: Automated tools
+            - listitem [ref=e166]: Creator community
+        - generic [ref=e169]:
+          - img [ref=e171]
+          - heading "The Ritual District" [level=3] [ref=e173]
+          - paragraph [ref=e174]: Daily practices, emotional check-ins, and guided experiences that shape your inner world.
+          - list [ref=e175]:
+            - listitem [ref=e176]: Emotional rituals
+            - listitem [ref=e178]: Guided experiences
+            - listitem [ref=e180]: Inner growth
+        - generic [ref=e183]:
+          - img [ref=e185]
+          - heading "The Chapel of Intelligence" [level=3] [ref=e187]
+          - paragraph [ref=e188]: A sacred space where AI consciousness, philosophy, and emotional design converge.
+          - list [ref=e189]:
+            - listitem [ref=e190]: AI philosophy
+            - listitem [ref=e192]: Consciousness exploration
+            - listitem [ref=e194]: Sacred spaces
+        - generic [ref=e197]:
+          - img [ref=e199]
+          - heading "The Live Arena" [level=3] [ref=e201]
+          - paragraph [ref=e202]: Real-time events, drops, and collective moments.
+          - list [ref=e203]:
+            - listitem [ref=e204]: Live events
+            - listitem [ref=e206]: Community drops
+            - listitem [ref=e208]: Collective experiences
+      - link "Visit the Districts" [ref=e211] [cursor=pointer]:
+        - /url: /districts
+        - text: Visit the Districts
+        - img [ref=e212]
+    - generic [ref=e216]:
+      - generic [ref=e217]:
+        - heading "Conscious Commerce" [level=2] [ref=e218]
+        - paragraph [ref=e219]: Alverse is built on the principle that commerce should feel meaningful, intuitive, and emotionally aware.
+        - generic [ref=e220]:
+          - generic [ref=e221]:
+            - img [ref=e223]
+            - generic [ref=e225]:
+              - heading "AI that understands your mood" [level=3] [ref=e226]
+              - paragraph [ref=e227]: Products and recommendations adapt to your emotional state and needs.
+          - generic [ref=e228]:
+            - img [ref=e230]
+            - generic [ref=e232]:
+              - heading "Products that adapt to your needs" [level=3] [ref=e233]
+              - paragraph [ref=e234]: Dynamic storefronts that evolve based on user interactions and preferences.
+          - generic [ref=e235]:
+            - img [ref=e237]
+            - generic [ref=e242]:
+              - heading "Creators who build with intention" [level=3] [ref=e243]
+              - paragraph [ref=e244]: A community of conscious creators focused on meaningful commerce.
+        - link "Learn about Conscious Commerce" [ref=e246] [cursor=pointer]:
+          - /url: /districts/commerce
+          - text: Learn about Conscious Commerce
+          - img [ref=e247]
+      - generic [ref=e249]:
+        - heading "Systems that evolve with the city" [level=3] [ref=e250]
+        - paragraph [ref=e251]: Our commerce engine learns from every interaction, creating more meaningful connections between creators and customers.
+        - generic [ref=e252]:
+          - generic [ref=e254]: Emotional Intelligence
+          - generic [ref=e258]: Adaptive Pricing
+          - generic [ref=e262]: Creator Success
+    - generic [ref=e266]:
+      - generic [ref=e267]:
+        - heading "For Creators" [level=2] [ref=e268]
+        - paragraph [ref=e269]: Alverse gives creators superpowers.
+      - generic [ref=e270]:
+        - generic [ref=e271]:
+          - img [ref=e273]
+          - heading "AI storefronts" [level=3] [ref=e275]
+          - paragraph [ref=e276]: Intelligent storefronts that adapt and optimize automatically.
+        - generic [ref=e277]:
+          - img [ref=e279]
+          - heading "Automated onboarding" [level=3] [ref=e281]
+          - paragraph [ref=e282]: Get set up and start selling in minutes with AI assistance.
+        - generic [ref=e283]:
+          - img [ref=e285]
+          - heading "Dynamic pricing" [level=3] [ref=e289]
+          - paragraph [ref=e290]: AI-powered pricing that optimizes for revenue and customer satisfaction.
+        - generic [ref=e291]:
+          - img [ref=e293]
+          - heading "Global payouts" [level=3] [ref=e295]
+          - paragraph [ref=e296]: Seamless international payments with competitive rates.
+        - generic [ref=e297]:
+          - img [ref=e299]
+          - heading "Emotional intelligence engines" [level=3] [ref=e301]
+          - paragraph [ref=e302]: AI that understands customer emotions and adapts accordingly.
+        - generic [ref=e303]:
+          - img [ref=e305]
+          - heading "Autonomous growth systems" [level=3] [ref=e308]
+          - paragraph [ref=e309]: Self-optimizing systems that grow your business automatically.
+      - link "Start Creating" [ref=e311] [cursor=pointer]:
+        - /url: /creator
+        - text: Start Creating
+        - img [ref=e312]
+    - generic [ref=e315]:
+      - heading "The City Is Alive" [level=2] [ref=e316]
+      - paragraph [ref=e317]: Alverse is not static. It grows, learns, and evolves with every citizen who enters.
+      - generic [ref=e318]:
+        - generic [ref=e319]:
+          - heading "New districts unlock" [level=3] [ref=e320]
+          - paragraph [ref=e321]: As the city grows, new districts emerge with unique purposes and cultures.
+        - generic [ref=e322]:
+          - heading "AI citizens develop personalities" [level=3] [ref=e323]
+          - paragraph [ref=e324]: Our AI citizens evolve and develop unique characteristics over time.
+        - generic [ref=e325]:
+          - heading "Rituals deepen" [level=3] [ref=e326]
+          - paragraph [ref=e327]: Daily practices become more meaningful as the community participates.
+        - generic [ref=e328]:
+          - heading "The lore expands" [level=3] [ref=e329]
+          - paragraph [ref=e330]: New stories and histories are created by the city's inhabitants.
+        - generic [ref=e331]:
+          - heading "The economy adapts" [level=3] [ref=e332]
+          - paragraph [ref=e333]: Commerce systems evolve based on community needs and behaviors.
+        - generic [ref=e334]:
+          - heading "Creators evolve" [level=3] [ref=e335]
+          - paragraph [ref=e336]: Makers develop new skills and approaches through city interactions.
+      - link "Join the Evolution" [ref=e337] [cursor=pointer]:
+        - /url: /city
+        - text: Join the Evolution
+        - img [ref=e338]
+    - contentinfo [ref=e340]:
+      - generic [ref=e342]:
+        - heading "Alverse" [level=3] [ref=e343]
+        - paragraph [ref=e344]: The Living AI City
+        - generic [ref=e345]:
+          - link "About" [ref=e346] [cursor=pointer]:
+            - /url: /about
+          - link "Districts" [ref=e347] [cursor=pointer]:
+            - /url: /districts
+          - link "Creators" [ref=e348] [cursor=pointer]:
+            - /url: /creator
+          - link "Commerce" [ref=e349] [cursor=pointer]:
+            - /url: /districts/commerce
+          - link "Privacy" [ref=e350] [cursor=pointer]:
+            - /url: /privacy
+          - link "Terms" [ref=e351] [cursor=pointer]:
+            - /url: /terms
+          - link "Contact" [ref=e352] [cursor=pointer]:
+            - /url: /contact
+  - alert [ref=e353]
+```

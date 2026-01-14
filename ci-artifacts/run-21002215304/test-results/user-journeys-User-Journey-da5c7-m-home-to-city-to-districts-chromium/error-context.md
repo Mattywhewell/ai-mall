@@ -1,0 +1,154 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "Aiverse" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e6]
+        - generic [ref=e8]: Aiverse
+      - generic [ref=e9]:
+        - link "Home" [ref=e10] [cursor=pointer]:
+          - /url: /
+          - img [ref=e11]
+          - generic [ref=e14]: Home
+        - link "Explore" [ref=e15] [cursor=pointer]:
+          - /url: /city
+          - img [ref=e16]
+          - generic [ref=e19]: Explore
+        - link "Commons" [ref=e20] [cursor=pointer]:
+          - /url: /commons
+          - img [ref=e21]
+          - generic [ref=e24]: Commons
+        - link "Collections" [ref=e25] [cursor=pointer]:
+          - /url: /collections
+          - img [ref=e26]
+          - generic [ref=e30]: Collections
+        - link "Gifts" [ref=e31] [cursor=pointer]:
+          - /url: /gifts
+          - img [ref=e32]
+          - generic [ref=e36]: Gifts
+        - link "AI Products" [ref=e37] [cursor=pointer]:
+          - /url: /agents
+          - img [ref=e38]
+          - generic [ref=e40]: AI Products
+        - link "Events" [ref=e41] [cursor=pointer]:
+          - /url: /events
+          - img [ref=e42]
+          - generic [ref=e45]: Events
+        - link "Subscriptions" [ref=e46] [cursor=pointer]:
+          - /url: /subscriptions
+          - img [ref=e47]
+          - generic [ref=e50]: Subscriptions
+        - link "Become a Creator" [ref=e51] [cursor=pointer]:
+          - /url: /digital-products
+          - img [ref=e52]
+          - generic [ref=e54]: Become a Creator
+        - link "About" [ref=e55] [cursor=pointer]:
+          - /url: /about
+          - generic [ref=e56]: About
+      - generic [ref=e57]:
+        - button "Search" [ref=e58] [cursor=pointer]:
+          - img [ref=e59]
+        - button "Change currency" [ref=e63] [cursor=pointer]:
+          - img [ref=e64]
+          - generic [ref=e67]: $ USD
+        - link "Shopping cart" [ref=e68] [cursor=pointer]:
+          - /url: /cart
+          - img [ref=e69]
+        - link "Sign In" [ref=e73] [cursor=pointer]:
+          - /url: /auth/login
+  - alert [ref=e74]
+  - generic [ref=e75]:
+    - generic:
+      - generic:
+        - generic:
+          - generic: $204.59
+          - generic: ↘ 9.3%
+      - generic:
+        - generic:
+          - generic: $738.21
+          - generic: ↗ 7.5%
+      - generic:
+        - generic:
+          - generic: $325.13
+          - generic: ↗ 8.3%
+      - generic:
+        - generic:
+          - generic: $696.20
+          - generic: ↗ 6.4%
+      - generic:
+        - generic:
+          - generic: $335.17
+          - generic: ↗ 2.8%
+      - generic:
+        - generic:
+          - generic: $965.28
+          - generic: ↘ 7.8%
+      - generic:
+        - generic:
+          - generic: $971.97
+          - generic: ↘ 9.6%
+      - generic:
+        - generic:
+          - generic: $421.47
+          - generic: ↘ 4.9%
+    - banner [ref=e78]:
+      - link "Back to City" [ref=e79] [cursor=pointer]:
+        - /url: /ai-city/explore
+        - img [ref=e80]
+        - text: Back to City
+      - generic [ref=e82]:
+        - generic [ref=e83]:
+          - heading "Commerce District" [level=1] [ref=e84]
+          - paragraph [ref=e85]: The beating heart of trade and transactions
+        - generic [ref=e86]:
+          - img [ref=e87]
+          - generic [ref=e89]: MARKET OPEN
+    - main [ref=e90]:
+      - generic [ref=e91]:
+        - generic [ref=e92]:
+          - img [ref=e93]
+          - heading "Live Market Feed" [level=2] [ref=e96]
+        - img [ref=e98]
+      - heading "District Landmarks" [level=2] [ref=e99]
+      - generic [ref=e100]:
+        - generic [ref=e103]:
+          - generic [ref=e104]:
+            - img [ref=e106]
+            - generic [ref=e108]:
+              - heading "Pricing Observatory" [level=3] [ref=e109]
+              - paragraph [ref=e110]: Real-time market intelligence
+          - paragraph [ref=e111]: A towering structure of crystalline glass and pulsing circuits, where AI algorithms analyze millions of transactions per second, predicting trends before they emerge.
+          - generic [ref=e112]:
+            - generic [ref=e113]: Real-time Analytics
+            - generic [ref=e114]: Price Optimization
+        - generic [ref=e117]:
+          - generic [ref=e118]:
+            - img [ref=e120]
+            - generic [ref=e122]:
+              - heading "Market Exchange Tower" [level=3] [ref=e123]
+              - paragraph [ref=e124]: The nexus of all trades
+          - paragraph [ref=e125]: Hundreds of holographic screens float in the air, displaying every transaction, every currency conversion, every deal struck across the multiverse.
+          - generic [ref=e126]:
+            - generic [ref=e127]: Multi-Currency
+            - generic [ref=e128]: Instant Settlement
+      - generic [ref=e129]:
+        - generic [ref=e130]:
+          - generic [ref=e131]: 💰
+          - heading "Holographic Billboards" [level=3] [ref=e132]
+          - paragraph [ref=e133]: Floating advertisements shimmer with product offerings, prices morphing in real-time based on demand and market sentiment.
+        - generic [ref=e134]:
+          - generic [ref=e135]: 📊
+          - heading "Floating Price Tickers" [level=3] [ref=e136]
+          - paragraph [ref=e137]: Streams of numbers cascade through the air, each representing a product, a service, a moment in the endless flow of commerce.
+        - generic [ref=e138]:
+          - generic [ref=e139]: ⚡
+          - heading "Revenue Streams" [level=3] [ref=e140]
+          - paragraph [ref=e141]: Glowing rivers of energy flow through transparent tubes, visualizing the constant movement of value throughout the district.
+      - link "Explore Market Analytics" [ref=e143] [cursor=pointer]:
+        - /url: /pricing
+        - img [ref=e144]
+        - generic [ref=e146]: Explore Market Analytics
+```

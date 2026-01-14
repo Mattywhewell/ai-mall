@@ -1,0 +1,520 @@
+{
+  "base": "http://localhost:3000",
+  "results": [
+    {
+      "url": "/about",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "About AI-Native Mall",
+      "errors": []
+    },
+    {
+      "url": "/admin/assets?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/assets?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/audio?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/audio?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/auto-listing?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/auto-listing?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/autonomous?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/autonomous?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/collections?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/collections?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/commerce-engine?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/commerce-engine?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/creator-applications?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/creator-applications?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/creators?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/creators?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/integration?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/integration?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/payouts?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/payouts?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/products/import?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/products/import?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/products/pending?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/products/pending?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/products/rejected?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/products/rejected?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/prompts?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/prompts?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/stripe/connections?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/stripe/connections?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/vendors?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/vendors?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/vendors/luminous-nexus/products/upload?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/vendors/luminous-nexus/products/upload?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/vendors/neon-boulevard/products/upload?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/vendors/neon-boulevard/products/upload?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/vendors/quiet-thoughts/products/upload?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/vendors/quiet-thoughts/products/upload?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/vendors/example/products/upload?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/vendors/example/products/upload?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/vendors/test/products/upload?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/vendors/test/products/upload?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/video?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/video?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/admin/video/jobs?test_user=true&role=admin",
+      "status": -1,
+      "title": "",
+      "h1": "",
+      "errors": [
+        "TimeoutError: page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/video/jobs?test_user=true&role=admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ]
+    },
+    {
+      "url": "/agents",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "AI Shopping Agents",
+      "errors": []
+    },
+    {
+      "url": "/ai-city/explore",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "The Living City",
+      "errors": []
+    },
+    {
+      "url": "/ai-city/status",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "",
+      "errors": []
+    },
+    {
+      "url": "/ai-concierge",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Your AI Shopping Assistant",
+      "errors": []
+    },
+    {
+      "url": "/ai-concierge/preferences",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "AI Concierge Preferences",
+      "errors": []
+    },
+    {
+      "url": "/chapels/luminous-nexus",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "HTTP error! status: 404",
+      "errors": []
+    },
+    {
+      "url": "/chapels/neon-boulevard",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "HTTP error! status: 404",
+      "errors": []
+    },
+    {
+      "url": "/chapels/quiet-thoughts",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "HTTP error! status: 404",
+      "errors": []
+    },
+    {
+      "url": "/chapels/example",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "HTTP error! status: 404",
+      "errors": []
+    },
+    {
+      "url": "/chapels/test",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "HTTP error! status: 404",
+      "errors": []
+    },
+    {
+      "url": "/city",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "",
+      "errors": []
+    },
+    {
+      "url": "/collections",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "AI-Curated Collections",
+      "errors": []
+    },
+    {
+      "url": "/collections/luminous-nexus",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Collection Not Found",
+      "errors": []
+    },
+    {
+      "url": "/collections/neon-boulevard",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Collection Not Found",
+      "errors": []
+    },
+    {
+      "url": "/collections/quiet-thoughts",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Collection Not Found",
+      "errors": []
+    },
+    {
+      "url": "/collections/example",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Collection Not Found",
+      "errors": []
+    },
+    {
+      "url": "/collections/test",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Collection Not Found",
+      "errors": []
+    },
+    {
+      "url": "/commons",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "",
+      "errors": []
+    },
+    {
+      "url": "/consciousness/dashboard",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "",
+      "errors": []
+    },
+    {
+      "url": "/consciousness-demo",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "🌊 Consciousness Layer Demo",
+      "errors": []
+    },
+    {
+      "url": "/contact",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Contact Us",
+      "errors": []
+    },
+    {
+      "url": "/cookies",
+      "status": 200,
+      "title": "Cookie Policy | Aiverse",
+      "h1": "Cookie Policy",
+      "errors": []
+    },
+    {
+      "url": "/creator",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Join the Creator Economy",
+      "errors": []
+    },
+    {
+      "url": "/creator/luminous-nexus",
+      "status": 404,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "404",
+      "errors": []
+    },
+    {
+      "url": "/creator/neon-boulevard",
+      "status": 404,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "404",
+      "errors": []
+    },
+    {
+      "url": "/creator/quiet-thoughts",
+      "status": 404,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "404",
+      "errors": []
+    },
+    {
+      "url": "/creator/example",
+      "status": 404,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "404",
+      "errors": []
+    },
+    {
+      "url": "/creator/test",
+      "status": 404,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "404",
+      "errors": []
+    },
+    {
+      "url": "/creator/apply",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Become a Creator",
+      "errors": []
+    },
+    {
+      "url": "/creators/luminous-nexus",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Alex Rodriguez",
+      "errors": []
+    },
+    {
+      "url": "/creators/neon-boulevard",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Alex Rodriguez",
+      "errors": []
+    },
+    {
+      "url": "/creators/quiet-thoughts",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Alex Rodriguez",
+      "errors": []
+    },
+    {
+      "url": "/creators/example",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Alex Rodriguez",
+      "errors": []
+    },
+    {
+      "url": "/creators/test",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Alex Rodriguez",
+      "errors": []
+    },
+    {
+      "url": "/digital-products",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "AI-Generated Digital Products",
+      "errors": []
+    },
+    {
+      "url": "/digital-products/luminous-nexus",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Product Not Found",
+      "errors": []
+    },
+    {
+      "url": "/digital-products/neon-boulevard",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Product Not Found",
+      "errors": []
+    },
+    {
+      "url": "/digital-products/quiet-thoughts",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Product Not Found",
+      "errors": []
+    },
+    {
+      "url": "/digital-products/example",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Product Not Found",
+      "errors": []
+    },
+    {
+      "url": "/digital-products/test",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Product Not Found",
+      "errors": []
+    },
+    {
+      "url": "/digital-products/success",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "",
+      "errors": []
+    },
+    {
+      "url": "/discover",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Discover Creators",
+      "errors": []
+    },
+    {
+      "url": "/districts",
+      "status": 200,
+      "title": "Alverse - Conscious Commerce",
+      "h1": "Explore the Districts",
+      "errors": []
+    }
+  ]
+}
