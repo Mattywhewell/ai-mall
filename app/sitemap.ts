@@ -18,6 +18,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly' as const,
       priority: 0.9,
     },
+  ]
+
+  // Instrumentation: log start/finish and timing when running in CI or when
+  // E2E_SERVER_INSTRUMENTATION=1. This helps correlate RSC client traces with
+  // any slow/missing server-side work (e.g., Supabase queries).
+  const instr = Boolean(process.env.E2E_SERVER_INSTRUMENTATION || process.env.CI);
+  const start = Date.now();
+  if (instr) console.log(`[SITEMAP-INSTR] START ${new Date().toISOString()} baseUrl=${baseUrl}`);
+
+  try {
     {
       url: `${baseUrl}/districts`,
       lastModified: new Date(),
@@ -165,9 +175,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
     })
 
+    if (instr) console.log(`[SITEMAP-INSTR] FINISH ${new Date().toISOString()} dynamic=${dynamicUrls.length} static=${staticPages.length} durationMs=${Date.now()-start}`);
     return [...staticPages, ...dynamicUrls]
 
   } catch (error) {
+    if (instr) console.error(`[SITEMAP-INSTR] ERROR ${new Date().toISOString()} durationMs=${Date.now()-start}`, error);
     console.error('Error generating sitemap:', error)
     // Return static pages only if database query fails
     return staticPages

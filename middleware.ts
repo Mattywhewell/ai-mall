@@ -10,6 +10,19 @@ export function middleware(request: NextRequest) {
   const testUser = url.searchParams.get('test_user');
   const role = url.searchParams.get('role');
 
+  // Minimal server-side instrumentation for E2E: when enabled in CI or via
+  // E2E_SERVER_INSTRUMENTATION=1, log RSC/prefetch requests so we can
+  // correlate client traces with server timing in CI logs.
+  const instr = Boolean(process.env.E2E_SERVER_INSTRUMENTATION || process.env.CI);
+  try {
+    if (instr && (request.headers.get('rsc') === '1' || url.searchParams.has('_rsc') || request.headers.get('next-router-prefetch'))) {
+      console.log(`[RSC-INSTR START] ${new Date().toISOString()} ${request.method} ${url.pathname}${url.search} rsc=${request.headers.get('rsc')} prefetch=${request.headers.get('next-router-prefetch')}`);
+    }
+  } catch (e) {
+    // Swallow instrumentation errors to avoid affecting runtime
+    console.warn('[RSC-INSTR] instrumentation error', e);
+  }
+
   if (testUser === 'true') {
     // If visiting admin routes and not an admin, redirect to home with access_denied flag
     if (isAdminPath && role !== 'admin') {
