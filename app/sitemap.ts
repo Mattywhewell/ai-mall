@@ -64,6 +64,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (instr) console.log(`[SITEMAP-INSTR] START ${new Date().toISOString()} baseUrl=${baseUrl}`);
 
   try {
+    // If Supabase env is missing, avoid importing/creating the client at build time.
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      if (instr) console.log(`[SITEMAP-INSTR] SKIP ${new Date().toISOString()} supabase missing`);
+      if (instr) console.log(`[SITEMAP-INSTR] FINISH ${new Date().toISOString()} dynamic=0 static=${staticPages.length} durationMs=${Date.now()-start}`);
+      return staticPages
+    }
+
     // Import Supabase client
     const { createClient } = await import('@supabase/supabase-js')
     const supabase = createClient(
