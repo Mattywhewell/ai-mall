@@ -1,0 +1,13 @@
+Key network findings (excerpt from 0-trace.network):
+
+- Multiple RSC prefetch/segment fetches aborted with _failureText: "net::ERR_ABORTED" (e.g., /commons?_rsc, /city?_rsc, /collections?_rsc).
+- Abort timing lines indicate prefetches failing during navigation to /city and /districts (see the full network artifact in CI traces).
+
+Sample matches:
+```
+"_failureText":"net::ERR_ABORTED" // commons?_rsc
+"_failureText":"net::ERR_ABORTED" // city?_rsc
+"_failureText":"net::ERR_ABORTED" // collections?_rsc
+```
+
+Full network trace file: `.github/triage/run-20997080966/user-journeys.0-trace.network`
