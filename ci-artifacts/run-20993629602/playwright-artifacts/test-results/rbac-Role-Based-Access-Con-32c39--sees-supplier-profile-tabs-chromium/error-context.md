@@ -1,0 +1,91 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "Aiverse" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e6]
+        - generic [ref=e8]: Aiverse
+      - generic [ref=e9]:
+        - link "Home" [ref=e10] [cursor=pointer]:
+          - /url: /
+          - img [ref=e11]
+          - generic [ref=e14]: Home
+        - link "Explore" [ref=e15] [cursor=pointer]:
+          - /url: /city
+          - img [ref=e16]
+          - generic [ref=e19]: Explore
+        - link "Commons" [ref=e20] [cursor=pointer]:
+          - /url: /commons
+          - img [ref=e21]
+          - generic [ref=e24]: Commons
+        - link "Collections" [ref=e25] [cursor=pointer]:
+          - /url: /collections
+          - img [ref=e26]
+          - generic [ref=e30]: Collections
+        - link "Gifts" [ref=e31] [cursor=pointer]:
+          - /url: /gifts
+          - img [ref=e32]
+          - generic [ref=e36]: Gifts
+        - link "Dashboard" [ref=e37] [cursor=pointer]:
+          - /url: /supplier
+          - img [ref=e38]
+          - generic [ref=e41]: Dashboard
+        - link "AI Products" [ref=e42] [cursor=pointer]:
+          - /url: /agents
+          - img [ref=e43]
+          - generic [ref=e45]: AI Products
+        - link "Events" [ref=e46] [cursor=pointer]:
+          - /url: /events
+          - img [ref=e47]
+          - generic [ref=e50]: Events
+        - link "Subscriptions" [ref=e51] [cursor=pointer]:
+          - /url: /subscriptions
+          - img [ref=e52]
+          - generic [ref=e55]: Subscriptions
+        - link "Become a Creator" [ref=e56] [cursor=pointer]:
+          - /url: /digital-products
+          - img [ref=e57]
+          - generic [ref=e59]: Become a Creator
+        - link "About" [ref=e60] [cursor=pointer]:
+          - /url: /about
+          - generic [ref=e61]: About
+      - generic [ref=e62]:
+        - button "Search" [ref=e63] [cursor=pointer]:
+          - img [ref=e64]
+        - button "Change currency" [ref=e68] [cursor=pointer]:
+          - img [ref=e69]
+          - generic [ref=e72]: $ USD
+        - link "Shopping cart" [ref=e73] [cursor=pointer]:
+          - /url: /cart
+          - img [ref=e74]
+        - link "Sign In" [ref=e78] [cursor=pointer]:
+          - /url: /auth/login
+  - alert [ref=e79]
+  - generic [ref=e81]:
+    - generic [ref=e82]:
+      - heading "Welcome Back" [level=1] [ref=e83]
+      - paragraph [ref=e84]: Sign in to your Aiverse account
+    - button "Continue with Google" [ref=e86] [cursor=pointer]:
+      - img [ref=e87]
+      - text: Continue with Google
+    - generic [ref=e96]: Or continue with email
+    - generic [ref=e97]:
+      - generic [ref=e98]:
+        - generic [ref=e99]: Email Address
+        - textbox "Email Address" [ref=e100]:
+          - /placeholder: you@example.com
+      - generic [ref=e101]:
+        - generic [ref=e102]: Password
+        - textbox "Password" [ref=e103]:
+          - /placeholder: ••••••••
+      - link "Forgot password?" [ref=e105] [cursor=pointer]:
+        - /url: /auth/forgot-password
+      - button "Sign In" [ref=e106] [cursor=pointer]
+    - paragraph [ref=e108]:
+      - text: Don't have an account?
+      - link "Sign up" [ref=e109] [cursor=pointer]:
+        - /url: /auth/signup
+```

@@ -5,6 +5,20 @@ import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 
+// Lazy load SoundManager
+let useSoundManager: any = null;
+if (typeof window !== 'undefined') {
+  try {
+    import('../../lib/sound/SoundManager').then(soundModule => {
+      useSoundManager = soundModule.useSoundManager;
+    }).catch(error => {
+      console.warn('SoundManager not available for ShopEntrances:', error);
+    });
+  } catch (error) {
+    console.warn('SoundManager not available for ShopEntrances:', error);
+  }
+}
+
 interface ShopEntrancesProps {
   onShopEnter: (shopId: string) => void;
 }
@@ -91,6 +105,8 @@ interface ShopEntranceProps {
 function ShopEntrance({ shop, isHovered, onHover, onEnter }: ShopEntranceProps) {
   const entranceRef = useRef<THREE.Group>(null);
   const portalRef = useRef<THREE.Mesh>(null);
+  const soundManager = useSoundManager ? useSoundManager() : null;
+  const [lastHovered, setLastHovered] = useState(false);
 
   // Animation effects
   useFrame((state) => {
@@ -106,6 +122,18 @@ function ShopEntrance({ shop, isHovered, onHover, onEnter }: ShopEntranceProps) 
 
       const material = portalRef.current.material as THREE.MeshStandardMaterial;
       material.emissiveIntensity = isHovered ? 0.4 : 0.1;
+    }
+
+    // Audio effects for hover state changes
+    if (soundManager && soundManager.isReady) {
+      if (isHovered && !lastHovered) {
+        // Started hovering - play hover sound
+        soundManager.playEffect('node-hover', { volume: 0.2 });
+        setLastHovered(true);
+      } else if (!isHovered && lastHovered) {
+        // Stopped hovering
+        setLastHovered(false);
+      }
     }
   });
 
@@ -131,7 +159,12 @@ function ShopEntrance({ shop, isHovered, onHover, onEnter }: ShopEntranceProps) 
         position={[0, 1, 1.6]}
         onPointerEnter={() => onHover(shop.id)}
         onPointerLeave={() => onHover(null)}
-        onClick={() => onEnter(shop.id)}
+        onClick={() => {
+          if (soundManager) {
+            soundManager.playEffect('portal-open', { volume: 0.4 });
+          }
+          onEnter(shop.id);
+        }}
       >
         <planeGeometry args={[1.5, 1.8]} />
         <meshStandardMaterial

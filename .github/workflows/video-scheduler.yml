@@ -1,0 +1,26 @@
+name: Video Scheduler
+
+on:
+  schedule:
+    - cron: '*/5 * * * *' # every 5 minutes
+  workflow_dispatch: {}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Invoke video scheduler
+        env:
+          SITE_URL: ${{ secrets.SITE_URL }}
+          VIDEO_SCHEDULER_TOKEN: ${{ secrets.VIDEO_SCHEDULER_TOKEN }}
+        run: |
+          if [ -z "$SITE_URL" ] || [ -z "$VIDEO_SCHEDULER_TOKEN" ]; then
+            echo "Please set SITE_URL and VIDEO_SCHEDULER_TOKEN in repository secrets";
+            exit 1;
+          fi
+
+          echo "Calling scheduler on $SITE_URL"
+          curl -s -X POST "${SITE_URL}/api/cron/video-schedules" \
+            -H "Content-Type: application/json" \
+            -H "X-Scheduler-Token: ${VIDEO_SCHEDULER_TOKEN}" \
+            -d '{}' | jq -C .

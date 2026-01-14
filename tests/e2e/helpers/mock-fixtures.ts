@@ -31,9 +31,19 @@ export async function setupMocks(page: Page, opts: { hero?: boolean; homepage?: 
   }
 
   if (opts.session) {
-    // Return not authenticated by default
+    // Return an authenticated test user by default (supplier role)
     await page.route('**/api/session', route =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ user: null }) })
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          user: {
+            id: 'test-id',
+            email: 'test@example.com',
+            user_metadata: { full_name: 'Test User', roles: ['supplier'], is_admin: false },
+          },
+        }),
+      })
     );
   }
 }

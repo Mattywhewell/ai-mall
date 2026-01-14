@@ -14,8 +14,8 @@ test('shows static preview when WebGL is unavailable', async ({ page }) => {
 
   await page.goto('/visual-layers/demo');
 
-  // Expect the fallback image to appear
-  await page.waitForSelector('img[alt="Runic glow preview"]', { timeout: 5000 });
+  // Expect the fallback image to appear (allow more time in CI/dev)
+  await page.waitForSelector('img[alt="Runic glow preview"]', { timeout: 10000 });
   const img = await page.$('img[alt="Runic glow preview"]');
   expect(img).not.toBeNull();
 

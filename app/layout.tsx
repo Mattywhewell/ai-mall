@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import '@/styles/globals.css';
 import { AuthProvider } from '@/lib/auth/AuthContext';
 import { MainNavigation } from '@/components/MainNavigation';
+import TestUserSSR from '@/components/TestUserSSR';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -58,6 +59,10 @@ export default function RootLayout({
               });
             })();
           `}} />
+
+          {/* Server-side test user marker (used by E2E to detect server-rendered test user state) */}
+          {/* Rendered only when middleware sets the short-lived test_user cookie */}
+          <TestUserSSR />
           <MainNavigation />
           {children}
         </AuthProvider>

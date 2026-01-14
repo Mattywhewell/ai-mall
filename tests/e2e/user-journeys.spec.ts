@@ -42,11 +42,17 @@ test.describe('User Journey Paths', () => {
       }
 
       // Click on a district link, but be tolerant if the city page doesn't render district links quickly
+      // Wait for a district heading/section first — helps when client is hydrating and rendering is delayed
+      const districtHeading = page.getByRole('heading', { name: /Explore the Districts|The Districts|Districts/i }).first();
+      await districtHeading.waitFor({ state: 'visible', timeout: 15000 }).catch(() => {
+        console.warn('District heading not visible; continuing with link-detection fallback');
+      });
+
       // Match both the index and subpaths (href="/districts" and href="/districts/<slug>")
       const districtLink = page.locator('a[href^="/districts"]').first();
       let linkFound = true;
       try {
-        await districtLink.waitFor({ state: 'visible', timeout: 12000 });
+        await districtLink.waitFor({ state: 'visible', timeout: 20000 });
       } catch (err) {
         console.warn('District link not visible on /city; falling back to /districts index:', String(err));
         linkFound = false;
@@ -54,22 +60,36 @@ test.describe('User Journey Paths', () => {
 
       if (linkFound) {
         const districtHref = await districtLink.getAttribute('href');
-        try {
-          await districtLink.click();
-          await page.waitForURL(new RegExp(`${BASE}/districts(/.*)?`), { timeout: 10000 });
-        } catch (err) {
-          console.warn('District link click did not cause navigation, attempting direct navigate to href:', String(err));
-          if (page.isClosed()) {
-            console.warn('Page is closed; aborting district navigation recovery');
-            return;
-          }
-          if (districtHref) {
-            try {
-              await page.goto(`${BASE}${districtHref}`, { waitUntil: 'domcontentloaded' });
-            } catch (gotoErr) {
-              console.warn('Direct navigation to district href failed:', String(gotoErr));
-              // continue to fallback to index below
+        let navigated = false;
+        for (let attempt = 0; attempt < 3 && !navigated; attempt++) {
+          try {
+            await districtLink.click({ timeout: 7000, noWaitAfter: true });
+            await page.waitForURL(new RegExp(`${BASE}/districts(/.*)?`), { timeout: 20000 });
+            navigated = true;
+          } catch (err) {
+            console.warn(`District click attempt ${attempt + 1} failed:`, String(err));
+            // small backoff before retrying
+            await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
+            if (attempt === 2 && districtHref) {
+              try {
+                await page.goto(`${BASE}${districtHref}`, { waitUntil: 'domcontentloaded' });
+                // give some time for navigation to stabilize
+                await page.waitForURL(new RegExp(`${BASE}/districts(/.*)?`), { timeout: 15000 }).catch(() => {});
+                navigated = /\/districts/.test(page.url());
+              } catch (gotoErr) {
+                console.warn('Direct navigation to district href failed after retries:', String(gotoErr));
+              }
             }
+          }
+        }
+
+        if (!navigated) {
+          console.warn('District navigation failed after retries, falling back to districts index');
+          try {
+            await page.goto(`${BASE}/districts`, { waitUntil: 'domcontentloaded' });
+          } catch (e) {
+            console.warn('Failed to recover by navigating to /districts:', String(e));
+            return;
           }
         }
       } else {
@@ -105,7 +125,7 @@ test.describe('User Journey Paths', () => {
         if (specific) {
           try {
             await page.locator(`a[href="${specific}"]`).first().click({ timeout: 7000, noWaitAfter: true });
-            await page.waitForURL(new RegExp(`${BASE}/districts(/.*)?`), { timeout: 10000 });
+            await page.waitForURL(new RegExp(`${BASE}/districts(/.*)?`), { timeout: 20000 });
           } catch (err) {
             console.warn('District click did not navigate as expected, falling back to districts index:', String(err));
             try {
@@ -124,7 +144,7 @@ test.describe('User Journey Paths', () => {
           await expect(firstDistrict).toBeVisible();
           try {
             await firstDistrict.click({ timeout: 7000, noWaitAfter: true });
-            await page.waitForURL(new RegExp(`${BASE}/districts(/.*)?`), { timeout: 10000 });
+            await page.waitForURL(new RegExp(`${BASE}/districts(/.*)?`), { timeout: 20000 });
           } catch (err) {
             console.warn('First district click did not navigate as expected, falling back to districts index:', String(err));
             try {

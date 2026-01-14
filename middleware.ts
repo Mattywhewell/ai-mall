@@ -24,6 +24,13 @@ export function middleware(request: NextRequest) {
       redirectUrl.searchParams.set('access_denied', 'true');
       return NextResponse.redirect(redirectUrl);
     }
+
+    // Set a short-lived test cookie so server-side rendering can detect test users.
+    // This helps E2E tests be deterministic by allowing server-rendered HTML to reflect the test user synchronously.
+    const resp = NextResponse.next();
+    resp.cookies.set('test_user', 'true', { path: '/', maxAge: 60 * 5, sameSite: 'lax' });
+    if (role) resp.cookies.set('test_user_role', role, { path: '/', maxAge: 60 * 5, sameSite: 'lax' });
+    return resp;
   }
 
   // Detect user country from Vercel/Cloudflare geo headers

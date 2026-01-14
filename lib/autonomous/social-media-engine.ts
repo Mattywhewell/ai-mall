@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '../supabaseClient';
-import { callOpenAI } from '../ai/openaiClient';
+import { AIRouter } from '../ai/modelRouter';
 
 export interface SocialPost {
   platform: 'tiktok' | 'instagram' | 'twitter' | 'facebook';
@@ -114,7 +114,14 @@ ${products.map((p) => `- ${p.name}: ${p.description?.substring(0, 100)}`).join('
 Generate a weekly social media calendar.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 0.9);
+      const response = await AIRouter.getInstance().executeTask({
+        id: `social-calendar-${districtSlug}-${Date.now()}`,
+        type: 'creative',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.9,
+        priority: 'medium'
+      });
       const calendar = JSON.parse(response);
 
       // Add scheduled_for timestamps
@@ -184,7 +191,14 @@ Description: ${description}
 Generate TikTok hook.`;
 
     try {
-      const hook = await callOpenAI(systemPrompt, userPrompt, 1.0);
+      const hook = await AIRouter.getInstance().executeTask({
+        id: `tiktok-hook-${productName.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`,
+        type: 'creative',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 1.0,
+        priority: 'medium'
+      });
       return hook.trim();
     } catch (error) {
       return `You need to see this! 👀`;
@@ -216,7 +230,14 @@ Hashtags: ${hashtags.join(', ')}
 Generate Instagram caption.`;
 
     try {
-      const caption = await callOpenAI(systemPrompt, userPrompt, 0.9);
+      const caption = await AIRouter.getInstance().executeTask({
+        id: `instagram-caption-${productName.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`,
+        type: 'creative',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.9,
+        priority: 'medium'
+      });
       return caption.trim();
     } catch (error) {
       return `✨ ${productName}\n\n${description}\n\n#${hashtags.join(' #')}`;
@@ -244,7 +265,14 @@ ${products.map((p) => `- ${p.name}`).join('\n')}
 Generate thread.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 0.8);
+      const response = await AIRouter.getInstance().executeTask({
+        id: `twitter-thread-${topic.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`,
+        type: 'creative',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.8,
+        priority: 'medium'
+      });
       const thread = JSON.parse(response);
       return thread;
     } catch (error) {
@@ -276,7 +304,14 @@ Return JSON array of strings (without # symbol): ["tag1", "tag2", ...]`;
 Generate hashtags.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 0.7);
+      const response = await AIRouter.getInstance().executeTask({
+        id: `hashtags-${platform}-${Date.now()}`,
+        type: 'factual',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.7,
+        priority: 'low'
+      });
       const hashtags = JSON.parse(response);
       return hashtags;
     } catch (error) {
@@ -398,7 +433,14 @@ Description: ${district.description}
 Generate content ideas.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 0.9);
+      const response = await AIRouter.getInstance().executeTask({
+        id: `content-ideas-${districtSlug}-${Date.now()}`,
+        type: 'creative',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.9,
+        priority: 'medium'
+      });
       const ideas = JSON.parse(response);
       return ideas;
     } catch (error) {
