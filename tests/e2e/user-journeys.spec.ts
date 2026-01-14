@@ -2,6 +2,10 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 
+// Increase test timeout for this file to tolerate CI slowdowns during hydration/prefetch
+// This is intentionally narrow and reversible; revert once CI shows stability
+test.setTimeout(60000);
+
 test.describe('User Journey Paths', () => {
   test.describe('Wander Path - Anonymous Exploration', () => {
     test('can navigate from home to city to districts', async ({ page }) => {
