@@ -18,16 +18,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly' as const,
       priority: 0.9,
     },
-  ]
-
-  // Instrumentation: log start/finish and timing when running in CI or when
-  // E2E_SERVER_INSTRUMENTATION=1. This helps correlate RSC client traces with
-  // any slow/missing server-side work (e.g., Supabase queries).
-  const instr = Boolean(process.env.E2E_SERVER_INSTRUMENTATION || process.env.CI);
-  const start = Date.now();
-  if (instr) console.log(`[SITEMAP-INSTR] START ${new Date().toISOString()} baseUrl=${baseUrl}`);
-
-  try {
     {
       url: `${baseUrl}/districts`,
       lastModified: new Date(),
@@ -65,6 +55,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     },
   ]
+
+  // Instrumentation: log start/finish and timing when running in CI or when
+  // E2E_SERVER_INSTRUMENTATION=1. This helps correlate RSC client traces with
+  // any slow/missing server-side work (e.g., Supabase queries).
+  const instr = Boolean(process.env.E2E_SERVER_INSTRUMENTATION || process.env.CI);
+  const start = Date.now();
+  if (instr) console.log(`[SITEMAP-INSTR] START ${new Date().toISOString()} baseUrl=${baseUrl}`);
 
   try {
     // Import Supabase client
