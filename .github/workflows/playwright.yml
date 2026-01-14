@@ -42,6 +42,8 @@ jobs:
         env:
           BASE_URL: http://localhost:3000
           CI: true
+          # Enable CI-only router/prefetch logs when present
+          NEXT_PUBLIC_CI_ROUTER_LOGS: '1'
           NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy_key
 
