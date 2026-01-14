@@ -11,16 +11,26 @@ export function middleware(request: NextRequest) {
   const role = url.searchParams.get('role');
 
   // Minimal server-side instrumentation for E2E: when enabled in CI or via
-  // E2E_SERVER_INSTRUMENTATION=1, log RSC/prefetch requests so we can
-  // correlate client traces with server timing in CI logs.
+  // E2E_SERVER_INSTRUMENTATION=1, log requests so we can correlate client
+  // traces with server timing in CI logs.
   const instr = Boolean(process.env.E2E_SERVER_INSTRUMENTATION || process.env.CI);
   try {
-    if (instr && (request.headers.get('rsc') === '1' || url.searchParams.has('_rsc') || request.headers.get('next-router-prefetch'))) {
-      console.log(`[RSC-INSTR START] ${new Date().toISOString()} ${request.method} ${url.pathname}${url.search} rsc=${request.headers.get('rsc')} prefetch=${request.headers.get('next-router-prefetch')}`);
+    if (instr) {
+      const rsc = request.headers.get('rsc') || '';
+      const prefetch = request.headers.get('next-router-prefetch') || '';
+      const referer = request.headers.get('referer') || '';
+      const ua = request.headers.get('user-agent') || '';
+      const cookies = Array.from(request.cookies.keys()).join(',');
+      console.log(`[REQ-INSTR START] ${new Date().toISOString()} ${request.method} ${url.pathname}${url.search} rsc=${rsc} prefetch=${prefetch} referer=${referer} ua="${ua.split(' ').slice(0,3).join(' ')}" cookies=${cookies}`);
+
+      // If it's likely an RSC/prefetch request, also emit a specialized line for ease of grep
+      if (rsc === '1' || prefetch || url.searchParams.has('_rsc')) {
+        console.log(`[RSC-INSTR] ${new Date().toISOString()} ${request.method} ${url.pathname}${url.search} rsc=${rsc} prefetch=${prefetch}`);
+      }
     }
   } catch (e) {
     // Swallow instrumentation errors to avoid affecting runtime
-    console.warn('[RSC-INSTR] instrumentation error', e);
+    console.warn('[REQ-INSTR] instrumentation error', e);
   }
 
   if (testUser === 'true') {
