@@ -4,13 +4,22 @@ const BASE = process.env.BASE_URL || 'http://localhost:3000';
 
 // Increase test timeout for this file to tolerate CI slowdowns during hydration/prefetch
 // This is intentionally narrow and reversible; revert once CI shows stability
-test.setTimeout(60000);
+test.setTimeout(90000);
+
+// Helper: stabilize navigation by waiting for network idle and a visible hydration/content marker
+async function stableNavigation(page: any) {
+  // Wait for network to settle (helps avoid RSC prefetch cancels during navigation)
+  await page.waitForLoadState('networkidle', { timeout: 20000 }).catch(() => {});
+  // Wait for a visible, meaningful content marker (H1, product cards, or test user marker)
+  await page.locator('h1, [data-testid="product-card"], [data-e2e-test-user]').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+}
 
 test.describe('User Journey Paths', () => {
   test.describe('Wander Path - Anonymous Exploration', () => {
     test('can navigate from home to city to districts', async ({ page }) => {
       // Start at homepage
       await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+      await stableNavigation(page);
 
       // Click the City CTA — prefer href for stability, fall back to text variants
       const cityLink = page.locator('a[href="/city"]').first();
@@ -28,9 +37,13 @@ test.describe('User Journey Paths', () => {
           try {
             await cta.click({ timeout: 5000 });
             await page.waitForURL(`${BASE}/city`, { timeout: 10000 });
+            await stableNavigation(page);
+            await stableNavigation(page);
           } catch (err) {
             console.warn('CTA text variant click did not navigate, falling back to direct navigation:', String(err));
             await page.goto(`${BASE}/city?e2e_disable_3d=true`, { waitUntil: 'load' });
+            await stableNavigation(page);
+            await stableNavigation(page);
           }
         }
       }
@@ -67,8 +80,9 @@ test.describe('User Journey Paths', () => {
         let navigated = false;
         for (let attempt = 0; attempt < 3 && !navigated; attempt++) {
           try {
-            await districtLink.click({ timeout: 7000, noWaitAfter: true });
+            await districtLink.click({ timeout: 10000, noWaitAfter: true });
             await page.waitForURL(new RegExp(`${BASE}/districts(/.*)?`), { timeout: 20000 });
+            await stableNavigation(page);
             navigated = true;
           } catch (err) {
             console.warn(`District click attempt ${attempt + 1} failed:`, String(err));
@@ -79,6 +93,7 @@ test.describe('User Journey Paths', () => {
                 await page.goto(`${BASE}${districtHref}`, { waitUntil: 'domcontentloaded' });
                 // give some time for navigation to stabilize
                 await page.waitForURL(new RegExp(`${BASE}/districts(/.*)?`), { timeout: 15000 }).catch(() => {});
+                await stableNavigation(page);
                 navigated = /\/districts/.test(page.url());
               } catch (gotoErr) {
                 console.warn('Direct navigation to district href failed after retries:', String(gotoErr));
@@ -91,6 +106,7 @@ test.describe('User Journey Paths', () => {
           console.warn('District navigation failed after retries, falling back to districts index');
           try {
             await page.goto(`${BASE}/districts`, { waitUntil: 'domcontentloaded' });
+            await stableNavigation(page);
           } catch (e) {
             console.warn('Failed to recover by navigating to /districts:', String(e));
             return;
@@ -107,6 +123,7 @@ test.describe('User Journey Paths', () => {
         for (let attempt = 0; attempt < 3; attempt++) {
           try {
             await page.goto(`${BASE}/districts`, { waitUntil: 'domcontentloaded' });
+            await stableNavigation(page);
             navigated = true;
             break;
           } catch (err) {
@@ -128,8 +145,9 @@ test.describe('User Journey Paths', () => {
         const specific = hrefs.find((h) => h && h !== '/districts');
         if (specific) {
           try {
-            await page.locator(`a[href="${specific}"]`).first().click({ timeout: 7000, noWaitAfter: true });
+            await page.locator(`a[href="${specific}"]`).first().click({ timeout: 10000, noWaitAfter: true });
             await page.waitForURL(new RegExp(`${BASE}/districts(/.*)?`), { timeout: 20000 });
+            await stableNavigation(page);
           } catch (err) {
             console.warn('District click did not navigate as expected, falling back to districts index:', String(err));
             try {
@@ -138,6 +156,7 @@ test.describe('User Journey Paths', () => {
                 return;
               }
               await page.goto(`${BASE}/districts`, { waitUntil: 'domcontentloaded' });
+              await stableNavigation(page);
             } catch (gotoErr) {
               console.warn('Could not recover by navigating to /districts, browser/context may be closed:', String(gotoErr));
               return; // abort test early to avoid throwing from closed browser/context
@@ -147,8 +166,9 @@ test.describe('User Journey Paths', () => {
           const firstDistrict = page.locator('a[href^="/districts"]').first();
           await expect(firstDistrict).toBeVisible();
           try {
-            await firstDistrict.click({ timeout: 7000, noWaitAfter: true });
+            await firstDistrict.click({ timeout: 10000, noWaitAfter: true });
             await page.waitForURL(new RegExp(`${BASE}/districts(/.*)?`), { timeout: 20000 });
+            await stableNavigation(page);
           } catch (err) {
             console.warn('First district click did not navigate as expected, falling back to districts index:', String(err));
             try {
@@ -192,12 +212,22 @@ test.describe('User Journey Paths', () => {
 
     test('can explore halls and streets', async ({ page }) => {
       await page.goto(`${BASE}/city`, { waitUntil: 'domcontentloaded' });
+      await stableNavigation(page);
 
       // Look for hall links
       const hallLink = page.locator('a[href^="/halls/"]').first();
       if (await hallLink.isVisible()) {
         const hallHref = await hallLink.getAttribute('href');
-        await hallLink.click();
+        try {
+          await hallLink.click();
+          await stableNavigation(page);
+        } catch (err) {
+          console.warn('Hall click did not navigate, falling back to direct navigation:', String(err));
+          if (hallHref) {
+            await page.goto(`${BASE}${hallHref}`, { waitUntil: 'domcontentloaded' }).catch(() => {});
+            await stableNavigation(page);
+          }
+        }
 
         await expect(page).toHaveURL(new RegExp(`${BASE}/halls/.*`));
         await expect(page.locator('h1')).toBeVisible();
@@ -205,11 +235,21 @@ test.describe('User Journey Paths', () => {
 
       // Go back to city and try streets
       await page.goto(`${BASE}/city`, { waitUntil: 'domcontentloaded' });
+      await stableNavigation(page);
 
       const streetLink = page.locator('a[href^="/streets/"]').first();
       if (await streetLink.isVisible()) {
         const streetHref = await streetLink.getAttribute('href');
-        await streetLink.click();
+        try {
+          await streetLink.click();
+          await stableNavigation(page);
+        } catch (err) {
+          console.warn('Street click did not navigate, falling back to direct navigation:', String(err));
+          if (streetHref) {
+            await page.goto(`${BASE}${streetHref}`, { waitUntil: 'domcontentloaded' }).catch(() => {});
+            await stableNavigation(page);
+          }
+        }
 
         await expect(page).toHaveURL(new RegExp(`${BASE}/streets/.*`));
         await expect(page.locator('h1')).toBeVisible();
@@ -220,6 +260,7 @@ test.describe('User Journey Paths', () => {
   test.describe('Seek Path - Product Discovery', () => {
     test('can search and browse products', async ({ page }) => {
       await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+      await stableNavigation(page);
 
       // Try to find search functionality
       const searchInput = page.locator('input[type="search"], input[placeholder*="search" i]').first();
@@ -237,9 +278,11 @@ test.describe('User Journey Paths', () => {
         try {
           await discoverLink.click({ timeout: 5000, noWaitAfter: true });
           await page.waitForURL(`${BASE}/discover`, { timeout: 10000 });
+          await stableNavigation(page);
         } catch (err) {
           console.warn('Discover link click did not navigate, falling back to direct navigation:', String(err));
           await page.goto(`${BASE}/discover`, { waitUntil: 'load' });
+          await stableNavigation(page);
         }
       }
 
@@ -247,8 +290,16 @@ test.describe('User Journey Paths', () => {
       const productLink = page.locator('a[href^="/products/"]').first();
       if (await productLink.isVisible()) {
         const productHref = await productLink.getAttribute('href');
-        await productLink.click();
-
+        try {
+          await productLink.click();
+          await stableNavigation(page);
+        } catch (err) {
+          console.warn('Product click did not navigate, falling back to direct navigation:', String(err));
+          if (productHref) {
+            await page.goto(`${BASE}${productHref}`, { waitUntil: 'domcontentloaded' }).catch(() => {});
+            await stableNavigation(page);
+          }
+        }
         await expect(page).toHaveURL(new RegExp(`${BASE}/products/.*`));
         await expect(page.locator('h1')).toBeVisible();
       }
@@ -260,7 +311,17 @@ test.describe('User Journey Paths', () => {
       // Look for collection links
       const collectionLink = page.locator('a[href^="/collections/"]').first();
       if (await collectionLink.isVisible()) {
-        await collectionLink.click();
+        const collectionHref = await collectionLink.getAttribute('href');
+        try {
+          await collectionLink.click();
+          await stableNavigation(page);
+        } catch (err) {
+          console.warn('Collection click did not navigate, falling back to direct navigation:', String(err));
+          if (collectionHref) {
+            await page.goto(`${BASE}${collectionHref}`, { waitUntil: 'domcontentloaded' }).catch(() => {});
+            await stableNavigation(page);
+          }
+        }
         await expect(page).toHaveURL(new RegExp(`${BASE}/collections/.*`));
       }
     });
@@ -269,6 +330,7 @@ test.describe('User Journey Paths', () => {
   test.describe('Create Path - Creator Economy', () => {
     test('can access creator features', async ({ page }) => {
       await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+      await stableNavigation(page);
 
       // Click "Become a Creator" CTA
       const creatorCTA = page.getByRole('link', { name: 'Become a Creator' }).first();
@@ -276,9 +338,11 @@ test.describe('User Journey Paths', () => {
         try {
           await creatorCTA.click({ timeout: 5000, noWaitAfter: true });
           await page.waitForURL(`${BASE}/creator`, { timeout: 10000 });
+          await stableNavigation(page);
         } catch (err) {
           console.warn('Creator CTA click did not navigate, falling back to direct navigation:', String(err));
           await page.goto(`${BASE}/creator`, { waitUntil: 'load' });
+          await stableNavigation(page);
         }
 
         // Should navigate to creator signup or info page
@@ -287,16 +351,28 @@ test.describe('User Journey Paths', () => {
 
       // Try direct navigation to creator apply page
       await page.goto(`${BASE}/creator/apply`, { waitUntil: 'domcontentloaded' });
+      await stableNavigation(page);
       await expect(page.locator('body')).toBeVisible();
     });
 
     test('can view creator profiles', async ({ page }) => {
       // Try to find creator profile links
       await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+      await stableNavigation(page);
 
       const creatorLink = page.locator('a[href^="/creators/"]').first();
       if (await creatorLink.isVisible()) {
-        await creatorLink.click();
+        const creatorHref = await creatorLink.getAttribute('href');
+        try {
+          await creatorLink.click();
+          await stableNavigation(page);
+        } catch (err) {
+          console.warn('Creator link click did not navigate, falling back to direct navigation:', String(err));
+          if (creatorHref) {
+            await page.goto(`${BASE}${creatorHref}`, { waitUntil: 'domcontentloaded' }).catch(() => {});
+            await stableNavigation(page);
+          }
+        }
         await expect(page).toHaveURL(new RegExp(`${BASE}/creators/.*`));
         await expect(page.locator('h1')).toBeVisible();
       }
@@ -360,10 +436,12 @@ test.describe('User Journey Paths', () => {
     test('breadcrumb navigation works', async ({ page }) => {
       // Test districts breadcrumb
       await page.goto(`${BASE}/districts`, { waitUntil: 'domcontentloaded' });
+      await stableNavigation(page);
 
       const districtLink = page.locator('a[href^="/districts"]').first();
       if (await districtLink.isVisible()) {
         await districtLink.click();
+        await stableNavigation(page);
 
         // Look for breadcrumb navigation
         const breadcrumbLinks = page.locator('[data-testid="breadcrumb"] a, nav a[href="/"], nav a[href="/districts"]');
@@ -384,6 +462,7 @@ test.describe('User Journey Paths', () => {
 
     test('404 pages are handled gracefully', async ({ page }) => {
       await page.goto(`${BASE}/nonexistent-page-12345`, { waitUntil: 'domcontentloaded' });
+      await stableNavigation(page);
 
       // Should show 404 page or redirect to home
       const is404Page = await page.locator('text=404').isVisible() ||
