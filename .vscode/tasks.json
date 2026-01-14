@@ -21,6 +21,11 @@
 			"label": "Test auto-listing API endpoint (PowerShell)",
 			"type": "shell",
 			"command": "Invoke-WebRequest -Uri 'http://localhost:3000/api/auto-listing/extract' -Method POST -Headers @{'Content-Type'='application/json'} -Body '{\"product_url\":\"https://example-cj-product.com/item/123\",\"supplier_id\":\"cj_supplier_id_1\"}'"
+		},
+		{
+			"label": "Test Hybrid AI Routing",
+			"type": "shell",
+			"command": "npx tsx scripts/test-routing.ts"
 		}
 	]
 }

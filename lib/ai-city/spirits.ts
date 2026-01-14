@@ -279,8 +279,50 @@ Suggest spirit evolution.`;
   }
 
   /**
-   * Generate personalized welcome message for city homepage
+   * Get default spirit when AI generation fails
    */
+  static getDefaultSpirit(entityType: 'hall' | 'chapel' | 'street'): AISpirit {
+    const defaults = {
+      hall: {
+        name: 'Guardian Spirit',
+        voice_style: 'calm' as const,
+        greeting: 'Welcome to this sacred space. Though I cannot speak with my full voice right now, I am here to guide your contemplation.',
+        insights: [
+          'Every space holds potential for transformation',
+          'Presence is the greatest gift you can offer',
+          'The architecture of the soul reflects in physical form'
+        ],
+        personality_traits: ['wise', 'patient', 'nurturing'],
+        interaction_style: 'gentle guidance and thoughtful questions'
+      },
+      chapel: {
+        name: 'Silent Guardian',
+        voice_style: 'mysterious' as const,
+        greeting: 'This chapel welcomes you in quiet contemplation. Though words fail me now, the space itself speaks of deeper truths.',
+        insights: [
+          'Silence contains all possible conversations',
+          'Emotion is the language of the soul',
+          'Every ending contains the seed of new beginnings'
+        ],
+        personality_traits: ['contemplative', 'mysterious', 'wise'],
+        interaction_style: 'poetic reflections and gentle prompts'
+      },
+      street: {
+        name: 'Pathfinder Spirit',
+        voice_style: 'playful' as const,
+        greeting: 'Welcome to this vibrant pathway! Though I cannot chatter right now, the journey itself will guide you.',
+        insights: [
+          'Every path leads somewhere worth going',
+          'Movement creates meaning',
+          'The journey shapes the destination'
+        ],
+        personality_traits: ['adventurous', 'curious', 'encouraging'],
+        interaction_style: 'enthusiastic suggestions and helpful directions'
+      }
+    };
+
+    return defaults[entityType] || defaults.hall;
+  }
   static async generateWelcomeMessage(
     halls: Hall[],
     trendingStreets: Street[],

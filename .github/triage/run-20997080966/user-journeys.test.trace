@@ -1,0 +1,15 @@
+<details>
+<summary>test.trace (excerpt)</summary>
+
+```
+{"type":"before","callId":"pw:api@36","startTime":135441.815,"title":"Navigate to \"/\""}
+... (full trace attached as file)
+
+TimeoutError: locator.waitFor: Timeout 15000ms exceeded.  // waiting for heading on /city
+TimeoutError: locator.waitFor: Timeout 20000ms exceeded.  // waiting for district link on /city
+
+Fallback: navigated to /districts, clicked /districts/commerce, loaded page but product list empty (No products found)
+```
+</details>
+
+Full trace file: `.github/triage/run-20997080966/user-journeys.test.trace`

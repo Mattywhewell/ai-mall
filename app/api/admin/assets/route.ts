@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient';
-import { generate_3d_model_from_image } from '@/lib/ai/3d-generation';
+// import { generate_3d_model_from_image } from '@/lib/ai/3d-generation';
 
 // GET /api/admin/assets - Fetch all admin assets
 export async function GET() {
@@ -68,37 +68,37 @@ export async function POST(request: NextRequest) {
       .getPublicUrl(fileName);
 
     // Generate 3D model from image
-    const modelResult = await generate_3d_model_from_image(imageUrl);
+    // const modelResult = await generate_3d_model_from_image(imageUrl);
 
-    if (!modelResult.success) {
-      // Clean up uploaded image if 3D generation failed
-      await supabase.storage.from('assets').remove([fileName]);
-      return NextResponse.json({
-        error: 'Failed to generate 3D model',
-        details: modelResult.error
-      }, { status: 500 });
-    }
+    // if (!modelResult.success) {
+    //   // Clean up uploaded image if 3D generation failed
+    //   await supabase.storage.from('assets').remove([fileName]);
+    //   return NextResponse.json({
+    //     error: 'Failed to generate 3D model',
+    //     details: modelResult.error
+    //   }, { status: 500 });
+    // }
 
     // Save asset metadata to database
-    const { data: asset, error: dbError } = await supabase
-      .from('admin_assets')
-      .insert({
-        name,
-        description,
-        asset_type: 'generated_3d_model',
-        file_url: modelResult.modelUrl,
-        thumbnail_url: modelResult.thumbnailUrl || imageUrl,
-        file_format: 'glb',
-        file_size_bytes: modelResult.fileSize || 0,
-        tags,
-        metadata: {
-          source_image: imageUrl,
-          generation_method: 'image_to_3d',
-          generation_params: modelResult.params
-        }
-      })
-      .select()
-      .single();
+    // const { data: asset, error: dbError } = await supabase
+    //   .from('admin_assets')
+    //   .insert({
+    //     name,
+    //     description,
+    //     asset_type: 'generated_3d_model',
+    //     file_url: modelResult.modelUrl,
+    //     thumbnail_url: modelResult.thumbnailUrl || imageUrl,
+    //     file_format: 'glb',
+    //     file_size_bytes: modelResult.fileSize || 0,
+    //     tags,
+    //     metadata: {
+    //       source_image: imageUrl,
+    //       generation_method: 'image_to_3d',
+    //       generation_params: modelResult.params
+    //     }
+    //   })
+    //   .select()
+    //   .single();
 
     if (dbError) {
       console.error('Error saving asset:', dbError);

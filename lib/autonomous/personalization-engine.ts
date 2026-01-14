@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '../supabaseClient';
-import { callOpenAI } from '../ai/openaiClient';
+import { AIRouter } from '../ai/modelRouter';
 
 export interface UserProfile {
   user_id: string;
@@ -142,7 +142,14 @@ ${searchHistory.map((q) => `- "${q}"`).join('\n') || 'None'}
 Predict interests.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 0.7);
+      const response = await AIRouter.getInstance().executeTask({
+        id: `user-interests-${userId}-${Date.now()}`,
+        type: 'analysis',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.7,
+        priority: 'medium'
+      });
       const interests = JSON.parse(response);
       return interests;
     } catch (error) {
@@ -168,7 +175,14 @@ ${recentEvents.map((e) => `- ${e.event_type} at ${e.created_at}`).join('\n')}
 Predict next action.`;
 
     try {
-      const prediction = await callOpenAI(systemPrompt, userPrompt, 0.6);
+      const prediction = await AIRouter.getInstance().executeTask({
+        id: `next-action-prediction-${Date.now()}`,
+        type: 'analysis',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.6,
+        priority: 'medium'
+      });
       return prediction.trim();
     } catch (error) {
       return 'browse_more';
@@ -231,7 +245,14 @@ Explain personalization.`;
 
     let reason = 'Personalized based on your browsing history';
     try {
-      reason = await callOpenAI(systemPrompt, userPrompt, 0.6);
+      reason = await AIRouter.getInstance().executeTask({
+        id: `personalization-reason-${userId}-${Date.now()}`,
+        type: 'analysis',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.6,
+        priority: 'low'
+      });
     } catch (error) {
       // Use default
     }
@@ -287,7 +308,14 @@ ${unvisited.map((d) => `- ${d.id}: ${d.name} (${d.category}) - ${d.description}`
 Suggest 3 districts.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 0.7);
+      const response = await AIRouter.getInstance().executeTask({
+        id: `district-suggestions-${userId}-${Date.now()}`,
+        type: 'analysis',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.7,
+        priority: 'medium'
+      });
       const suggestions = JSON.parse(response);
       return suggestions;
     } catch (error) {
@@ -322,7 +350,14 @@ ${recentEvents.map((e) => `- ${e.event_type} (${e.product_id ? 'product' : 'gene
 Predict intent.`;
 
     try {
-      const intent = await callOpenAI(systemPrompt, userPrompt, 0.6);
+      const intent = await AIRouter.getInstance().executeTask({
+        id: `intent-prediction-${userId}-${Date.now()}`,
+        type: 'analysis',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.6,
+        priority: 'medium'
+      });
       return intent.trim();
     } catch (error) {
       return 'just_browsing';
