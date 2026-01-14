@@ -8,7 +8,7 @@ import { generateProductDescription } from '../ai/generateDescription';
 import { generateProductTags } from '../ai/generateTags';
 import { generateSEOMetadata } from '../ai/generateSEO';
 import { generateProductEmbedding, updateProductEmbedding } from '../ai/semanticSearch';
-import { callOpenAI } from '../ai/openaiClient';
+import { AIRouter } from '../ai/modelRouter';
 
 export interface ProductPerformance {
   product_id: string;
@@ -164,7 +164,14 @@ Performance Metrics:
 
 Suggest optimization actions.`;
 
-    const response = await callOpenAI(systemPrompt, userPrompt, 0.7);
+    const response = await AIRouter.getInstance().executeTask({
+      id: `product-optimization-${productId}-${Date.now()}`,
+      type: 'analysis',
+      content: userPrompt,
+      systemPrompt,
+      temperature: 0.7,
+      priority: 'medium'
+    });
     
     try {
       const parsed = JSON.parse(response);
@@ -216,7 +223,14 @@ Performance Issues:
 
 Rewrite for better performance.`;
 
-    const response = await callOpenAI(systemPrompt, userPrompt, 0.8);
+    const response = await AIRouter.getInstance().executeTask({
+      id: `product-description-${product.id}-${Date.now()}`,
+      type: 'creative',
+      content: userPrompt,
+      systemPrompt,
+      temperature: 0.8,
+      priority: 'medium'
+    });
     const parsed = JSON.parse(response);
     return parsed;
   }
@@ -248,7 +262,14 @@ Category: ${product.microstore?.category}
 
 Generate 8-12 optimized tags.`;
 
-    const response = await callOpenAI(systemPrompt, userPrompt, 0.7);
+    const response = await AIRouter.getInstance().executeTask({
+      id: `product-tags-${product.id}-${Date.now()}`,
+      type: 'factual',
+      content: userPrompt,
+      systemPrompt,
+      temperature: 0.7,
+      priority: 'medium'
+    });
     const parsed = JSON.parse(response);
     return parsed;
   }
@@ -380,7 +401,14 @@ Tags: ${product.tags?.join(', ')}
 Suggest variants.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 0.8);
+      const response = await AIRouter.getInstance().executeTask({
+        id: `product-variants-${product.id}-${Date.now()}`,
+        type: 'creative',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.8,
+        priority: 'medium'
+      });
       const variants = JSON.parse(response);
       return variants;
     } catch (error) {

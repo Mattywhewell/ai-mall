@@ -1,0 +1,37 @@
+
+> ai-native-mall@1.0.0 dev
+> set NODE_OPTIONS=--max-old-space-size=8192 && next dev -p 3000
+
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.13:3000
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+ ✓ Starting...
+ ✓ Ready in 2.1s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 798ms (159 modules)
+[Middleware] Set user-country cookie to US
+ ○ Compiling /city ...
+ ✓ Compiled /city in 11.4s (2009 modules)
+ GET /city 200 in 12879ms
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.13:3000
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+ ✓ Starting...
+ ✓ Ready in 3s
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.13:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.7s
+   Reload env: .env.local
+[?25h

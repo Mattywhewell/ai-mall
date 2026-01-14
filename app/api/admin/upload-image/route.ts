@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabaseClient';
-import { generate3DModelFromImage } from '@/lib/ai/3d-generation';
+// import { generate3DModelFromImage } from '@/lib/ai/3d-generation';
 import { storeAsset } from '@/lib/services/asset-service';
 
 /**
@@ -95,20 +95,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Start async 3D generation
-    generate3DModelFromImage(uploadRecord.id, uploadData.path, {
-      name: assetName,
-      description: assetDescription,
-      district,
-      ritual,
-      archetype
-    }).catch(error => {
-      console.error('3D generation failed:', error);
-      // Update upload status to failed
-      supabase.from('uploads').update({
-        processing_status: 'failed',
-        processing_error: error.message
-      }).eq('id', uploadRecord.id);
-    });
+    // generate3DModelFromImage(uploadRecord.id, uploadData.path, {
+    //   name: assetName,
+    //   description: assetDescription,
+    //   district,
+    //   ritual,
+    //   archetype
+    // }).catch(error => {
+    //   console.error('3D generation failed:', error);
+    //   // Update upload status to failed
+    //   supabase.from('uploads').update({
+    //     processing_status: 'failed',
+    //     processing_error: error.message
+    //   }).eq('id', uploadRecord.id);
+    // });
 
     return NextResponse.json({
       success: true,

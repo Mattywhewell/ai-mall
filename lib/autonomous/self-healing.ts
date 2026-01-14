@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '../supabaseClient';
-import { callOpenAI } from '../ai/openaiClient';
+import { AIRouter } from '../ai/modelRouter';
 
 export interface HealthIssue {
   id: string;

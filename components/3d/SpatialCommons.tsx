@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef, Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { useState, useRef, Suspense, useEffect } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Html } from '@react-three/drei';
 import { Button } from '@/components/ui/button';
 import { MapPin, Users, ShoppingBag, Home, RotateCcw } from 'lucide-react';
@@ -20,24 +20,191 @@ interface SpatialCommonsProps {
   className?: string;
 }
 
+// Lazy load SoundManager to prevent chunk loading issues
+let SoundManager: any = null;
+let useSoundManager: any = null;
+
+if (typeof window !== 'undefined') {
+  try {
+    import('../lib/sound/SoundManager').then(soundModule => {
+      SoundManager = soundModule.SoundManager;
+      useSoundManager = soundModule.useSoundManager;
+    }).catch(error => {
+      console.warn('SoundManager not available:', error);
+    });
+  } catch (error) {
+    console.warn('SoundManager not available:', error);
+  }
+}
+
+// Proximity Audio Handler Component
+function AudioProximityHandler({
+  soundManager,
+  proximitySounds,
+  setProximitySounds
+}: {
+  soundManager: any;
+  proximitySounds: Map<string, string>;
+  setProximitySounds: (sounds: Map<string, string>) => void;
+}) {
+  const { camera } = useThree();
+  const lastPositions = useRef<Map<string, THREE.Vector3>>(new Map());
+
+  // Shop positions (matching ShopEntrances)
+  const shopPositions = [
+    { id: 'memory-bazaar', position: new THREE.Vector3(15, 0, 8) },
+    { id: 'loomworks', position: new THREE.Vector3(-12, 0, 10) },
+    { id: 'garden-hearts', position: new THREE.Vector3(8, 0, -12) },
+    { id: 'harbor-echoes', position: new THREE.Vector3(-10, 0, -8) }
+  ];
+
+  // District positions (matching DistrictPathways)
+  const districtPositions = [
+    { id: 'wonder', position: new THREE.Vector3(20, 0, 0) },
+    { id: 'belonging', position: new THREE.Vector3(-20, 0, 0) },
+    { id: 'purpose', position: new THREE.Vector3(0, 0, 20) }
+  ];
+
+  useFrame(() => {
+    if (!soundManager || !soundManager.isReady) return;
+
+    const cameraPosition = camera.position.clone();
+    const proximityThreshold = 8; // Distance to trigger proximity audio
+
+    // Check shop proximity
+    shopPositions.forEach(({ id, position }) => {
+      const distance = cameraPosition.distanceTo(position);
+      const isClose = distance < proximityThreshold;
+      const wasClose = lastPositions.current.get(id)?.distanceTo(position) < proximityThreshold;
+
+      if (isClose && !wasClose && !proximitySounds.has(id)) {
+        // Entered proximity - play ambient shop sound
+        const soundId = soundManager.playAmbient('energy-hum', {
+          volume: Math.max(0.05, (proximityThreshold - distance) / proximityThreshold * 0.15),
+          fadeIn: 1
+        });
+        if (soundId) {
+          setProximitySounds(new Map(proximitySounds.set(id, soundId)));
+        }
+      } else if (!isClose && wasClose && proximitySounds.has(id)) {
+        // Left proximity - fade out sound
+        const soundId = proximitySounds.get(id);
+        if (soundId) {
+          soundManager.stopSound(soundId, 2);
+          const newSounds = new Map(proximitySounds);
+          newSounds.delete(id);
+          setProximitySounds(newSounds);
+        }
+      } else if (isClose && proximitySounds.has(id)) {
+        // Adjust volume based on distance
+        // Note: In a full implementation, you'd adjust the gain node directly
+        // For now, we'll rely on the initial volume setting
+      }
+
+      lastPositions.current.set(id, position.clone());
+    });
+
+    // Check district proximity (similar logic could be added for districts)
+    districtPositions.forEach(({ id, position }) => {
+      lastPositions.current.set(id, position.clone());
+    });
+  });
+
+  return null;
+}
+
 export function SpatialCommons({ className = '' }: SpatialCommonsProps) {
   const [navigationMode, setNavigationMode] = useState<'walk' | 'teleport'>('walk');
   const [selectedShop, setSelectedShop] = useState<string | null>(null);
   const [showTour, setShowTour] = useState(false);
   const [currentDistrict, setCurrentDistrict] = useState<string | null>(null);
 
+  // Audio state
+  const [ambientSoundId, setAmbientSoundId] = useState<string | null>(null);
+  const [proximitySounds, setProximitySounds] = useState<Map<string, string>>(new Map());
+
+  // Initialize sound manager (lazy loaded)
+  const soundManager = useSoundManager ? useSoundManager() : null;
+
+  // Audio effect handlers
+  const playDistrictAmbient = (district: string | null) => {
+    // Stop current ambient sound
+    if (ambientSoundId && soundManager) {
+      soundManager.stopSound(ambientSoundId, 2);
+      setAmbientSoundId(null);
+    }
+
+    if (!district || !soundManager) return;
+
+    // Play district-specific ambient audio
+    const districtSounds: Record<string, string> = {
+      'tech': 'cosmic-ambient',
+      'fashion': 'energy-hum',
+      'food': 'particle-field',
+      'entertainment': 'cosmic-ambient',
+      'health': 'energy-hum',
+      'education': 'particle-field'
+    };
+
+    const soundName = districtSounds[district.toLowerCase()] || 'cosmic-ambient';
+    const newSoundId = soundManager.playAmbient(soundName, {
+      volume: 0.15,
+      fadeIn: 3
+    });
+
+    if (newSoundId) {
+      setAmbientSoundId(newSoundId);
+    }
+  };
+
+  const playNavigationSound = (type: 'teleport' | 'walk') => {
+    if (!soundManager) return;
+
+    const soundName = type === 'teleport' ? 'portal-open' : 'node-hover';
+    soundManager.playEffect(soundName, { volume: 0.3 });
+  };
+
+  const playShopSound = (shopId: string, action: 'enter' | 'exit') => {
+    if (!soundManager) return;
+
+    const soundName = action === 'enter' ? 'welcome-chime' : 'node-click';
+    soundManager.playEffect(soundName, { volume: 0.4 });
+  };
+
+  // Handle district changes for ambient audio
+  useEffect(() => {
+    playDistrictAmbient(currentDistrict);
+  }, [currentDistrict]);
+
+  // Welcome sound on initial load
+  useEffect(() => {
+    if (soundManager && soundManager.isReady) {
+      // Small delay to ensure everything is loaded
+      const timer = setTimeout(() => {
+        soundManager.playEffect('welcome-chime', { volume: 0.2 });
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [soundManager?.isReady]);
+
   const handleShopEnter = (shopId: string) => {
     setSelectedShop(shopId);
     setShowTour(true);
+    playShopSound(shopId, 'enter');
   };
 
   const handleShopExit = () => {
+    if (selectedShop) {
+      playShopSound(selectedShop, 'exit');
+    }
     setSelectedShop(null);
     setShowTour(false);
   };
 
   const handleDistrictTeleport = (districtId: string) => {
     setCurrentDistrict(districtId);
+    playNavigationSound('teleport');
     // TODO: Implement camera teleportation to district
   };
 
@@ -76,6 +243,15 @@ export function SpatialCommons({ className = '' }: SpatialCommonsProps) {
           <AICitizens />
           <ShopEntrances onShopEnter={handleShopEnter} />
 
+          {/* Audio Proximity Handler */}
+          {soundManager && (
+            <AudioProximityHandler
+              soundManager={soundManager}
+              proximitySounds={proximitySounds}
+              setProximitySounds={setProximitySounds}
+            />
+          )}
+
           {/* Camera Controls */}
           <OrbitControls
             enablePan={navigationMode === 'walk'}
@@ -95,6 +271,8 @@ export function SpatialCommons({ className = '' }: SpatialCommonsProps) {
           mode={navigationMode}
           onModeChange={setNavigationMode}
           onHomeClick={() => setCurrentDistrict(null)}
+          isMuted={soundManager?.isMuted}
+          onToggleMute={soundManager?.toggleMute}
         />
       </div>
 

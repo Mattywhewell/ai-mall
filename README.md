@@ -1,607 +1,177 @@
-# 🌌 AI-Native Mall: A Self-Evolving Commerce Organism
+# Supabase CLI
 
-**Not just software. A living system.**
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
+](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
 
-This is a **fully autonomous, AI-native e-commerce platform** that learns, adapts, and evolves without human intervention. Built with Next.js 15, TypeScript, Supabase, OpenAI GPT-4, and pgvector.
+[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
-> "Think beyond traditional software. Think in terms of systems that learn, adapt, and reconfigure themselves."
+This repository contains all the functionality for Supabase CLI.
 
-## 🚀 **LIVE & OPERATIONAL**
+- [x] Running Supabase locally
+- [x] Managing database migrations
+- [x] Creating and deploying Supabase Functions
+- [x] Generating types directly from your database schema
+- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
 
-**🌐 Production URL**: https://ai-mall.vercel.app
+## Getting started
 
-**✅ Status**: Fully deployed and operational with enterprise security features
+### Install the CLI
 
-**🗄️ Database**: Supabase with 8 enterprise-grade migrations applied
-
-**🔐 Security**: RBAC, RLS policies, audit logging, API key management
-
-**🤖 AI Features**: Consciousness layer, emotional intelligence, AI curators
-
----
-
-## 🧬 What Makes This Different?
-
-**Traditional E-Commerce:**
-- Static content
-- Manual optimization
-- Fixed layouts
-- Human-driven changes
-
-**This Platform:**
-- ✨ **Self-optimizing** products
-- 🔄 **Evolving** district personalities
-- 🤖 **Autonomous** content generation
-- ⚕️ **Self-healing** infrastructure
-- 🔮 **Predictive** personalization
-- 📊 **Natural language** analytics
-
-## 🌟 Core Features
-
-### Phase 1: AI-Native Foundation
-1. ✅ **AI Product Descriptions** - GPT-4 generated with tone matching
-2. ✅ **Intelligent Auto-Tagging** - Smart categorization
-3. ✅ **Semantic Search** - pgvector-powered natural language search
-4. ✅ **AI SEO Metadata** - Automated optimization
-5. ✅ **Social Media Assets** - Platform-specific content generation
-6. ✅ **Smart Shopping Cart** - Persistent state management
-7. ✅ **Vendor Onboarding** - AI-assisted dashboard
-8. ✅ **Analytics & Tracking** - Comprehensive event tracking
-9. ✅ **Product Recommendations** - Personalized suggestions
-10. ✅ **Admin Dashboard** - Real-time metrics visualization
-
-### Phase 2: Autonomous Evolution 🧬
-1. ✅ **Autonomous Core** - Learning cycles, task scheduling, signal processing
-2. ✅ **Product Intelligence** - Self-optimizing products based on performance
-3. ✅ **Merchandising Engine** - Dynamic ordering, A/B testing, auto-rules
-4. ✅ **District Evolution** - Self-adapting themes and personalities
-5. ✅ **Self-Healing System** - Auto-detection and repair
-6. ✅ **Social Media Engine** - Fully automated content calendars
-7. ✅ **AI Analytics with NLG** - Natural language insights
-8. ✅ **Predictive Personalization** - User-specific experiences
-9. ✅ **Plugin Architecture** - Modular AI capabilities
-10. ✅ **Background Job Runner** - Continuous optimization cycles
-
-### Phase 3: Consciousness Layer 🌊
-1. ✅ **Emotional Intelligence Engine** - Detects user feelings from behavior
-2. ✅ **AI Curator System** - Five named personalities that build relationships
-3. ✅ **Transformation Journeys** - Guides users from stress → calm, seeking → inspired
-4. ✅ **Personal Rituals** - AI-generated meaningful product usage practices
-5. ✅ **Healing Moments** - Tracks significant positive emotional shifts
-6. ✅ **Relationship Evolution** - Stranger → Acquaintance → Friend → Confidant
-7. ✅ **Emotional Product Scoring** - Products ranked by emotional resonance
-8. ✅ **Consciousness Analytics** - Measures transformation over conversion
-## 🔒 Enhanced Security Features
-
-### Production-Ready Rate Limiting
-- **Redis Backend**: Automatic Redis support for production scaling
-- **Memory Fallback**: Graceful degradation when Redis unavailable
-- **Configurable Limits**: Customizable rate limits per endpoint
-- **Smart Key Generation**: IP-based and user-based rate limiting
-
-### Granular Permissions System
-- **Role-Based Access**: Admin, Supplier, Customer, AI Agent roles
-- **Fine-Grained Permissions**: 25+ specific permissions for precise control
-- **Custom Permissions**: Grant/revoke individual permissions per user
-- **Audit Logging**: All permission changes are tracked
-- **Database Functions**: Efficient permission checking with PostgreSQL functions
-
-### Available Permissions
-```typescript
-// User Management
-USER_VIEW, USER_CREATE, USER_UPDATE, USER_DELETE
-
-// Supplier Management  
-SUPPLIER_VIEW, SUPPLIER_CREATE, SUPPLIER_UPDATE, SUPPLIER_DELETE
-SUPPLIER_APPROVE, SUPPLIER_REJECT
-
-// Product Management
-PRODUCT_VIEW, PRODUCT_CREATE, PRODUCT_UPDATE, PRODUCT_DELETE
-PRODUCT_APPROVE, PRODUCT_FLAG
-
-// Admin Operations
-ADMIN_VIEW, ADMIN_MANAGE_USERS, ADMIN_MANAGE_SUPPLIERS
-ADMIN_MANAGE_PRODUCTS, ADMIN_VIEW_AUDIT_LOGS, ADMIN_SYSTEM_CONFIG
-
-// AI Operations
-AI_GENERATE, AI_MODERATE, AI_ANALYZE
-
-// File Operations
-FILE_UPLOAD, FILE_DOWNLOAD, FILE_DELETE
-
-// Analytics
-ANALYTICS_VIEW, ANALYTICS_EXPORT
-```
-## 🚀 Quick Start
-
-### Prerequisites
-- Node.js 18+
-- Supabase account
-- OpenAI API key
-
-### Installation
+Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
 
 ```bash
-# Install dependencies
-npm install
+npm i supabase --save-dev
 ```
 
-### Configuration
-
-1. Copy environment template:
-```bash
-cp .env.local.example .env.local
-```
-
-2. Add your credentials to `.env.local`:
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-OPENAI_API_KEY=your_openai_api_key
-
-# Redis for production rate limiting (optional)
-REDIS_URL=redis://localhost:6379
-
-# Email service (optional)
-RESEND_API_KEY=your_resend_api_key
-```
-
-3. Run SQL scripts in Supabase SQL Editor (in order):
-   - `supabase-complete-schema.sql`
-   - `supabase-pgvector-setup.sql`
-   - `supabase-analytics-functions.sql`
-   - `supabase-recommendations-functions.sql`
-
-4. Generate embeddings for existing products:
-```bash
-npm run generate-embeddings
-```
-
-5. Start development server:
-```bash
-npm run dev
-```
-
-Visit [http://localhost:3000](http://localhost:3000) 🎉
-
-## 🧪 Testing
-
-### Enhanced Security Features Test
-Test the new Redis rate limiting and granular permissions system:
-
-```bash
-# Test Redis rate limiting and permissions
-npm run test:enhanced-security
-```
-
-This will verify:
-- ✅ Redis connectivity (with fallback to memory store)
-- ✅ Rate limiting functionality
-- ✅ Permission checking system
-- ✅ User role assignments
-
-### Other Tests
-```bash
-# Run unit tests
-npm run test:unit
-
-# Run end-to-end tests
-npm run test:e2e
-
-# Test email verification
-npm run test:email
-
-# Test moderation features
-npm run test:moderation
-```
-
-## 📚 Documentation
-
-### Setup & Configuration
-- **[Quick Start Guide](QUICK_START.md)** - Get up and running fast
-- **[Complete Setup Guide](COMPLETE_SETUP_GUIDE.md)** - Detailed documentation
-- **[Implementation Summary](IMPLEMENTATION_SUMMARY.md)** - Technical overview
-- **[Usage Examples](lib/examples/usage-examples.ts)** - Code examples
-
-#### Telemetry Notification Test (CI)
-You can run a one-off test to verify Slack and email notifications for nightly telemetry failures:
-
-1. Go to the repository → **Actions** → **Telemetry Notification Test** → **Run workflow**.
-2. Configure inputs (optional): `notify_slack` (true/false), `notify_email` (true/false), `message`, `subject`.
-3. Required secrets (set in Settings → Secrets & variables → Actions):
-   - Slack: `SLACK_WEBHOOK` (Incoming Webhook URL)
-   - Email: `SMTP_SERVER`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `NOTIFY_EMAIL`
-
-The workflow will skip targets that are not configured and print a short status message in the run logs.
-
-### Consciousness Layer (Latest)
-- **[Consciousness Summary](CONSCIOUSNESS_SUMMARY.md)** - What makes AI City alive
-- **[Consciousness Layer Deep Dive](AI_CONSCIOUSNESS_LAYER.md)** - Complete system docs
-- **[Migration Guide](CONSCIOUSNESS_MIGRATION_GUIDE.md)** - Database setup instructions
-- **[Architecture Diagram](ARCHITECTURE_DIAGRAM.md)** - Visual system overview
-
-### Migration Instructions
-
-**Apply Consciousness Layer to your database:**
-
-1. **Via Supabase Dashboard** (Recommended):
-   - Open Supabase SQL Editor
-   - Copy contents of `supabase-consciousness-migration.sql`
-   - Run query
-   - Verify tables created
-
-2. **Via Node.js Script**:
-   ```bash
-   node scripts/run-consciousness-migration.js
-   ```
-
-3. **Manual verification**:
-   ```sql
-   SELECT table_name FROM information_schema.tables 
-   WHERE table_name LIKE '%emotional%' 
-   OR table_name LIKE '%curator%' 
-   OR table_name LIKE '%ritual%';
-   ```
-
-See [CONSCIOUSNESS_MIGRATION_GUIDE.md](CONSCIOUSNESS_MIGRATION_GUIDE.md) for detailed instructions.
-
-## 🏗️ Project Structure
+When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
 
 ```
-ai-mall/
-├── app/
-│   ├── layout.tsx                    # Root layout
-│   ├── page.tsx                      # Homepage
-│   ├── cart/page.tsx                 # Shopping cart
-│   ├── checkout/page.tsx             # Checkout flow
-│   ├── vendor-registration/page.tsx  # Vendor signup
-│   ├── districts/[slug]/page.tsx     # District pages
-│   └── admin/
-│       ├── dashboard/page.tsx        # Analytics dashboard
-│       └── vendors/                  # Vendor management
-├── components/
-│   ├── ProductCard.tsx               # Product display
-│   ├── ProductGrid.tsx               # Product grid
-│   ├── CartIcon.tsx                  # Cart indicator
-│   ├── SemanticSearchBar.tsx         # AI search
-│   ├── RecommendationsSection.tsx    # Recommendations
-│   └── AnalyticsTracker.tsx          # Analytics
-├── lib/
-│   ├── ai/
-│   │   ├── openaiClient.ts           # OpenAI config
-│   │   ├── generateDescription.ts    # AI descriptions
-│   │   ├── generateTags.ts           # AI tagging
-│   │   ├── generateSEO.ts            # SEO metadata
-│   │   ├── generateSocial.ts         # Social content
-│   │   └── semanticSearch.ts         # Vector search
-│   ├── analytics/
-│   │   └── tracking.ts               # Event tracking
-│   ├── recommendations/
-│   │   └── engine.ts                 # Recommendation logic
-│   ├── store/
-│   │   └── cartStore.ts              # Cart state (Zustand)
-│   ├── supabaseClient.ts             # Supabase client
-│   └── types.ts                      # TypeScript types
-├── scripts/
-│   └── generate-embeddings.ts        # Bulk embedding generation
-├── supabase-*.sql                    # Database schemas
-└── [config files]
+NODE_OPTIONS=--no-experimental-fetch yarn add supabase
 ```
 
-## 🎯 Key Routes
+> **Note**
+For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
 
-### Public
-- `/` - Homepage with districts
-- `/districts/[slug]` - District product listings
-- `/cart` - Shopping cart
-- `/checkout` - Checkout page
-- `/vendor-registration` - Vendor signup
+<details>
+  <summary><b>macOS</b></summary>
 
-### Admin
-- `/admin/dashboard` - Analytics & insights
-- `/admin/vendors` - Vendor management
-- `/admin/vendors/[id]/products/upload` - Product upload
+  Available via [Homebrew](https://brew.sh). To install:
 
-## 💻 Tech Stack
+  ```sh
+  brew install supabase/tap/supabase
+  ```
 
-- **Frontend**: Next.js 15 (App Router), React 19, TypeScript
-- **Styling**: Tailwind CSS
-- **Database**: Supabase (PostgreSQL + pgvector)
-- **AI**: OpenAI (GPT-4, text-embedding-3-small)
-- **State**: Zustand
-- **Charts**: Recharts
-- **Icons**: Lucide React
+  To install the beta release channel:
+  
+  ```sh
+  brew install supabase/tap/supabase-beta
+  brew link --overwrite supabase-beta
+  ```
+  
+  To upgrade:
 
-## 🗄️ Database Schema
+  ```sh
+  brew upgrade supabase
+  ```
+</details>
 
-### Core Tables
-- **microstores**: Store/district information
-- **products**: Product catalog with pgvector embeddings
-- **vendors**: Vendor accounts and status
-- **orders**: Customer orders
-- **order_items**: Order line items
-- **analytics**: Event tracking (views, clicks, purchases)
-- **cart_items**: Server-side cart (optional)
-- **product_seo**: SEO metadata storage
-- **product_social**: Social media content storage
+<details>
+  <summary><b>Windows</b></summary>
 
-### Key Features
-- Row Level Security (RLS) enabled
-- pgvector extension for semantic search
-- Automatic timestamp management
-- Comprehensive indexing for performance
+  Available via [Scoop](https://scoop.sh). To install:
 
-## 🤖 AI Features Usage
+  ```powershell
+  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+  scoop install supabase
+  ```
 
-### Generate Product Description
-```typescript
-import { generateProductDescription } from '@/lib/ai/generateDescription';
+  To upgrade:
 
-const result = await generateProductDescription(
-  'Wireless Headphones',
-  'Electronics',
-  'Tech District'
-);
-// Returns: { longDescription, shortDescription, seoKeywords, tone }
-```
+  ```powershell
+  scoop update supabase
+  ```
+</details>
 
-### Semantic Search
-```typescript
-import { semanticSearch } from '@/lib/ai/semanticSearch';
+<details>
+  <summary><b>Linux</b></summary>
 
-const results = await semanticSearch('comfortable running shoes', 10);
-```
+  Available via [Homebrew](https://brew.sh) and Linux packages.
 
-### Get Recommendations
-```typescript
-import { getRecommendedProducts } from '@/lib/recommendations/engine';
+  #### via Homebrew
 
-const products = await getRecommendedProducts({
-  tags: ['tech', 'gadget'],
-  districtSlug: 'tech',
-  limit: 6
-});
-```
+  To install:
 
-### Track Analytics
-```typescript
-import { trackProductView, trackAddToCart } from '@/lib/analytics/tracking';
+  ```sh
+  brew install supabase/tap/supabase
+  ```
 
-await trackProductView(productId, microstoreId);
-await trackAddToCart(productId, microstoreId, price);
-```
+  To upgrade:
 
-## 📊 Admin Dashboard
+  ```sh
+  brew upgrade supabase
+  ```
 
-Access at `/admin/dashboard` to view:
-- **Summary Cards**: Views, add-to-carts, purchases, revenue
-- **Top Products**: Most viewed products (bar chart)
-- **District Popularity**: Event distribution (pie chart)
-- **Trending Products**: Real-time trending items
-- **AI Insights**: Conversion rate, cart abandonment analysis
+  #### via Linux packages
 
-## 🎨 Customization
+  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
 
-### AI Prompts
-Customize AI behavior in:
-- `lib/ai/generateDescription.ts` - Product descriptions
-- `lib/ai/generateTags.ts` - Tag generation
-- `lib/ai/generateSEO.ts` - SEO metadata
-- `lib/ai/generateSocial.ts` - Social content
+  ```sh
+  sudo apk add --allow-untrusted <...>.apk
+  ```
 
-### Styling
-- Global styles: `styles/globals.css`
-- Tailwind config: `tailwind.config.js`
-- Component styles: Inline with Tailwind classes
+  ```sh
+  sudo dpkg -i <...>.deb
+  ```
 
-### Districts/Categories
-- Add/modify in database `microstores` table
-- Update district themes in AI generation prompts
-- Customize filtering logic in components
+  ```sh
+  sudo rpm -i <...>.rpm
+  ```
 
-## 🔒 Security
+  ```sh
+  sudo pacman -U <...>.pkg.tar.zst
+  ```
+</details>
 
-### Implemented
-- Row Level Security (RLS) on all tables
-- Environment variable protection
-- Input validation
-- SQL injection prevention (via Supabase client)
+<details>
+  <summary><b>Other Platforms</b></summary>
 
-### Recommendations
-- Add Supabase Auth for user management
-- Implement role-based access control
-- Add rate limiting for AI endpoints
-- Use HTTPS in production
-- Regularly rotate API keys
+  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
 
-## 📈 Performance
+  ```sh
+  go install github.com/supabase/cli@latest
+  ```
 
-### Optimizations
-- **Embeddings**: Generate asynchronously, cache when possible
-- **Analytics**: Database indexes on frequently queried columns
-- **Recommendations**: Cache trending products
-- **Search**: pgvector IVFFlat index for fast similarity search
+  Add a symlink to the binary in `$PATH` for easier access:
 
-### Monitoring
-- Track OpenAI API usage and costs
-- Monitor Supabase database size
-- Review analytics for insights
-- Check error logs regularly
+  ```sh
+  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
+  ```
 
-## 🧪 Testing
+  This works on other non-standard Linux distros.
+</details>
 
-Run through this checklist:
-- [ ] Install dependencies and configure environment
-- [ ] Run all SQL scripts
-- [ ] Test AI description generation
-- [ ] Test semantic search
-- [ ] Add items to cart
-- [ ] Complete checkout
-- [ ] Register vendor
-- [ ] Upload product
-- [ ] View analytics dashboard
-- [ ] Test recommendations
+<details>
+  <summary><b>Community Maintained Packages</b></summary>
 
-## 🚢 Deployment
+  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
+  To install in your working directory:
 
-### Vercel (Recommended)
-```bash
-# Install Vercel CLI
-npm i -g vercel
+  ```bash
+  pkgx install supabase
+  ```
 
-# Deploy
-vercel
-```
+  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+</details>
 
-### Environment Variables
-Add these in your deployment platform:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `OPENAI_API_KEY`
-
-## 🛠️ Troubleshooting
-
-### Embeddings Not Working
-- Ensure pgvector extension is enabled
-- Check OpenAI API key validity
-- Verify embedding column exists
-
-### Analytics Not Tracking
-- Check RLS policies
-- Verify tracking functions are called
-- Check browser console for errors
-
-### AI Generation Fails
-- Verify OpenAI API key and quota
-- Check rate limits
-- Review error logs
-
-## 🤝 Contributing
-
-This is a demonstration project showcasing AI-native e-commerce features. Feel free to fork and customize for your needs!
-
-## 📄 License
-
-This project is provided as-is for educational and demonstration purposes.
-
-## 🙏 Acknowledgments
-
-Built with:
-- Next.js - React framework
-- Supabase - Backend platform
-- OpenAI - AI capabilities
-- Tailwind CSS - Styling
-- Recharts - Data visualization
-
----
-
-**Made with ❤️ using AI-native technologies**
-
-The seed data includes 5 unique shopping districts:
-
-1. **ByteHub** - Tech & Gadgets
-2. **GlowHaus** - Beauty & Wellness
-3. **CraftCore** - Home & Lifestyle
-4. **FitForge** - Fitness & Performance
-5. **PetPavilion** - Pets & Companions
-
-Each district comes with 4-6 example products.
-
-## 🎨 Customization
-
-### Adding New Districts
-
-1. Add a new row to the `microstores` table in Supabase
-2. Add products for that microstore using its `id`
-3. The district will automatically appear on the homepage
-
-### Styling
-
-- Modify `styles/globals.css` for global styles
-- Update `tailwind.config.js` for Tailwind customization
-- Edit component files for component-specific styling
-
-## 📦 Build for Production
+### Run the CLI
 
 ```bash
-npm run build
-npm start
+supabase bootstrap
 ```
 
-## 🛠️ Tech Stack
+Or using npx:
 
-- **Framework**: Next.js 15 (App Router)
-- **Language**: TypeScript
-- **Database**: Supabase (PostgreSQL)
-- **Styling**: Tailwind CSS
-- **Image Optimization**: Next.js Image component
-- **State Management**: React Hooks
+```bash
+npx supabase bootstrap
+```
 
-## 📝 Environment Variables
+The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
 
-| Variable | Description |
-|----------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anonymous key |
-| `OPENAI_API_KEY` | Your OpenAI API key for AI features |
+## Docs
 
-## 📚 Documentation
+Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
 
-- **[IMPLEMENTATION_COMPLETE.md](IMPLEMENTATION_COMPLETE.md)** - Complete implementation summary
-- **[AUTONOMOUS_SYSTEMS.md](AUTONOMOUS_SYSTEMS.md)** - Deep dive into autonomous features
-- **[AUTONOMOUS_QUICKSTART.md](AUTONOMOUS_QUICKSTART.md)** - 5-minute quick start guide
-- **[SETUP.md](SETUP.md)** - Detailed setup instructions
+## Breaking changes
 
-## 🎯 Key Capabilities
+We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
 
-### Self-Optimization
-Products rewrite their own descriptions when performance drops. Districts evolve their personalities based on user behavior. The system learns what works and applies those patterns automatically.
+However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
 
-### AI-Powered Insights
-Get natural language summaries of your analytics. The system detects anomalies, suggests improvements, and generates executive reports—all automatically.
+## Developing
 
-### Autonomous Content
-Weekly social media calendars generated for each district. Platform-specific content (TikTok, Instagram, Twitter) created without human intervention.
+To run from source:
 
-### Personalization
-Every user gets a unique experience. The system builds profiles from behavior, predicts interests, and adapts layouts in real-time.
-
-### Self-Healing
-Broken images? Missing data? The system detects and fixes issues automatically. No manual intervention required.
-
-## 🔒 Security Notes
-
-- Row Level Security (RLS) is enabled on all tables
-- Public read access is granted for browsing
-- Configure write policies based on your auth requirements
-- Never commit `.env.local` to version control
-
-## 🌌 Philosophy
-
-This platform represents a new paradigm: **Software as an Organism**.
-
-It doesn't just execute commands—it observes, learns, adapts, evolves, heals, generates, and optimizes continuously.
-
-**This is the future of AI-native software development.**
-
-## 📄 License
-
-This project is open source and available under the MIT License.
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome!
-
-## 📧 Support
-
-For support, please open an issue in the repository.
-
----
-
-**Built with:** Next.js 15, React 19, TypeScript, Supabase, OpenAI GPT-4, pgvector
-
-**Philosophy:** Beyond traditional software. Into living systems.
-
-**Result:** A self-evolving, AI-native commerce organism that no human would have designed.
+```sh
+# Go >= 1.22
+go run . help
+```

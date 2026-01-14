@@ -48,6 +48,15 @@ export function RoleGuard({
         rolePerformanceMonitor.endAccessControlCheck();
       }
     } else if (!loading && !user) {
+      // If running in dev test mode, allow the AuthProvider a short grace period to initialize the dev user
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('test_user') === 'true') {
+          // Do not redirect immediately in dev mode; allow client-side mock user to be established
+          return;
+        }
+      }
+
       // Not logged in, redirect to login
       router.push('/auth/login');
     }
@@ -67,6 +76,21 @@ export function RoleGuard({
 
   // Not logged in
   if (!user) {
+    // If running in dev test user mode, show a transient loading state while AuthProvider sets the mock user
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('test_user') === 'true') {
+        return loadingComponent || (
+          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+            <div className="text-white text-center">
+              <Loader2 className="animate-spin h-12 w-12 mx-auto mb-4" />
+              <p>Verifying access...</p>
+            </div>
+          </div>
+        );
+      }
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <div className="text-white text-center">

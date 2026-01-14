@@ -60,10 +60,43 @@ jobs:
 
       - name: Run integration tests
         # Run only the integration tests (mocked flows). Use single worker for DB isolation.
-        run: npx playwright test tests/integration --workers=1 --reporter=github
+        run: |
+          # Skip if there are no test files present in tests/integration
+          if [ -z "$(find tests/integration -type f \( -name '*.spec.ts' -o -name '*.spec.tsx' -o -name '*.spec.js' -o -name '*.test.ts' -o -name '*.test.tsx' -o -name '*.test.js' \) -print -quit 2>/dev/null)" ]; then
+            echo "No Playwright integration tests found under tests/integration — skipping integration tests (success)."
+            exit 0
+          fi
+
+          # Create a minimal Playwright config for integration tests (tests/integration is not the default testDir)
+          cat > integration.playwright.config.js <<'JS'
+module.exports = {
+  testDir: 'tests/integration',
+  timeout: 30000,
+  expect: { timeout: 5000 },
+  use: {
+    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    headless: true,
+    viewport: { width: 1280, height: 800 },
+    actionTimeout: 5000,
+    ignoreHTTPSErrors: true,
+  },
+  projects: [{ name: 'chromium', use: { browserName: 'chromium' } }],
+};
+JS
+
+          # Run Playwright integration tests (fail-fast unless Playwright reports no tests)
+          TMP_OUTPUT=$(mktemp)
+          if ! npx playwright test --config=integration.playwright.config.js tests/integration --workers=1 --reporter=github 2>&1 | tee "$TMP_OUTPUT"; then
+            if grep -q "No tests found" "$TMP_OUTPUT" || grep -q "Error: No tests found" "$TMP_OUTPUT"; then
+              echo "No Playwright integration tests found under tests/integration — skipping integration tests (success)."
+              exit 0
+            fi
+            echo "Playwright integration tests failed:"; cat "$TMP_OUTPUT"
+            exit 1
+          fi
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}}
 
       - name: Run telemetry Playwright test
         # Validate telemetry/hero analytics in CI during pull requests

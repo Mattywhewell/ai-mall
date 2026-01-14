@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '../supabaseClient';
-import { callOpenAI } from '../ai/openaiClient';
+import { AIRouter } from '../ai/modelRouter';
 import { generateSEOMetadata } from '../ai/generateSEO';
 
 export interface DistrictPersonality {
@@ -167,7 +167,14 @@ Recent Performance (30 days):
 Suggest how this district should evolve.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 0.8);
+      const response = await AIRouter.getInstance().executeTask({
+        id: `district-evolution-${districtSlug}-${Date.now()}`,
+        type: 'analysis',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.8,
+        priority: 'high'
+      });
       const plan = JSON.parse(response);
       
       return {
@@ -279,7 +286,14 @@ Recent Performance: ${JSON.stringify(behavior)}
 Suggest complementary categories.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 0.7);
+      const response = await AIRouter.getInstance().executeTask({
+        id: `district-categories-${districtSlug}-${Date.now()}`,
+        type: 'creative',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.7,
+        priority: 'medium'
+      });
       const categories = JSON.parse(response);
       return categories;
     } catch (error) {
@@ -324,7 +338,14 @@ Description: ${district.description}
 Generate marketing content.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 0.9);
+      const response = await AIRouter.getInstance().executeTask({
+        id: `district-marketing-${districtSlug}-${Date.now()}`,
+        type: 'creative',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.9,
+        priority: 'medium'
+      });
       const content = JSON.parse(response);
 
       // Save to database
@@ -377,7 +398,14 @@ Recent Content: ${JSON.stringify(recentContent)}
 Suggest brand voice evolution.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 0.7);
+      const response = await AIRouter.getInstance().executeTask({
+        id: `brand-voice-evolution-${districtSlug}-${Date.now()}`,
+        type: 'creative',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.7,
+        priority: 'medium'
+      });
       const evolution = JSON.parse(response);
 
       // Update brand voice

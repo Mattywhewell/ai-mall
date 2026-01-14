@@ -38,12 +38,23 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Playwright tests
-        run: npx playwright test --reporter=github
+        run: npx playwright test --reporter=github --trace=on
         env:
           BASE_URL: http://localhost:3000
           CI: true
+          # Enable CI-only router/prefetch logs when present
+          NEXT_PUBLIC_CI_ROUTER_LOGS: '1'
           NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy_key
+
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: |
+            test-results/**
+            playwright-report/**
 
   telemetry-e2e:
     runs-on: ubuntu-latest
@@ -76,9 +87,18 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run telemetry Playwright test
-        run: npx playwright test tests/e2e/hero-ab.spec.ts --project=chromium --reporter=github
+        run: npx playwright test tests/e2e/hero-ab.spec.ts --project=chromium --reporter=github --trace=on
         env:
           BASE_URL: http://localhost:3000
           CI: true
           NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy_key
+
+      - name: Upload telemetry Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: telemetry-playwright-artifacts
+          path: |
+            test-results/**
+            playwright-report/**
