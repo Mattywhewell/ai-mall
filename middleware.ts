@@ -20,7 +20,9 @@ export function middleware(request: NextRequest) {
       const prefetch = request.headers.get('next-router-prefetch') || '';
       const referer = request.headers.get('referer') || '';
       const ua = request.headers.get('user-agent') || '';
-      const cookies = Array.from(request.cookies.keys()).join(',');
+      // Some runtimes don't expose an iterable cookies.keys(), so fall back to parsing the Cookie header.
+      const cookieHeader = request.headers.get('cookie') || '';
+      const cookies = cookieHeader ? cookieHeader.split(';').map(s => s.split('=')[0].trim()).join(',') : '';
       console.log(`[REQ-INSTR START] ${new Date().toISOString()} ${request.method} ${url.pathname}${url.search} rsc=${rsc} prefetch=${prefetch} referer=${referer} ua="${ua.split(' ').slice(0,3).join(' ')}" cookies=${cookies}`);
 
       // If it's likely an RSC/prefetch request, also emit a specialized line for ease of grep
