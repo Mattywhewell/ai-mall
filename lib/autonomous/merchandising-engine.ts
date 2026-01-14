@@ -4,7 +4,7 @@
  */
 
 import { getSupabaseClient } from '@/lib/supabase-server';
-import { callOpenAI } from '../ai/openaiClient';
+import { AIRouter } from '../ai/modelRouter';
 
 
 export interface MerchandisingRule {
@@ -358,7 +358,14 @@ Focus on:
     const userPrompt = `Top performing products:\n${productSummary}\n\nDiscover 3-5 actionable patterns.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 0.7);
+      const response = await AIRouter.getInstance().executeTask({
+        id: `merch-patterns-${districtSlug}-${Date.now()}`,
+        type: 'analysis',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.7,
+        priority: 'medium'
+      });
       const patterns = JSON.parse(response);
       return patterns;
     } catch (error) {
@@ -393,7 +400,14 @@ Performance: ${JSON.stringify(analytics)}
 Suggest optimal layout configuration.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 0.6);
+      const response = await AIRouter.getInstance().executeTask({
+        id: `layout-optimization-${districtSlug}-${Date.now()}`,
+        type: 'analysis',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.6,
+        priority: 'medium'
+      });
       const layout = JSON.parse(response);
 
       // Save layout configuration

@@ -18,8 +18,24 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  // Initialize auth state. If running in dev test_user mode and on the client, bootstrap mock user synchronously
+  const initialUser = (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') ? (() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('test_user') === 'true') {
+      const roleParam = params.get('role') || 'citizen';
+      const roles = roleParam === 'admin' ? ['admin'] : roleParam === 'supplier' ? ['supplier'] : [];
+      const mock = {
+        id: 'test-id',
+        email: 'test@example.com',
+        user_metadata: { full_name: 'Test User', roles, is_admin: roleParam === 'admin' },
+      } as any;
+      return mock;
+    }
+    return null;
+  })() : null;
+
+  const [user, setUser] = useState<User | null>(initialUser);
+  const [session, setSession] = useState<Session | null>(initialUser ? ({ user: initialUser } as any) : null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,21 +46,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Skip Supabase initialization if credentials are not properly configured
     if (!supabaseUrl || !supabaseKey || supabaseKey === 'your-anon-key-here' || supabaseUrl.includes('placeholder')) {
       console.warn('Supabase not configured, running in offline mode');
-      setSession(null);
-      setUser(null);
+      if (!initialUser) {
+        setSession(null);
+        setUser(null);
+      }
       setLoading(false);
       return;
     }
 
-    // Allow dev-only test user via ?test_user=true
+    // Allow dev-only test user via ?test_user=true (redundant fallback for hydration)
     if (process.env.NODE_ENV !== 'production' && typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (params.get('test_user') === 'true') {
+        const roleParam = params.get('role') || 'citizen';
+        const roles = roleParam === 'admin' ? ['admin'] : roleParam === 'supplier' ? ['supplier'] : [];
         const mock = {
           user: {
             id: 'test-id',
             email: 'test@example.com',
-            user_metadata: { full_name: 'Test User' },
+            user_metadata: { full_name: 'Test User', roles, is_admin: roleParam === 'admin' },
           },
         } as any;
         setSession(mock);

@@ -4,7 +4,7 @@
  */
 
 import SupplierNav from '@/components/SupplierNav';
-import { RoleGuard } from '@/components/RoleGuard';
+import SupplierAuthWrapper from '@/components/SupplierAuthWrapper';
 
 export default function SupplierLayout({
   children,
@@ -12,11 +12,11 @@ export default function SupplierLayout({
   children: React.ReactNode;
 }) {
   return (
-    <RoleGuard allowedRoles={['supplier']} fallbackPath="/" showMessage={true}>
+    <SupplierAuthWrapper>
       <div className="flex min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         <SupplierNav />
         <main className="flex-1">{children}</main>
       </div>
-    </RoleGuard>
+    </SupplierAuthWrapper>
   );
 }

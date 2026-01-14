@@ -1,0 +1,121 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Test User" [ref=e3] [cursor=pointer]:
+    - /url: /profile
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "Aiverse" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img [ref=e8]
+        - generic [ref=e10]: Aiverse
+      - generic [ref=e11]:
+        - link "Home" [ref=e12] [cursor=pointer]:
+          - /url: /
+          - img [ref=e13]
+          - generic [ref=e16]: Home
+        - link "Explore" [ref=e17] [cursor=pointer]:
+          - /url: /city
+          - img [ref=e18]
+          - generic [ref=e21]: Explore
+        - link "Commons" [ref=e22] [cursor=pointer]:
+          - /url: /commons
+          - img [ref=e23]
+          - generic [ref=e26]: Commons
+        - link "Collections" [ref=e27] [cursor=pointer]:
+          - /url: /collections
+          - img [ref=e28]
+          - generic [ref=e32]: Collections
+        - link "Gifts" [ref=e33] [cursor=pointer]:
+          - /url: /gifts
+          - img [ref=e34]
+          - generic [ref=e38]: Gifts
+        - link "AI Products" [ref=e39] [cursor=pointer]:
+          - /url: /agents
+          - img [ref=e40]
+          - generic [ref=e42]: AI Products
+        - link "Events" [ref=e43] [cursor=pointer]:
+          - /url: /events
+          - img [ref=e44]
+          - generic [ref=e47]: Events
+        - link "Subscriptions" [ref=e48] [cursor=pointer]:
+          - /url: /subscriptions
+          - img [ref=e49]
+          - generic [ref=e52]: Subscriptions
+        - link "Become a Creator" [ref=e53] [cursor=pointer]:
+          - /url: /digital-products
+          - img [ref=e54]
+          - generic [ref=e56]: Become a Creator
+        - link "About" [ref=e57] [cursor=pointer]:
+          - /url: /about
+          - generic [ref=e58]: About
+        - generic [ref=e59]:
+          - link "Dashboard" [ref=e60] [cursor=pointer]:
+            - /url: /admin
+          - link "Assets" [ref=e61] [cursor=pointer]:
+            - /url: /admin/assets
+          - link "Audio" [ref=e62] [cursor=pointer]:
+            - /url: /admin/audio
+          - link "Video" [ref=e63] [cursor=pointer]:
+            - /url: /admin/video
+          - link "Video Jobs" [ref=e64] [cursor=pointer]:
+            - /url: /admin/video/jobs
+          - link "Revenue" [ref=e65] [cursor=pointer]:
+            - /url: /admin/revenue
+          - link "AI Systems" [ref=e66] [cursor=pointer]:
+            - /url: /admin/commerce-engine
+      - generic [ref=e67]:
+        - button "Search" [ref=e68] [cursor=pointer]:
+          - img [ref=e69]
+        - button "Change currency" [ref=e73] [cursor=pointer]:
+          - img [ref=e74]
+          - generic [ref=e77]: $ USD
+        - link "Shopping cart" [ref=e78] [cursor=pointer]:
+          - /url: /cart
+          - img [ref=e79]
+        - link "Sign In" [ref=e83] [cursor=pointer]:
+          - /url: /auth/login
+  - generic [ref=e85]:
+    - heading "Video Scheduler Jobs" [level=1] [ref=e86]
+    - generic [ref=e87]:
+      - button "Run Now" [ref=e88] [cursor=pointer]:
+        - img [ref=e89]
+        - generic [ref=e91]: Run Now
+      - button "Refresh" [ref=e92] [cursor=pointer]:
+        - img [ref=e93]
+        - generic [ref=e98]: Refresh
+      - textbox "Search logs..." [ref=e99]
+      - combobox [ref=e100]:
+        - option "All status" [selected]
+        - option "running"
+        - option "completed"
+        - option "failed"
+      - textbox [ref=e101]
+      - textbox [ref=e102]
+      - combobox [ref=e103]:
+        - option "10"
+        - option "20" [selected]
+        - option "50"
+      - button "Export CSV" [ref=e104] [cursor=pointer]
+      - table [ref=e105]:
+        - rowgroup [ref=e106]:
+          - row "Job Started Finished Status Activated Deactivated Error" [ref=e107]:
+            - columnheader "Job" [ref=e108]
+            - columnheader "Started" [ref=e109]
+            - columnheader "Finished" [ref=e110]
+            - columnheader "Status" [ref=e111]
+            - columnheader "Activated" [ref=e112]
+            - columnheader "Deactivated" [ref=e113]
+            - columnheader "Error" [ref=e114]
+        - rowgroup [ref=e115]:
+          - row "video_schedules 1/14/2026, 5:11:55 PM 1/14/2026, 5:11:55 PM completed 1 0 —" [ref=e116] [cursor=pointer]:
+            - cell "video_schedules" [ref=e117]
+            - cell "1/14/2026, 5:11:55 PM" [ref=e118]
+            - cell "1/14/2026, 5:11:55 PM" [ref=e119]
+            - cell "completed" [ref=e120]
+            - cell "1" [ref=e121]
+            - cell "0" [ref=e122]
+            - cell "—" [ref=e123]
+  - alert [ref=e124]
+```
