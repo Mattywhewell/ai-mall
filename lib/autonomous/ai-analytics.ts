@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '../supabaseClient';
-import { callOpenAI } from '../ai/openaiClient';
+import { AIRouter } from '../ai/modelRouter';
 
 export interface AnalyticsInsight {
   type: 'trend' | 'anomaly' | 'opportunity' | 'warning' | 'achievement';
@@ -263,7 +263,15 @@ ${insights.map((i) => `- ${i.title}: ${i.description}`).join('\n')}
 Generate analytics narrative.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 0.7);
+      const router = AIRouter.getInstance();
+      const response = await router.executeTask({
+        id: `analytics-narrative-${Date.now()}`,
+        type: 'analysis',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.7,
+        priority: 'medium'
+      });
       const narrative = JSON.parse(response);
       return narrative;
     } catch (error) {
@@ -379,7 +387,15 @@ Monthly Performance:
 Generate executive summary.`;
 
     try {
-      const summary = await callOpenAI(systemPrompt, userPrompt, 0.6);
+      const router = AIRouter.getInstance();
+      const summary = await router.executeTask({
+        id: `executive-summary-${Date.now()}`,
+        type: 'analysis',
+        content: userPrompt,
+        systemPrompt,
+        temperature: 0.6,
+        priority: 'medium'
+      });
       return summary;
     } catch (error) {
       return 'Unable to generate summary';

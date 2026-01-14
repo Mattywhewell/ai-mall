@@ -2,15 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/lib/supabase-server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
-});
+const stripe = process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== 'sk_test_placeholder'
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2023-10-16',
+    })
+  : null;
 
 /**
  * GET /api/stripe/connect/callback
  * Handle Stripe Connect OAuth callback
  */
 export async function GET(request: NextRequest) {
+  // Return error if Stripe is not properly configured
+  if (!stripe) {
+    return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');

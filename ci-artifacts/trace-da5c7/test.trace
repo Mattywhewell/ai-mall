@@ -1,0 +1,63 @@
+{"version":8,"type":"context-options","origin":"testRunner","browserName":"","playwrightVersion":"1.57.0","options":{},"platform":"win32","wallTime":1768388591598,"monotonicTime":792108.172,"sdkLanguage":"javascript"}
+{"type":"before","callId":"hook@1","stepId":"hook@1","startTime":792110.334,"class":"Test","method":"hook","title":"Before Hooks","params":{},"stack":[]}
+{"type":"before","callId":"fixture@25","stepId":"fixture@25","parentId":"hook@1","startTime":792120.571,"class":"Test","method":"fixture","title":"Fixture \"context\"","params":{},"stack":[]}
+{"type":"before","callId":"pw:api@26","stepId":"pw:api@26","parentId":"fixture@25","startTime":792121.222,"class":"Test","method":"pw:api","title":"Create context","params":{"acceptDownloads":"accept","bypassCSP":"false","colorScheme":"light","hasTouch":"false","ignoreHTTPSErrors":"true","isMobile":"false","javaScriptEnabled":"true","locale":"en-US","offline":"false","viewport":"Object","baseURL":"http://localhost:3000","serviceWorkers":"allow","selectorEngines":"[]","testIdAttributeName":"data-testid","noDefaultViewport":"false","extraHTTPHeaders":"undefined","storageState":"undefined","reducedMotion":"undefined","forcedColors":"undefined","contrast":"undefined","clientCertificates":"undefined"},"stack":[]}
+{"type":"after","callId":"pw:api@26","endTime":792125.046,"annotations":[]}
+{"type":"after","callId":"fixture@25","endTime":792126.159,"annotations":[]}
+{"type":"before","callId":"fixture@27","stepId":"fixture@27","parentId":"hook@1","startTime":792126.516,"class":"Test","method":"fixture","title":"Fixture \"page\"","params":{},"stack":[]}
+{"type":"before","callId":"pw:api@28","stepId":"pw:api@28","parentId":"fixture@27","startTime":792127.366,"class":"Test","method":"pw:api","title":"Create page","params":{},"stack":[]}
+{"type":"after","callId":"pw:api@28","endTime":792203.922,"annotations":[]}
+{"type":"after","callId":"fixture@27","endTime":792203.986,"annotations":[]}
+{"type":"after","callId":"hook@1","endTime":792204.025,"annotations":[]}
+{"type":"before","callId":"pw:api@29","stepId":"pw:api@29","startTime":792206.205,"class":"Test","method":"pw:api","title":"Navigate to \"/\"","params":{"url":"http://localhost:3000","waitUntil":"domcontentloaded","timeout":"0"},"stack":[{"file":"C:\\Users\\cupca\\Documents\\ai-mall\\tests\\e2e\\user-journeys.spec.ts","line":9,"column":18}]}
+{"type":"after","callId":"pw:api@29","endTime":792707.539,"annotations":[]}
+{"type":"before","callId":"pw:api@30","stepId":"pw:api@30","startTime":792709.657,"class":"Test","method":"pw:api","title":"Is visible locator('a[href=\"/city\"]').first()","params":{"selector":"a[href=\"/city\"] >> nth=0","strict":"true"},"stack":[{"file":"C:\\Users\\cupca\\Documents\\ai-mall\\tests\\e2e\\user-journeys.spec.ts","line":13,"column":26}],"group":"getter"}
+{"type":"after","callId":"pw:api@30","endTime":793098.298,"annotations":[]}
+{"type":"before","callId":"pw:api@31","stepId":"pw:api@31","startTime":793100.4,"class":"Test","method":"pw:api","title":"Click locator('a[href=\"/city\"]').first()","params":{"selector":"a[href=\"/city\"] >> nth=0","strict":"true","timeout":"5000"},"stack":[{"file":"C:\\Users\\cupca\\Documents\\ai-mall\\tests\\e2e\\user-journeys.spec.ts","line":15,"column":26}]}
+{"type":"after","callId":"pw:api@31","endTime":794284.314,"annotations":[]}
+{"type":"before","callId":"pw:api@32","stepId":"pw:api@32","startTime":794290.263,"class":"Test","method":"pw:api","title":"Wait for load state \"load\"","params":{"info":"Object"},"stack":[{"file":"C:\\Users\\cupca\\Documents\\ai-mall\\tests\\e2e\\user-journeys.spec.ts","line":16,"column":22}]}
+{"type":"after","callId":"pw:api@32","endTime":795337.482,"annotations":[]}
+{"type":"before","callId":"expect@33","stepId":"expect@33","startTime":795340.505,"class":"Test","method":"expect","title":"Expect \"toHaveURL\"","params":{"expected":"Object"},"stack":[{"file":"C:\\Users\\cupca\\Documents\\ai-mall\\tests\\e2e\\user-journeys.spec.ts","line":35,"column":26}]}
+{"type":"after","callId":"expect@33","endTime":795440.317,"annotations":[]}
+{"type":"before","callId":"pw:api@34","stepId":"pw:api@34","startTime":795442.225,"class":"Test","method":"pw:api","title":"Query count locator('h1')","params":{"selector":"h1"},"stack":[{"file":"C:\\Users\\cupca\\Documents\\ai-mall\\tests\\e2e\\user-journeys.spec.ts","line":37,"column":47}]}
+{"type":"after","callId":"pw:api@34","endTime":795489.384,"annotations":[]}
+{"type":"stderr","timestamp":795490.682,"text":"No H1 found on /city; skipping strict H1 assertion\n"}
+{"type":"before","callId":"pw:api@35","stepId":"pw:api@35","startTime":795493.342,"class":"Test","method":"pw:api","title":"Wait for selector locator('a[href^=\"/districts\"]').first()","params":{"selector":"a[href^=\"/districts\"] >> nth=0","strict":"true","omitReturnValue":"true","state":"visible","timeout":"12000"},"stack":[{"file":"C:\\Users\\cupca\\Documents\\ai-mall\\tests\\e2e\\user-journeys.spec.ts","line":49,"column":28}]}
+{"type":"after","callId":"pw:api@35","endTime":807552.888,"annotations":[],"error":{"name":"","message":"TimeoutError: locator.waitFor: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('a[href^=\"/districts\"]').first() to be visible\u001b[22m\n","stack":"TimeoutError: locator.waitFor: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('a[href^=\"/districts\"]').first() to be visible\u001b[22m\n\n    at C:\\Users\\cupca\\Documents\\ai-mall\\tests\\e2e\\user-journeys.spec.ts:49:28"}}
+{"type":"stderr","timestamp":807553.131,"text":"District link not visible on /city; falling back to /districts index: TimeoutError: locator.waitFor: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('a[href^=\"/districts\"]').first() to be visible\u001b[22m\n\n"}
+{"type":"before","callId":"pw:api@36","stepId":"pw:api@36","startTime":807554.621,"class":"Test","method":"pw:api","title":"Navigate to \"/districts\"","params":{"url":"http://localhost:3000/districts","waitUntil":"domcontentloaded","timeout":"0"},"stack":[{"file":"C:\\Users\\cupca\\Documents\\ai-mall\\tests\\e2e\\user-journeys.spec.ts","line":85,"column":24}]}
+{"type":"after","callId":"pw:api@36","endTime":828787.765,"annotations":[]}
+{"type":"before","callId":"pw:api@37","stepId":"pw:api@37","startTime":828799.63,"class":"Test","method":"pw:api","title":"Evaluate locator('a[href^=\"/districts\"]')","params":{"selector":"a[href^=\"/districts\"]","expression":"els => els.map(a => a.getAttribute('href') || '')","isFunction":"true","arg":"Object"},"stack":[{"file":"C:\\Users\\cupca\\Documents\\ai-mall\\tests\\e2e\\user-journeys.spec.ts","line":103,"column":77}]}
+{"type":"after","callId":"pw:api@37","endTime":828885.408,"annotations":[]}
+{"type":"before","callId":"pw:api@38","stepId":"pw:api@38","startTime":828888.3,"class":"Test","method":"pw:api","title":"Click locator('a[href=\"/districts/commerce\"]').first()","params":{"selector":"a[href=\"/districts/commerce\"] >> nth=0","strict":"true","timeout":"7000","noWaitAfter":"true"},"stack":[{"file":"C:\\Users\\cupca\\Documents\\ai-mall\\tests\\e2e\\user-journeys.spec.ts","line":107,"column":65}]}
+{"type":"after","callId":"pw:api@38","endTime":829224.12,"annotations":[]}
+{"type":"before","callId":"pw:api@39","stepId":"pw:api@39","startTime":829230.509,"class":"Test","method":"pw:api","title":"Wait for load state \"load\"","params":{"info":"Object"},"stack":[{"file":"C:\\Users\\cupca\\Documents\\ai-mall\\tests\\e2e\\user-journeys.spec.ts","line":108,"column":24}]}
+{"type":"after","callId":"pw:api@39","endTime":839355.492,"annotations":[],"error":{"name":"","message":"TimeoutError: page.waitForURL: Timeout 10000ms exceeded.","stack":"TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n    at C:\\Users\\cupca\\Documents\\ai-mall\\tests\\e2e\\user-journeys.spec.ts:108:24"}}
+{"type":"stderr","timestamp":839393.171,"text":"District click did not navigate as expected, falling back to districts index: TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n"}
+{"type":"before","callId":"pw:api@40","stepId":"pw:api@40","startTime":839404.267,"class":"Test","method":"pw:api","title":"Navigate to \"/districts\"","params":{"url":"http://localhost:3000/districts","waitUntil":"domcontentloaded","timeout":"0"},"stack":[{"file":"C:\\Users\\cupca\\Documents\\ai-mall\\tests\\e2e\\user-journeys.spec.ts","line":116,"column":26}]}
+{"type":"after","callId":"pw:api@40","endTime":851627.573,"annotations":[]}
+{"type":"before","callId":"pw:api@41","stepId":"pw:api@41","startTime":851630.949,"class":"Test","method":"pw:api","title":"Query count locator('a[href^=\"/districts\"]')","params":{"selector":"a[href^=\"/districts\"]"},"stack":[{"file":"C:\\Users\\cupca\\Documents\\ai-mall\\tests\\e2e\\user-journeys.spec.ts","line":150,"column":69}]}
+{"type":"after","callId":"pw:api@41","endTime":852012.319,"annotations":[]}
+{"type":"before","callId":"expect@42","stepId":"expect@42","startTime":852014.615,"class":"Test","method":"expect","title":"Expect \"toBeGreaterThan\"","params":{},"stack":[{"file":"C:\\Users\\cupca\\Documents\\ai-mall\\tests\\e2e\\user-journeys.spec.ts","line":151,"column":25}]}
+{"type":"after","callId":"expect@42","endTime":852018.522,"annotations":[]}
+{"type":"before","callId":"pw:api@43","stepId":"pw:api@43","startTime":852021.459,"class":"Test","method":"pw:api","title":"Query count locator('[data-testid=\"product-card\"]')","params":{"selector":"[data-testid=\"product-card\"]"},"stack":[{"file":"C:\\Users\\cupca\\Documents\\ai-mall\\tests\\e2e\\user-journeys.spec.ts","line":158,"column":78}]}
+{"type":"after","callId":"pw:api@43","endTime":852042.936,"annotations":[]}
+{"type":"before","callId":"pw:api@44","stepId":"pw:api@44","startTime":852044.787,"class":"Test","method":"pw:api","title":"Is visible locator('text=No products found')","params":{"selector":"text=No products found","strict":"true"},"stack":[{"file":"C:\\Users\\cupca\\Documents\\ai-mall\\tests\\e2e\\user-journeys.spec.ts","line":159,"column":72}],"group":"getter"}
+{"type":"after","callId":"pw:api@44","endTime":852078.22,"annotations":[]}
+{"type":"stderr","timestamp":852081.127,"text":"No product/content found on district page; marking this check as flaky and continuing\n"}
+{"type":"before","callId":"hook@45","stepId":"hook@45","startTime":852081.583,"class":"Test","method":"hook","title":"After Hooks","params":{},"stack":[]}
+{"type":"before","callId":"fixture@46","stepId":"fixture@46","parentId":"hook@45","startTime":852083.793,"class":"Test","method":"fixture","title":"Fixture \"page\"","params":{},"stack":[]}
+{"type":"after","callId":"fixture@46","endTime":852083.882,"annotations":[]}
+{"type":"before","callId":"fixture@47","stepId":"fixture@47","parentId":"hook@45","startTime":852084.108,"class":"Test","method":"fixture","title":"Fixture \"context\"","params":{},"stack":[]}
+{"type":"before","callId":"pw:api@48","stepId":"pw:api@48","parentId":"fixture@47","startTime":853226.336,"class":"Test","method":"pw:api","title":"Close context","params":{"reason":"Test ended."},"stack":[]}
+{"type":"after","callId":"pw:api@48","endTime":853506.68,"annotations":[]}
+{"type":"after","callId":"fixture@47","endTime":853506.761,"annotations":[]}
+{"type":"before","callId":"fixture@54","stepId":"fixture@54","parentId":"hook@45","startTime":853508.254,"class":"Test","method":"fixture","title":"Fixture \"actionTimeout\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@54","endTime":853508.272,"annotations":[]}
+{"type":"before","callId":"fixture@57","stepId":"fixture@57","parentId":"hook@45","startTime":853508.991,"class":"Test","method":"fixture","title":"Fixture \"baseURL\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@57","endTime":853509.019,"annotations":[]}
+{"type":"before","callId":"fixture@60","stepId":"fixture@60","parentId":"hook@45","startTime":853509.647,"class":"Test","method":"fixture","title":"Fixture \"viewport\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@60","endTime":853509.669,"annotations":[]}
+{"type":"before","callId":"fixture@68","stepId":"fixture@68","parentId":"hook@45","startTime":853511.516,"class":"Test","method":"fixture","title":"Fixture \"ignoreHTTPSErrors\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@68","endTime":853511.563,"annotations":[]}
+{"type":"after","callId":"hook@45","endTime":853515.484,"annotations":[]}

@@ -1,0 +1,1 @@
+Vitest tests live under `tests/lib`. If `npm run test:unit` doesn't detect tests locally on Windows, run them in CI (GitHub Actions `Run Unit Tests` will run on Ubuntu where Vitest test discovery behaves as expected).

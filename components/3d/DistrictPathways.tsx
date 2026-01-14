@@ -5,6 +5,20 @@ import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 
+// Lazy load SoundManager
+let useSoundManager: any = null;
+if (typeof window !== 'undefined') {
+  try {
+    import('../../lib/sound/SoundManager').then(soundModule => {
+      useSoundManager = soundModule.useSoundManager;
+    }).catch(error => {
+      console.warn('SoundManager not available for DistrictPathways:', error);
+    });
+  } catch (error) {
+    console.warn('SoundManager not available for DistrictPathways:', error);
+  }
+}
+
 interface DistrictPathwaysProps {
   onDistrictSelect: (districtId: string) => void;
 }
@@ -73,6 +87,8 @@ interface DistrictPathwayProps {
 function DistrictPathway({ district, isHovered, onHover, onSelect }: DistrictPathwayProps) {
   const pathRef = useRef<THREE.Group>(null);
   const portalRef = useRef<THREE.Mesh>(null);
+  const soundManager = useSoundManager ? useSoundManager() : null;
+  const [lastHovered, setLastHovered] = useState(false);
 
   // Animate the pathway
   useFrame((state) => {
@@ -89,6 +105,18 @@ function DistrictPathway({ district, isHovered, onHover, onSelect }: DistrictPat
       // Glow effect
       const material = portalRef.current.material as THREE.MeshStandardMaterial;
       material.emissiveIntensity = isHovered ? 0.3 : 0.1;
+    }
+
+    // Audio effects for hover state changes
+    if (soundManager && soundManager.isReady) {
+      if (isHovered && !lastHovered) {
+        // Started hovering - play hover sound
+        soundManager.playEffect('node-hover', { volume: 0.25 });
+        setLastHovered(true);
+      } else if (!isHovered && lastHovered) {
+        // Stopped hovering
+        setLastHovered(false);
+      }
     }
   });
 
@@ -141,7 +169,12 @@ function DistrictPathway({ district, isHovered, onHover, onSelect }: DistrictPat
           position={[0, 2, 0]}
           onPointerEnter={() => onHover(district.id)}
           onPointerLeave={() => onHover(null)}
-          onClick={() => onSelect(district.id)}
+          onClick={() => {
+            if (soundManager) {
+              soundManager.playEffect('portal-open', { volume: 0.5 });
+            }
+            onSelect(district.id);
+          }}
         >
           <torusGeometry args={[2, 0.2, 8, 16]} />
           <meshStandardMaterial

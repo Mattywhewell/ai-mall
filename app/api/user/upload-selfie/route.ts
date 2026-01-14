@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabaseServer';
-import { generateAvatarFromSelfie } from '@/lib/ai/avatar-generation';
+// import { generateAvatarFromSelfie } from '@/lib/ai/avatar-generation';
 
 /**
  * POST /api/user/upload-selfie
@@ -76,30 +76,30 @@ export async function POST(request: NextRequest) {
     });
 
     // Start async avatar generation
-    generateAvatarFromSelfie(uploadRecord.id, uploadData.path)
-      .then(async (result) => {
-        if (result.success) {
-          // Update user with avatar URL
-          await supabase.rpc('update_user_avatar_status', {
-            user_id: user.id,
-            status: 'ready',
-            avatar_url: result.avatarUrl
-          });
-        } else {
-          // Update status to failed
-          await supabase.rpc('update_user_avatar_status', {
-            user_id: user.id,
-            status: 'failed'
-          });
-        }
-      })
-      .catch(async (error) => {
-        console.error('Avatar generation failed:', error);
-        await supabase.rpc('update_user_avatar_status', {
-          user_id: user.id,
-          status: 'failed'
-        });
-      });
+    // generateAvatarFromSelfie(uploadRecord.id, uploadData.path)
+    //   .then(async (result) => {
+    //     if (result.success) {
+    //       // Update user with avatar URL
+    //       await supabase.rpc('update_user_avatar_status', {
+    //         user_id: user.id,
+    //         status: 'ready',
+    //         avatar_url: result.avatarUrl
+    //       });
+    //     } else {
+    //       // Update status to failed
+    //       await supabase.rpc('update_user_avatar_status', {
+    //         user_id: user.id,
+    //         status: 'failed'
+    //       });
+    //     }
+    //   })
+    //   .catch(async (error) => {
+    //     console.error('Avatar generation failed:', error);
+    //     await supabase.rpc('update_user_avatar_status', {
+    //       user_id: user.id,
+    //       status: 'failed'
+    //     });
+    //   });
 
     return NextResponse.json({
       success: true,

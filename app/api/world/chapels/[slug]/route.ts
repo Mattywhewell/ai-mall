@@ -11,10 +11,10 @@ import { Chapel, AISpirit } from '@/lib/types/world';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const chapelSlug = params.slug;
+    const { slug: chapelSlug } = await params;
 
     // Fetch chapel data
     const { data: chapel, error: chapelError } = await supabase

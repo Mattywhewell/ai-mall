@@ -1,15 +1,17 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { MapPin, Users, ShoppingBag, Home, RotateCcw, Navigation } from 'lucide-react';
+import { MapPin, Users, ShoppingBag, Home, RotateCcw, Navigation, Volume2, VolumeX } from 'lucide-react';
 
 interface NavigationControlsProps {
   mode: 'walk' | 'teleport';
   onModeChange: (mode: 'walk' | 'teleport') => void;
   onHomeClick: () => void;
+  isMuted?: boolean;
+  onToggleMute?: () => void;
 }
 
-export function NavigationControls({ mode, onModeChange, onHomeClick }: NavigationControlsProps) {
+export function NavigationControls({ mode, onModeChange, onHomeClick, isMuted = false, onToggleMute }: NavigationControlsProps) {
   return (
     <div className="bg-white bg-opacity-90 rounded-lg shadow-lg p-3 space-y-2">
       {/* Navigation Mode Toggle */}
@@ -33,6 +35,25 @@ export function NavigationControls({ mode, onModeChange, onHomeClick }: Navigati
           Teleport
         </Button>
       </div>
+
+      {/* Audio Controls */}
+      {onToggleMute && (
+        <div className="border-t pt-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onToggleMute}
+            className="w-full justify-start"
+          >
+            {isMuted ? (
+              <VolumeX className="w-4 h-4 mr-2" />
+            ) : (
+              <Volume2 className="w-4 h-4 mr-2" />
+            )}
+            {isMuted ? 'Unmute Audio' : 'Mute Audio'}
+          </Button>
+        </div>
+      )}
 
       {/* Quick Actions */}
       <div className="space-y-1">

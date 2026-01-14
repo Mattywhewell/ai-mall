@@ -1,7 +1,8 @@
 import { MetadataRoute } from 'next'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://alverse.app'
+  // Use environment variable or fallback to deployment URL
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ai-mall.vercel.app'
 
   // Static pages
   const staticPages = [
@@ -55,7 +56,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
+  // Instrumentation: log start/finish and timing when running in CI or when
+  // E2E_SERVER_INSTRUMENTATION=1. This helps correlate RSC client traces with
+  // any slow/missing server-side work (e.g., Supabase queries).
+  const instr = Boolean(process.env.E2E_SERVER_INSTRUMENTATION || process.env.CI);
+  const start = Date.now();
+  if (instr) console.log(`[SITEMAP-INSTR] START ${new Date().toISOString()} baseUrl=${baseUrl}`);
+
   try {
+    // If Supabase env is missing, avoid importing/creating the client at build time.
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      if (instr) console.log(`[SITEMAP-INSTR] SKIP ${new Date().toISOString()} supabase missing`);
+      if (instr) console.log(`[SITEMAP-INSTR] FINISH ${new Date().toISOString()} dynamic=0 static=${staticPages.length} durationMs=${Date.now()-start}`);
+      return staticPages
+    }
+
     // Import Supabase client
     const { createClient } = await import('@supabase/supabase-js')
     const supabase = createClient(
@@ -164,9 +179,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
     })
 
+    if (instr) console.log(`[SITEMAP-INSTR] FINISH ${new Date().toISOString()} dynamic=${dynamicUrls.length} static=${staticPages.length} durationMs=${Date.now()-start}`);
     return [...staticPages, ...dynamicUrls]
 
   } catch (error) {
+    if (instr) console.error(`[SITEMAP-INSTR] ERROR ${new Date().toISOString()} durationMs=${Date.now()-start}`, error);
     console.error('Error generating sitemap:', error)
     // Return static pages only if database query fails
     return staticPages

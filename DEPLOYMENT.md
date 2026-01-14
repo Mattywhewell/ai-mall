@@ -105,7 +105,32 @@ Navigate to:
 
 ## Post-Deployment Tasks
 
-### 1. Run Initial World Evolution
+### 1. Apply Database Migrations (REQUIRED)
+
+Before running jobs or enabling production traffic, ensure all SQL migrations have been applied to the target Supabase instance (staging and production). This repository keeps canonical migrations in `supabase/migrations/`.
+
+Locally (Supabase CLI):
+
+```bash
+# Ensure SUPABASE_SERVICE_ROLE_KEY is set
+supabase db push
+```
+
+CI/CD / pipeline: ensure your deployment pipeline calls the Supabase CLI or otherwise applies the SQL files in `supabase/migrations` (e.g., `supabase db push` or equivalent). The new migration to be sure is applied is:
+
+- `supabase/migrations/20260112_add_admin_actions.sql` — creates the `admin_actions` audit table used by admin endpoints.
+
+Quick verification (run after migrations complete):
+
+```sql
+-- In Supabase SQL editor or psql
+SELECT to_regclass('public.admin_actions'); -- should return 'admin_actions'
+SELECT COUNT(*) FROM admin_actions; -- returns 0 or more, confirms table exists
+```
+
+If you prefer the project's scripted approach, add the migration filename to the `sqlFiles` list inside `setup-database.js` and re-run the script.
+
+### 2. Run Initial World Evolution
 
 Trigger the evolution jobs to populate initial data:
 
