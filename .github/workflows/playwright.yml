@@ -99,7 +99,16 @@ jobs:
           CI: true
           NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy_key
-
+      - name: Run focused CI prefetch test
+        run: npx playwright test tests/e2e/ci-prefetch.spec.ts --project=chromium --reporter=github
+        env:
+          BASE_URL: http://localhost:3000
+          CI: true
+          NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy_key
+          STRIPE_SECRET_KEY: sk_test_ci_placeholder
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_placeholder
+          STRIPE_WEBHOOK_SECRET: whsec_test_placeholder
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
