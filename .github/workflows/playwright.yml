@@ -10,6 +10,10 @@ on:
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    env:
+      STRIPE_SECRET_KEY: sk_test_ci_placeholder
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_placeholder
+      STRIPE_WEBHOOK_SECRET: whsec_test_placeholder
     steps:
       - uses: actions/checkout@v4
 
@@ -47,6 +51,10 @@ jobs:
 
   telemetry-e2e:
     runs-on: ubuntu-latest
+    env:
+      STRIPE_SECRET_KEY: sk_test_ci_placeholder
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_placeholder
+      STRIPE_WEBHOOK_SECRET: whsec_test_placeholder
     needs: e2e
     steps:
       - uses: actions/checkout@v4
