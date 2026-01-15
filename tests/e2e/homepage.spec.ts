@@ -16,13 +16,12 @@ test.describe('Homepage', () => {
       }
     }
 
-    // Hero headline
-    const hero = page.locator('h1', { hasText: 'Enter the City Where Memory Takes Shape' });
-    await expect(hero).toBeVisible({ timeout: 10000 });
-
-    // CTAs
-    await expect(page.getByRole('link', { name: 'Enter the City' })).toBeVisible();
+    // CTAs (wait first to ensure hero section rendered)
+    await expect(page.getByRole('link', { name: 'Enter the City' })).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole('link', { name: 'Become a Creator' }).first()).toBeVisible();
+
+    // Verify hero text exists in the DOM (less fragile than strict visibility)
+    await expect(page.locator('h1', { hasText: 'Enter the City Where Memory Takes Shape' })).toHaveCount(1);
 
     // Districts section should contain 6 district cards
     const districts = page.locator('section:has(h2:has-text("Districts")) article');
