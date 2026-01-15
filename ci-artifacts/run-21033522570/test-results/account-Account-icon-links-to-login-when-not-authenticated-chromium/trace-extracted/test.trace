@@ -1,0 +1,46 @@
+{"version":8,"type":"context-options","origin":"testRunner","browserName":"","playwrightVersion":"1.57.0","options":{},"platform":"linux","wallTime":1768484975105,"monotonicTime":2148.746,"sdkLanguage":"javascript"}
+{"type":"before","callId":"hook@1","stepId":"hook@1","startTime":2151.953,"class":"Test","method":"hook","title":"Before Hooks","params":{},"stack":[]}
+{"type":"before","callId":"fixture@28","stepId":"fixture@28","parentId":"hook@1","startTime":2169.739,"class":"Test","method":"fixture","title":"Fixture \"browser\"","params":{},"stack":[]}
+{"type":"before","callId":"pw:api@29","stepId":"pw:api@29","parentId":"fixture@28","startTime":2174.547,"class":"Test","method":"pw:api","title":"Launch browser","params":{"handleSIGINT":"false","tracesDir":"/home/runner/work/ai-mall/ai-mall/test-results/.playwright-artifacts-1/traces","headless":"true","ignoreDefaultArgs":"undefined","ignoreAllDefaultArgs":"false","env":"undefined","timeout":"180000"},"stack":[]}
+{"type":"after","callId":"pw:api@29","endTime":2416.325,"annotations":[]}
+{"type":"after","callId":"fixture@28","endTime":2416.539,"annotations":[]}
+{"type":"before","callId":"fixture@32","stepId":"fixture@32","parentId":"hook@1","startTime":2419.437,"class":"Test","method":"fixture","title":"Fixture \"context\"","params":{},"stack":[]}
+{"type":"before","callId":"pw:api@33","stepId":"pw:api@33","parentId":"fixture@32","startTime":2425.832,"class":"Test","method":"pw:api","title":"Create context","params":{"acceptDownloads":"accept","bypassCSP":"false","colorScheme":"light","hasTouch":"false","ignoreHTTPSErrors":"true","isMobile":"false","javaScriptEnabled":"true","locale":"en-US","offline":"false","viewport":"Object","baseURL":"http://localhost:3000","serviceWorkers":"allow","selectorEngines":"[]","testIdAttributeName":"data-testid","noDefaultViewport":"false","extraHTTPHeaders":"undefined","storageState":"undefined","reducedMotion":"undefined","forcedColors":"undefined","contrast":"undefined","clientCertificates":"undefined"},"stack":[]}
+{"type":"after","callId":"pw:api@33","endTime":2436.246,"annotations":[]}
+{"type":"after","callId":"fixture@32","endTime":2447.278,"annotations":[]}
+{"type":"before","callId":"fixture@34","stepId":"fixture@34","parentId":"hook@1","startTime":2447.767,"class":"Test","method":"fixture","title":"Fixture \"page\"","params":{},"stack":[]}
+{"type":"before","callId":"pw:api@35","stepId":"pw:api@35","parentId":"fixture@34","startTime":2449.537,"class":"Test","method":"pw:api","title":"Create page","params":{},"stack":[]}
+{"type":"after","callId":"pw:api@35","endTime":2491.843,"annotations":[]}
+{"type":"after","callId":"fixture@34","endTime":2492.026,"annotations":[]}
+{"type":"after","callId":"hook@1","endTime":2492.171,"annotations":[]}
+{"type":"before","callId":"pw:api@36","stepId":"pw:api@36","startTime":2494.852,"class":"Test","method":"pw:api","title":"Navigate to \"/\"","params":{"url":"http://localhost:3000","waitUntil":"domcontentloaded","timeout":"0"},"stack":[{"file":"/home/runner/work/ai-mall/ai-mall/tests/e2e/account.spec.ts","line":7,"column":16}]}
+{"type":"after","callId":"pw:api@36","endTime":2761.749,"annotations":[]}
+{"type":"before","callId":"pw:api@37","stepId":"pw:api@37","startTime":2774.579,"class":"Test","method":"pw:api","title":"Wait for selector locator('a[aria-label=\"Account\"]')","params":{"selector":"a[aria-label=\"Account\"]","strict":"true","omitReturnValue":"true","state":"attached","timeout":"10000"},"stack":[{"file":"/home/runner/work/ai-mall/ai-mall/tests/e2e/account.spec.ts","line":11,"column":19}]}
+{"type":"after","callId":"pw:api@37","endTime":12804.282,"annotations":[],"error":{"name":"","message":"TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('a[aria-label=\"Account\"]')\u001b[22m\n","stack":"TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('a[aria-label=\"Account\"]')\u001b[22m\n\n    at /home/runner/work/ai-mall/ai-mall/tests/e2e/account.spec.ts:11:19"}}
+{"type":"error","message":"TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('a[aria-label=\"Account\"]')\u001b[22m\n","stack":[{"file":"/home/runner/work/ai-mall/ai-mall/tests/e2e/account.spec.ts","line":11,"column":19}]}
+{"type":"before","callId":"hook@38","stepId":"hook@38","startTime":12804.928,"class":"Test","method":"hook","title":"After Hooks","params":{},"stack":[]}
+{"type":"before","callId":"fixture@39","stepId":"fixture@39","parentId":"hook@38","startTime":12805.968,"class":"Test","method":"fixture","title":"Fixture \"page\"","params":{},"stack":[]}
+{"type":"after","callId":"fixture@39","endTime":12806.26,"annotations":[]}
+{"type":"before","callId":"fixture@40","stepId":"fixture@40","parentId":"hook@38","startTime":12806.541,"class":"Test","method":"fixture","title":"Fixture \"context\"","params":{},"stack":[]}
+{"type":"before","callId":"pw:api@41","stepId":"pw:api@41","parentId":"fixture@40","startTime":13033.021,"class":"Test","method":"pw:api","title":"Close context","params":{"reason":"Test ended."},"stack":[]}
+{"type":"after","callId":"pw:api@41","endTime":13038.284,"annotations":[]}
+{"type":"after","callId":"fixture@40","endTime":13038.336,"annotations":[]}
+{"type":"before","callId":"attach@377bfb12210a4e96d279c3ceadd2738e","stepId":"attach@377bfb12210a4e96d279c3ceadd2738e","startTime":13039.888,"class":"Test","method":"test.attach","title":"Attach \"error-context\"","params":{},"stack":[]}
+{"type":"after","callId":"attach@377bfb12210a4e96d279c3ceadd2738e","endTime":13039.899,"attachments":[{"name":"error-context","contentType":"text/markdown","sha1":"c7ba054ef9adfd5374812903b997df65ce6a2dc5"}]}
+{"type":"before","callId":"fixture@47","stepId":"fixture@47","parentId":"hook@38","startTime":13040.77,"class":"Test","method":"fixture","title":"Fixture \"actionTimeout\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@47","endTime":13040.803,"annotations":[]}
+{"type":"before","callId":"fixture@50","stepId":"fixture@50","parentId":"hook@38","startTime":13041.444,"class":"Test","method":"fixture","title":"Fixture \"baseURL\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@50","endTime":13041.479,"annotations":[]}
+{"type":"before","callId":"fixture@53","stepId":"fixture@53","parentId":"hook@38","startTime":13041.969,"class":"Test","method":"fixture","title":"Fixture \"viewport\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@53","endTime":13042.001,"annotations":[]}
+{"type":"before","callId":"fixture@61","stepId":"fixture@61","parentId":"hook@38","startTime":13043.46,"class":"Test","method":"fixture","title":"Fixture \"ignoreHTTPSErrors\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@61","endTime":13043.491,"annotations":[]}
+{"type":"after","callId":"hook@38","endTime":13046.332,"annotations":[]}
+{"type":"before","callId":"hook@72","stepId":"hook@72","startTime":13046.639,"class":"Test","method":"hook","title":"Worker Cleanup","params":{},"stack":[]}
+{"type":"before","callId":"fixture@76","stepId":"fixture@76","parentId":"hook@72","startTime":13047.937,"class":"Test","method":"fixture","title":"Fixture \"browser\"","params":{},"stack":[]}
+{"type":"after","callId":"fixture@76","endTime":13071.153,"annotations":[]}
+{"type":"before","callId":"fixture@79","stepId":"fixture@79","parentId":"hook@72","startTime":13071.755,"class":"Test","method":"fixture","title":"Fixture \"browserName\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@79","endTime":13071.784,"annotations":[]}
+{"type":"before","callId":"fixture@84","stepId":"fixture@84","parentId":"hook@72","startTime":13072.596,"class":"Test","method":"fixture","title":"Fixture \"headless\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@84","endTime":13072.622,"annotations":[]}
+{"type":"after","callId":"hook@72","endTime":13072.818,"annotations":[]}

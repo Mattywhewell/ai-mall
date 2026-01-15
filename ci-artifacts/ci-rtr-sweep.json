@@ -1,0 +1,98 @@
+{
+  "run": "run-21033522570",
+  "traceDir": "C:\\Users\\cupca\\Documents\\ai-mall\\ci-artifacts\\run-21033522570\\trace-extracted",
+  "totals": {
+    "prefetch": 9,
+    "ci_prefetch_id": 3,
+    "x-ci-prefetch-id": 1,
+    "ci-rtr": 1
+  },
+  "samples": [
+    {
+      "file": "C:\\Users\\cupca\\Documents\\ai-mall\\ci-artifacts\\run-21033522570\\trace-extracted\\0-trace.network",
+      "line": 1,
+      "text": "{\"type\":\"resource-snapshot\",\"snapshot\":{\"pageref\":\"page@80961a3c07f70d46996cd42750a6d2f7\",\"startedDateTime\":\"2026-01-15T13:50:40.746Z\",\"time\":13.001999999999999,\"request\":{\"method\":\"GET\",\"url\":\"http://localhost:3000/visual-layers/demo\",\"httpVersion\":\"HTTP/1.1\",\"cookies\":[],\"headers\":[{\"name\":\"Accept\",\"value\":\"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7\"},{\"name\":\"Accept-Encoding\",\"value\":\"gzip, deflate, br, zstd\"},{\"name\":\"Accept-Language\",\"value\":\"en-US\"},{\"name\":\"Connection\",\"value\":\"keep-alive\"},{\"name\":\"Host\",\"value\":\"localhost:3000\"},{\"name\":\"Sec-Fetch-Dest\",\"value\":\"document\"},{\"name\":\"Sec-Fetch-Mode\",\"value\":\"navigate\"},{\"name\":\"Sec-Fetch-Site\",\"value\":\"none\"},{\"name\":\"Sec-Fetch-User\",\"value\":\"?1\"},{\"name\":\"Upgrade-Insecure-Requests\",\"value\":\"1\"},{\"name\":\"User-Agent\",\"value\":\"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36\"},{\"name\":\"sec-ch-ua\",\"value\":\"\\\"HeadlessChrome\\\";v=\\\"143\\\", \\\"Chromium\\\";v=\\\"143\\\", \\\"Not A(Brand\\\";v=\\\"24\\\"\"},{\"name\":\"sec-ch-ua-mobile\",\"value\":\"?0\"},{\"name\":\"sec-ch-ua-platform\",\"value\":\"\\\"Linux\\\"\"}],\"queryString\":[],\"headersSize\":671,\"bodySize\":0},\"response\":{\"status\":200,\"statusText\":\"OK\",\"httpVersion\":\"HTTP/1.1\",\"cookies\":[{\"name\":\"user-country\",\"value\":\"US\",\"path\":\"/\",\"expires\":\"2026-02-14T13:50:40.761Z\",\"sameSite\":\"lax\"}],\"headers\":[{\"name\":\"Cache-Control\",\"value\":\"s-maxage=31536000\"},{\"name\":\"Connection\",\"value\":\"keep-alive\"},{\"name\":\"Content-Encoding\",\"value\":\"gzip\"},{\"name\":\"Content-Type\",\"value\":\"text/html; charset=utf-8\"},{\"name\":\"Date\",\"value\":\"Thu, 15 Jan 2026 13:50:40 GMT\"},{\"name\":\"ETag\",\"value\":\"\\\"147q8rwxa0776a\\\"\"},{\"name\":\"Keep-Alive\",\"value\":\"timeout=5\"},{\"name\":\"Transfer-Encoding\",\"value\":\"chunked\"},{\"name\":\"Vary\",\"value\":\"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding\"},{\"name\":\"X-Powered-By\",\"value\":\"Next.js\"},{\"name\":\"set-cookie\",\"value\":\"user-country=US; Path=/; Expires=Sat, 14 Feb 2026 13:50:40 GMT; Max-Age=2592000; SameSite=lax\"},{\"name\":\"x-nextjs-cache\",\"value\":\"HIT\"},{\"name\":\"x-nextjs-prerender\",\"value\":\"1\"},{\"name\":\"x-nextjs-prerender\",\"value\":\"1\"},{\"name\":\"x-nextjs-stale-time\",\"value\":\"300\"}],\"content\":{\"size\":9300,\"mimeType\":\"text/html; charset=utf-8\",\"compression\":6360,\"_sha1\":\"2b62d45bc74ffc2f562bb733d4c1dea5a54387ad.html\"},\"headersSize\":580,\"bodySize\":2940,\"redirectURL\":\"\",\"_transferSize\":3520},\"cache\":{},\"timings\":{\"dns\":0.007,\"connect\":0.186,\"ssl\":1.617,\"send\":0,\"wait\":4.537,\"receive\":6.655},\"_frameref\":\"frame@86cffbc9d3807c064e2576cc26036d5f\",\"_monotonicTime\":67789.92,\"serverIPAddress\":\"[::1]\",\"_serverPort\":3000,\"_securityDetails\":{}}}",
+      "type": "prefetch"
+    },
+    {
+      "file": "C:\\Users\\cupca\\Documents\\ai-mall\\ci-artifacts\\run-21033522570\\trace-extracted\\resources\\af2e9cb72c080962c5ae5149e0bdd3bf7584e82f.json",
+      "line": 1,
+      "text": "{\"ci_prefetch_id\":\"ci-prefetch-1768484987096\"}",
+      "type": "ci_prefetch_id"
+    },
+    {
+      "file": "C:\\Users\\cupca\\Documents\\ai-mall\\ci-artifacts\\run-21033522570\\trace-extracted\\resources\\af2e9cb72c080962c5ae5149e0bdd3bf7584e82f.json",
+      "line": 1,
+      "text": "{\"ci_prefetch_id\":\"ci-prefetch-1768484987096\"}",
+      "type": "prefetch"
+    },
+    {
+      "file": "C:\\Users\\cupca\\Documents\\ai-mall\\ci-artifacts\\run-21033522570\\trace-extracted\\resources\\src@8dc57b443dd9a2683c8210a27c54ea02addf76be.txt",
+      "line": 3,
+      "text": "test.describe('CI prefetch simulation', () => {",
+      "type": "prefetch"
+    },
+    {
+      "file": "C:\\Users\\cupca\\Documents\\ai-mall\\ci-artifacts\\run-21033522570\\trace-extracted\\resources\\src@8dc57b443dd9a2683c8210a27c54ea02addf76be.txt",
+      "line": 4,
+      "text": "test('ci-prefetch: simulate prefetch and log id', async ({ page }) => {",
+      "type": "prefetch"
+    },
+    {
+      "file": "C:\\Users\\cupca\\Documents\\ai-mall\\ci-artifacts\\run-21033522570\\trace-extracted\\resources\\src@8dc57b443dd9a2683c8210a27c54ea02addf76be.txt",
+      "line": 5,
+      "text": "const id = 'ci-prefetch-' + Date.now();",
+      "type": "prefetch"
+    },
+    {
+      "file": "C:\\Users\\cupca\\Documents\\ai-mall\\ci-artifacts\\run-21033522570\\trace-extracted\\resources\\src@8dc57b443dd9a2683c8210a27c54ea02addf76be.txt",
+      "line": 15,
+      "text": "// Simulate a prefetch via query param and a fetch with custom header",
+      "type": "prefetch"
+    },
+    {
+      "file": "C:\\Users\\cupca\\Documents\\ai-mall\\ci-artifacts\\run-21033522570\\trace-extracted\\resources\\src@8dc57b443dd9a2683c8210a27c54ea02addf76be.txt",
+      "line": 18,
+      "text": "fetch('/?ci_prefetch_id=' + encodeURIComponent(id)).catch(() => {});",
+      "type": "ci_prefetch_id"
+    },
+    {
+      "file": "C:\\Users\\cupca\\Documents\\ai-mall\\ci-artifacts\\run-21033522570\\trace-extracted\\resources\\src@8dc57b443dd9a2683c8210a27c54ea02addf76be.txt",
+      "line": 21,
+      "text": "fetch('/visual-layers/demo', { headers: { 'x-ci-prefetch-id': id } }).catch(() => {});",
+      "type": "x-ci-prefetch-id"
+    },
+    {
+      "file": "C:\\Users\\cupca\\Documents\\ai-mall\\ci-artifacts\\run-21033522570\\trace-extracted\\resources\\src@8dc57b443dd9a2683c8210a27c54ea02addf76be.txt",
+      "line": 21,
+      "text": "fetch('/visual-layers/demo', { headers: { 'x-ci-prefetch-id': id } }).catch(() => {});",
+      "type": "prefetch"
+    },
+    {
+      "file": "C:\\Users\\cupca\\Documents\\ai-mall\\ci-artifacts\\run-21033522570\\trace-extracted\\resources\\src@8dc57b443dd9a2683c8210a27c54ea02addf76be.txt",
+      "line": 26,
+      "text": "fetch('/api/ci-prefetch', {",
+      "type": "prefetch"
+    },
+    {
+      "file": "C:\\Users\\cupca\\Documents\\ai-mall\\ci-artifacts\\run-21033522570\\trace-extracted\\resources\\src@8dc57b443dd9a2683c8210a27c54ea02addf76be.txt",
+      "line": 29,
+      "text": "body: JSON.stringify({ ci_prefetch_id: id }),",
+      "type": "ci_prefetch_id"
+    },
+    {
+      "file": "C:\\Users\\cupca\\Documents\\ai-mall\\ci-artifacts\\run-21033522570\\trace-extracted\\resources\\src@8dc57b443dd9a2683c8210a27c54ea02addf76be.txt",
+      "line": 34,
+      "text": "console.log('[CI-RTR] ci-prefetch-simulated ' + id);",
+      "type": "ci-rtr"
+    },
+    {
+      "file": "C:\\Users\\cupca\\Documents\\ai-mall\\ci-artifacts\\run-21033522570\\trace-extracted\\resources\\src@8dc57b443dd9a2683c8210a27c54ea02addf76be.txt",
+      "line": 34,
+      "text": "console.log('[CI-RTR] ci-prefetch-simulated ' + id);",
+      "type": "prefetch"
+    }
+  ],
+  "scannedFiles": 1048,
+  "scannedAt": "2026-01-15T13:58:14.431Z"
+}

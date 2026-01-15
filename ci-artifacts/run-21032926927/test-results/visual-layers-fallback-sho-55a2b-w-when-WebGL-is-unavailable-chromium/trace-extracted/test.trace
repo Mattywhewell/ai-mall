@@ -1,0 +1,44 @@
+{"version":8,"type":"context-options","origin":"testRunner","browserName":"","playwrightVersion":"1.57.0","options":{},"platform":"linux","wallTime":1768483815340,"monotonicTime":61623.943,"sdkLanguage":"javascript"}
+{"type":"before","callId":"hook@1","stepId":"hook@1","startTime":61624.482,"class":"Test","method":"hook","title":"Before Hooks","params":{},"stack":[]}
+{"type":"before","callId":"fixture@25","stepId":"fixture@25","parentId":"hook@1","startTime":61629.608,"class":"Test","method":"fixture","title":"Fixture \"context\"","params":{},"stack":[]}
+{"type":"before","callId":"pw:api@26","stepId":"pw:api@26","parentId":"fixture@25","startTime":61630.233,"class":"Test","method":"pw:api","title":"Create context","params":{"acceptDownloads":"accept","bypassCSP":"false","colorScheme":"light","hasTouch":"false","ignoreHTTPSErrors":"true","isMobile":"false","javaScriptEnabled":"true","locale":"en-US","offline":"false","viewport":"Object","baseURL":"http://localhost:3000","serviceWorkers":"allow","selectorEngines":"[]","testIdAttributeName":"data-testid","noDefaultViewport":"false","extraHTTPHeaders":"undefined","storageState":"undefined","reducedMotion":"undefined","forcedColors":"undefined","contrast":"undefined","clientCertificates":"undefined"},"stack":[]}
+{"type":"after","callId":"pw:api@26","endTime":61634.041,"annotations":[]}
+{"type":"after","callId":"fixture@25","endTime":61635.482,"annotations":[]}
+{"type":"before","callId":"fixture@27","stepId":"fixture@27","parentId":"hook@1","startTime":61635.758,"class":"Test","method":"fixture","title":"Fixture \"page\"","params":{},"stack":[]}
+{"type":"before","callId":"pw:api@28","stepId":"pw:api@28","parentId":"fixture@27","startTime":61636.417,"class":"Test","method":"pw:api","title":"Create page","params":{},"stack":[]}
+{"type":"after","callId":"pw:api@28","endTime":61662.988,"annotations":[]}
+{"type":"after","callId":"fixture@27","endTime":61663.06,"annotations":[]}
+{"type":"after","callId":"hook@1","endTime":61663.098,"annotations":[]}
+{"type":"before","callId":"pw:api@29","stepId":"pw:api@29","startTime":61664.031,"class":"Test","method":"pw:api","title":"Add init script","params":{"source":"(() => {\n    // @ts-ignore\n    window.WebGLRenderingContext = undefined;\n    const proto = HTMLCanvasElement.prototype;\n    const origGet = proto.getContext;\n    proto.getContext = function () {\n      return null;\n    };\n    // store to restore if needed\n    window.__origGetContext = origGet;\n  })(undefined)"},"stack":[{"file":"/home/runner/work/ai-mall/ai-mall/tests/e2e/visual-layers-fallback.spec.ts","line":5,"column":3}],"group":"configuration"}
+{"type":"after","callId":"pw:api@29","endTime":61665.038,"annotations":[]}
+{"type":"before","callId":"pw:api@30","stepId":"pw:api@30","startTime":61665.607,"class":"Test","method":"pw:api","title":"Navigate to \"/visual-layers/demo\"","params":{"url":"/visual-layers/demo","waitUntil":"load","timeout":"0"},"stack":[{"file":"/home/runner/work/ai-mall/ai-mall/tests/e2e/visual-layers-fallback.spec.ts","line":15,"column":14}]}
+{"type":"after","callId":"pw:api@30","endTime":61845.532,"annotations":[]}
+{"type":"before","callId":"pw:api@31","stepId":"pw:api@31","startTime":61846.983,"class":"Test","method":"pw:api","title":"Wait for selector locator('img[alt=\"Runic glow preview\"]')","params":{"selector":"img[alt=\"Runic glow preview\"]","timeout":"5000"},"stack":[{"file":"/home/runner/work/ai-mall/ai-mall/tests/e2e/visual-layers-fallback.spec.ts","line":18,"column":14}]}
+{"type":"after","callId":"pw:api@31","endTime":66853.976,"annotations":[],"error":{"name":"","message":"TimeoutError: page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('img[alt=\"Runic glow preview\"]') to be visible\u001b[22m\n","stack":"TimeoutError: page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('img[alt=\"Runic glow preview\"]') to be visible\u001b[22m\n\n    at /home/runner/work/ai-mall/ai-mall/tests/e2e/visual-layers-fallback.spec.ts:18:14"}}
+{"type":"error","message":"TimeoutError: page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('img[alt=\"Runic glow preview\"]') to be visible\u001b[22m\n","stack":[{"file":"/home/runner/work/ai-mall/ai-mall/tests/e2e/visual-layers-fallback.spec.ts","line":18,"column":14}]}
+{"type":"before","callId":"hook@32","stepId":"hook@32","startTime":66854.571,"class":"Test","method":"hook","title":"After Hooks","params":{},"stack":[]}
+{"type":"before","callId":"fixture@33","stepId":"fixture@33","parentId":"hook@32","startTime":66855.073,"class":"Test","method":"fixture","title":"Fixture \"page\"","params":{},"stack":[]}
+{"type":"after","callId":"fixture@33","endTime":66855.168,"annotations":[]}
+{"type":"before","callId":"fixture@34","stepId":"fixture@34","parentId":"hook@32","startTime":66855.416,"class":"Test","method":"fixture","title":"Fixture \"context\"","params":{},"stack":[]}
+{"type":"before","callId":"pw:api@35","stepId":"pw:api@35","parentId":"fixture@34","startTime":66876.98,"class":"Test","method":"pw:api","title":"Close context","params":{"reason":"Test ended."},"stack":[]}
+{"type":"after","callId":"pw:api@35","endTime":66880.643,"annotations":[]}
+{"type":"after","callId":"fixture@34","endTime":66880.683,"annotations":[]}
+{"type":"before","callId":"attach@1040e28c1055396a29a51b76c78cf7c3","stepId":"attach@1040e28c1055396a29a51b76c78cf7c3","startTime":66881.945,"class":"Test","method":"test.attach","title":"Attach \"error-context\"","params":{},"stack":[]}
+{"type":"after","callId":"attach@1040e28c1055396a29a51b76c78cf7c3","endTime":66881.951,"attachments":[{"name":"error-context","contentType":"text/markdown","sha1":"073c21235ad9eba6e27f7bacb7673a7b2f323058"}]}
+{"type":"before","callId":"fixture@41","stepId":"fixture@41","parentId":"hook@32","startTime":66883.026,"class":"Test","method":"fixture","title":"Fixture \"actionTimeout\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@41","endTime":66883.055,"annotations":[]}
+{"type":"before","callId":"fixture@44","stepId":"fixture@44","parentId":"hook@32","startTime":66883.736,"class":"Test","method":"fixture","title":"Fixture \"baseURL\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@44","endTime":66883.764,"annotations":[]}
+{"type":"before","callId":"fixture@47","stepId":"fixture@47","parentId":"hook@32","startTime":66884.432,"class":"Test","method":"fixture","title":"Fixture \"viewport\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@47","endTime":66884.46,"annotations":[]}
+{"type":"before","callId":"fixture@55","stepId":"fixture@55","parentId":"hook@32","startTime":66886.264,"class":"Test","method":"fixture","title":"Fixture \"ignoreHTTPSErrors\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@55","endTime":66886.294,"annotations":[]}
+{"type":"after","callId":"hook@32","endTime":66888.801,"annotations":[]}
+{"type":"before","callId":"hook@66","stepId":"hook@66","startTime":66889.007,"class":"Test","method":"hook","title":"Worker Cleanup","params":{},"stack":[]}
+{"type":"before","callId":"fixture@70","stepId":"fixture@70","parentId":"hook@66","startTime":66890.129,"class":"Test","method":"fixture","title":"Fixture \"browser\"","params":{},"stack":[]}
+{"type":"after","callId":"fixture@70","endTime":66911.103,"annotations":[]}
+{"type":"before","callId":"fixture@73","stepId":"fixture@73","parentId":"hook@66","startTime":66911.757,"class":"Test","method":"fixture","title":"Fixture \"browserName\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@73","endTime":66911.781,"annotations":[]}
+{"type":"before","callId":"fixture@78","stepId":"fixture@78","parentId":"hook@66","startTime":66912.578,"class":"Test","method":"fixture","title":"Fixture \"headless\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@78","endTime":66912.603,"annotations":[]}
+{"type":"after","callId":"hook@66","endTime":66912.795,"annotations":[]}

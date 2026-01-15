@@ -1,0 +1,172 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - heading "System Health" [level=1] [ref=e5]
+      - paragraph [ref=e6]: Real-time monitoring of platform health and performance
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - img [ref=e11]
+        - generic [ref=e14]:
+          - heading "healthy" [level=2] [ref=e15]
+          - paragraph [ref=e16]: All systems operational
+      - generic [ref=e17]:
+        - generic [ref=e18]: 99.9%
+        - generic [ref=e19]: 30-day uptime
+    - generic [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22]:
+          - img [ref=e23]
+          - img [ref=e25]
+        - generic [ref=e28]: 45ms
+        - generic [ref=e29]: API Latency
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - img [ref=e32]
+          - img [ref=e34]
+        - generic [ref=e37]: 0.2%
+        - generic [ref=e38]: Error Rate
+      - generic [ref=e39]:
+        - img [ref=e41]
+        - generic [ref=e43]: "234"
+        - generic [ref=e44]: Active Users
+      - generic [ref=e45]:
+        - img [ref=e47]
+        - generic [ref=e50]: 1,250
+        - generic [ref=e51]: Requests/Min
+    - generic [ref=e52]:
+      - heading "Service Status" [level=2] [ref=e53]
+      - generic [ref=e54]:
+        - generic [ref=e55]:
+          - generic [ref=e56]:
+            - generic [ref=e57]:
+              - img [ref=e59]
+              - generic [ref=e62]:
+                - heading "API Server" [level=3] [ref=e63]
+                - generic [ref=e64]: operational
+            - generic [ref=e65]:
+              - generic [ref=e66]: Uptime
+              - generic [ref=e67]: 99.95%
+          - generic [ref=e68]:
+            - generic [ref=e69]:
+              - generic [ref=e70]: Latency
+              - generic [ref=e71]: 42ms
+            - generic [ref=e72]:
+              - generic [ref=e73]: Last Check
+              - generic [ref=e74]: 1:51:52 PM
+            - generic [ref=e75]:
+              - generic [ref=e76]: Status
+              - generic [ref=e77]: operational
+        - generic [ref=e81]:
+          - generic [ref=e82]:
+            - generic [ref=e83]:
+              - img [ref=e85]
+              - generic [ref=e88]:
+                - heading "Database" [level=3] [ref=e89]
+                - generic [ref=e90]: operational
+            - generic [ref=e91]:
+              - generic [ref=e92]: Uptime
+              - generic [ref=e93]: 99.99%
+          - generic [ref=e94]:
+            - generic [ref=e95]:
+              - generic [ref=e96]: Latency
+              - generic [ref=e97]: 18ms
+            - generic [ref=e98]:
+              - generic [ref=e99]: Last Check
+              - generic [ref=e100]: 1:51:52 PM
+            - generic [ref=e101]:
+              - generic [ref=e102]: Status
+              - generic [ref=e103]: operational
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - generic [ref=e109]:
+              - img [ref=e111]
+              - generic [ref=e114]:
+                - heading "Auto-Listing Engine" [level=3] [ref=e115]
+                - generic [ref=e116]: operational
+            - generic [ref=e117]:
+              - generic [ref=e118]: Uptime
+              - generic [ref=e119]: 98.5%
+          - generic [ref=e120]:
+            - generic [ref=e121]:
+              - generic [ref=e122]: Latency
+              - generic [ref=e123]: 850ms
+            - generic [ref=e124]:
+              - generic [ref=e125]: Last Check
+              - generic [ref=e126]: 1:51:52 PM
+            - generic [ref=e127]:
+              - generic [ref=e128]: Status
+              - generic [ref=e129]: operational
+        - generic [ref=e133]:
+          - generic [ref=e134]:
+            - generic [ref=e135]:
+              - img [ref=e137]
+              - generic [ref=e140]:
+                - heading "Stripe Payments" [level=3] [ref=e141]
+                - generic [ref=e142]: operational
+            - generic [ref=e143]:
+              - generic [ref=e144]: Uptime
+              - generic [ref=e145]: 99.8%
+          - generic [ref=e146]:
+            - generic [ref=e147]:
+              - generic [ref=e148]: Latency
+              - generic [ref=e149]: 230ms
+            - generic [ref=e150]:
+              - generic [ref=e151]: Last Check
+              - generic [ref=e152]: 1:51:52 PM
+            - generic [ref=e153]:
+              - generic [ref=e154]: Status
+              - generic [ref=e155]: operational
+        - generic [ref=e159]:
+          - generic [ref=e160]:
+            - generic [ref=e161]:
+              - img [ref=e163]
+              - generic [ref=e166]:
+                - heading "Image Processing" [level=3] [ref=e167]
+                - generic [ref=e168]: operational
+            - generic [ref=e169]:
+              - generic [ref=e170]: Uptime
+              - generic [ref=e171]: 99.2%
+          - generic [ref=e172]:
+            - generic [ref=e173]:
+              - generic [ref=e174]: Latency
+              - generic [ref=e175]: 320ms
+            - generic [ref=e176]:
+              - generic [ref=e177]: Last Check
+              - generic [ref=e178]: 1:51:52 PM
+            - generic [ref=e179]:
+              - generic [ref=e180]: Status
+              - generic [ref=e181]: operational
+        - generic [ref=e185]:
+          - generic [ref=e186]:
+            - generic [ref=e187]:
+              - img [ref=e189]
+              - generic [ref=e192]:
+                - heading "Email Service" [level=3] [ref=e193]
+                - generic [ref=e194]: operational
+            - generic [ref=e195]:
+              - generic [ref=e196]: Uptime
+              - generic [ref=e197]: 99.7%
+          - generic [ref=e198]:
+            - generic [ref=e199]:
+              - generic [ref=e200]: Latency
+              - generic [ref=e201]: 150ms
+            - generic [ref=e202]:
+              - generic [ref=e203]: Last Check
+              - generic [ref=e204]: 1:51:52 PM
+            - generic [ref=e205]:
+              - generic [ref=e206]: Status
+              - generic [ref=e207]: operational
+    - generic [ref=e211]:
+      - heading "Recent Incidents" [level=2] [ref=e212]
+      - generic [ref=e213]:
+        - img [ref=e214]
+        - heading "No Recent Incidents" [level=3] [ref=e217]
+        - paragraph [ref=e218]: All systems have been running smoothly
+    - generic [ref=e219]:
+      - text: "Last updated: 1/15/2026, 1:51:52 PM"
+      - text: Auto-refreshes every 30 seconds
+  - alert [ref=e220]
+```

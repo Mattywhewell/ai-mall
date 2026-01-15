@@ -13,7 +13,7 @@ test.describe('CI prefetch simulation', () => {
     await page.goto('/');
 
     // Simulate a prefetch via query param and a fetch with custom header
-    await page.evaluate((id) => {
+    await page.evaluate(async (id) => {
       try {
         fetch('/?ci_prefetch_id=' + encodeURIComponent(id)).catch(() => {});
       } catch (e) {}
@@ -23,11 +23,15 @@ test.describe('CI prefetch simulation', () => {
 
       // POST the id to a server endpoint so the request body is captured in traces reliably
       try {
-        fetch('/api/ci-prefetch', {
+        const res = await fetch('/api/ci-prefetch', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ci_prefetch_id: id }),
-        }).catch(() => {});
+        });
+        try {
+          const json = await res.json();
+          console.log('[CI-RTR] ci-prefetch-server-response ' + JSON.stringify(json));
+        } catch (e) {}
       } catch (e) {}
 
       // Add an explicit console marker too

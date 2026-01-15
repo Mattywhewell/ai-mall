@@ -1,0 +1,52 @@
+{"version":8,"type":"context-options","origin":"testRunner","browserName":"","playwrightVersion":"1.57.0","options":{},"platform":"linux","wallTime":1768483785951,"monotonicTime":32234.91,"sdkLanguage":"javascript"}
+{"type":"before","callId":"hook@1","stepId":"hook@1","startTime":32239.954,"class":"Test","method":"hook","title":"Before Hooks","params":{},"stack":[]}
+{"type":"before","callId":"fixture@28","stepId":"fixture@28","parentId":"hook@1","startTime":32256.538,"class":"Test","method":"fixture","title":"Fixture \"browser\"","params":{},"stack":[]}
+{"type":"before","callId":"pw:api@29","stepId":"pw:api@29","parentId":"fixture@28","startTime":32259.699,"class":"Test","method":"pw:api","title":"Launch browser","params":{"handleSIGINT":"false","tracesDir":"/home/runner/work/ai-mall/ai-mall/test-results/.playwright-artifacts-5/traces","headless":"true","ignoreDefaultArgs":"undefined","ignoreAllDefaultArgs":"false","env":"undefined","timeout":"180000"},"stack":[]}
+{"type":"after","callId":"pw:api@29","endTime":32338.023,"annotations":[]}
+{"type":"after","callId":"fixture@28","endTime":32338.293,"annotations":[]}
+{"type":"before","callId":"fixture@32","stepId":"fixture@32","parentId":"hook@1","startTime":32340.464,"class":"Test","method":"fixture","title":"Fixture \"context\"","params":{},"stack":[]}
+{"type":"before","callId":"pw:api@33","stepId":"pw:api@33","parentId":"fixture@32","startTime":32342.56,"class":"Test","method":"pw:api","title":"Create context","params":{"acceptDownloads":"accept","bypassCSP":"false","colorScheme":"light","hasTouch":"false","ignoreHTTPSErrors":"true","isMobile":"false","javaScriptEnabled":"true","locale":"en-US","offline":"false","viewport":"Object","baseURL":"http://localhost:3000","serviceWorkers":"allow","selectorEngines":"[]","testIdAttributeName":"data-testid","noDefaultViewport":"false","extraHTTPHeaders":"undefined","storageState":"undefined","reducedMotion":"undefined","forcedColors":"undefined","contrast":"undefined","clientCertificates":"undefined"},"stack":[]}
+{"type":"after","callId":"pw:api@33","endTime":32351.421,"annotations":[]}
+{"type":"after","callId":"fixture@32","endTime":32356.628,"annotations":[]}
+{"type":"before","callId":"fixture@34","stepId":"fixture@34","parentId":"hook@1","startTime":32357.099,"class":"Test","method":"fixture","title":"Fixture \"page\"","params":{},"stack":[]}
+{"type":"before","callId":"pw:api@35","stepId":"pw:api@35","parentId":"fixture@34","startTime":32358.832,"class":"Test","method":"pw:api","title":"Create page","params":{},"stack":[]}
+{"type":"after","callId":"pw:api@35","endTime":32400.169,"annotations":[]}
+{"type":"after","callId":"fixture@34","endTime":32400.317,"annotations":[]}
+{"type":"after","callId":"hook@1","endTime":32400.409,"annotations":[]}
+{"type":"before","callId":"pw:api@36","stepId":"pw:api@36","startTime":32402.8,"class":"Test","method":"pw:api","title":"Route requests","params":{"patterns":"[Object]"},"stack":[{"file":"/home/runner/work/ai-mall/ai-mall/tests/e2e/inventory-sync.spec.ts","line":22,"column":16}],"group":"route"}
+{"type":"after","callId":"pw:api@36","endTime":32405.723,"annotations":[]}
+{"type":"before","callId":"pw:api@37","stepId":"pw:api@37","startTime":32406.915,"class":"Test","method":"pw:api","title":"Route requests","params":{"patterns":"[Object, Object]"},"stack":[{"file":"/home/runner/work/ai-mall/ai-mall/tests/e2e/inventory-sync.spec.ts","line":23,"column":16}],"group":"route"}
+{"type":"after","callId":"pw:api@37","endTime":32407.92,"annotations":[]}
+{"type":"before","callId":"pw:api@38","stepId":"pw:api@38","startTime":32412.269,"class":"Test","method":"pw:api","title":"Route requests","params":{"patterns":"[Object, Object, Object]"},"stack":[{"file":"/home/runner/work/ai-mall/ai-mall/tests/e2e/inventory-sync.spec.ts","line":26,"column":16}],"group":"route"}
+{"type":"after","callId":"pw:api@38","endTime":32413.543,"annotations":[]}
+{"type":"before","callId":"pw:api@39","stepId":"pw:api@39","startTime":32415.071,"class":"Test","method":"pw:api","title":"Navigate to \"/supplier/listing-manager\"","params":{"url":"/supplier/listing-manager","waitUntil":"load","timeout":"0"},"stack":[{"file":"/home/runner/work/ai-mall/ai-mall/tests/e2e/inventory-sync.spec.ts","line":32,"column":16}]}
+{"type":"after","callId":"pw:api@39","endTime":32669.424,"annotations":[]}
+{"type":"before","callId":"pw:api@40","stepId":"pw:api@40","startTime":32675.536,"class":"Test","method":"pw:api","title":"Click locator('button[aria-label=\"Sync inventory item i1\"]')","params":{"selector":"button[aria-label=\"Sync inventory item i1\"]","timeout":"5000"},"stack":[{"file":"/home/runner/work/ai-mall/ai-mall/tests/e2e/inventory-sync.spec.ts","line":33,"column":16}]}
+{"type":"after","callId":"pw:api@40","endTime":37688.082,"annotations":[],"error":{"name":"","message":"TimeoutError: page.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[aria-label=\"Sync inventory item i1\"]')\u001b[22m\n","stack":"TimeoutError: page.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[aria-label=\"Sync inventory item i1\"]')\u001b[22m\n\n    at /home/runner/work/ai-mall/ai-mall/tests/e2e/inventory-sync.spec.ts:33:16"}}
+{"type":"error","message":"TimeoutError: page.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[aria-label=\"Sync inventory item i1\"]')\u001b[22m\n","stack":[{"file":"/home/runner/work/ai-mall/ai-mall/tests/e2e/inventory-sync.spec.ts","line":33,"column":16}]}
+{"type":"before","callId":"hook@41","stepId":"hook@41","startTime":37688.639,"class":"Test","method":"hook","title":"After Hooks","params":{},"stack":[]}
+{"type":"before","callId":"fixture@42","stepId":"fixture@42","parentId":"hook@41","startTime":37689.494,"class":"Test","method":"fixture","title":"Fixture \"page\"","params":{},"stack":[]}
+{"type":"after","callId":"fixture@42","endTime":37689.659,"annotations":[]}
+{"type":"before","callId":"fixture@43","stepId":"fixture@43","parentId":"hook@41","startTime":37689.898,"class":"Test","method":"fixture","title":"Fixture \"context\"","params":{},"stack":[]}
+{"type":"before","callId":"pw:api@44","stepId":"pw:api@44","parentId":"fixture@43","startTime":37731.897,"class":"Test","method":"pw:api","title":"Close context","params":{"reason":"Test ended."},"stack":[]}
+{"type":"after","callId":"pw:api@44","endTime":37739.292,"annotations":[]}
+{"type":"after","callId":"fixture@43","endTime":37739.344,"annotations":[]}
+{"type":"before","callId":"attach@0177c372d3a76a744ab7a08a72ac30a3","stepId":"attach@0177c372d3a76a744ab7a08a72ac30a3","startTime":37740.876,"class":"Test","method":"test.attach","title":"Attach \"error-context\"","params":{},"stack":[]}
+{"type":"after","callId":"attach@0177c372d3a76a744ab7a08a72ac30a3","endTime":37740.886,"attachments":[{"name":"error-context","contentType":"text/markdown","sha1":"8df85ec31aee22a3fd22538b95523d3a811608cd"}]}
+{"type":"before","callId":"fixture@50","stepId":"fixture@50","parentId":"hook@41","startTime":37742.033,"class":"Test","method":"fixture","title":"Fixture \"actionTimeout\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@50","endTime":37742.072,"annotations":[]}
+{"type":"before","callId":"fixture@53","stepId":"fixture@53","parentId":"hook@41","startTime":37742.993,"class":"Test","method":"fixture","title":"Fixture \"baseURL\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@53","endTime":37743.036,"annotations":[]}
+{"type":"before","callId":"fixture@56","stepId":"fixture@56","parentId":"hook@41","startTime":37743.782,"class":"Test","method":"fixture","title":"Fixture \"viewport\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@56","endTime":37743.822,"annotations":[]}
+{"type":"before","callId":"fixture@64","stepId":"fixture@64","parentId":"hook@41","startTime":37746.17,"class":"Test","method":"fixture","title":"Fixture \"ignoreHTTPSErrors\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@64","endTime":37746.222,"annotations":[]}
+{"type":"after","callId":"hook@41","endTime":37749.251,"annotations":[]}
+{"type":"before","callId":"hook@75","stepId":"hook@75","startTime":37749.58,"class":"Test","method":"hook","title":"Worker Cleanup","params":{},"stack":[]}
+{"type":"before","callId":"fixture@79","stepId":"fixture@79","parentId":"hook@75","startTime":37750.682,"class":"Test","method":"fixture","title":"Fixture \"browser\"","params":{},"stack":[]}
+{"type":"after","callId":"fixture@79","endTime":37769.636,"annotations":[]}
+{"type":"before","callId":"fixture@82","stepId":"fixture@82","parentId":"hook@75","startTime":37770.332,"class":"Test","method":"fixture","title":"Fixture \"browserName\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@82","endTime":37770.366,"annotations":[]}
+{"type":"before","callId":"fixture@87","stepId":"fixture@87","parentId":"hook@75","startTime":37771.216,"class":"Test","method":"fixture","title":"Fixture \"headless\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@87","endTime":37771.247,"annotations":[]}
+{"type":"after","callId":"hook@75","endTime":37771.46,"annotations":[]}
