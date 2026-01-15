@@ -21,11 +21,20 @@ test.describe('CI prefetch simulation', () => {
         fetch('/visual-layers/demo', { headers: { 'x-ci-prefetch-id': id } }).catch(() => {});
       } catch (e) {}
 
-      // Add an explicit console marker so rtr-sweep can pick it up
+      // POST the id to a server endpoint so the request body is captured in traces reliably
+      try {
+        fetch('/api/ci-prefetch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ci_prefetch_id: id }),
+        }).catch(() => {});
+      } catch (e) {}
+
+      // Add an explicit console marker too
       console.log('[CI-RTR] ci-prefetch-simulated ' + id);
     }, id);
 
     // Give network/console a moment to be captured in the trace
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(2000);
   });
 });
