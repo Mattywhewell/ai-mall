@@ -20,7 +20,7 @@ function Mark-Processed($runId) {
   $arr | ConvertTo-Json | Out-File -FilePath $processedFile -Encoding utf8
 }
 
-Write-Output "[ci-monitor] watching branch '$Branch' (interval ${IntervalSeconds}s)"
+Write-Output ("[ci-monitor] watching branch '{0}' (interval {1}s)" -f $Branch, $IntervalSeconds)
 
 while ($true) {
   try {
@@ -46,7 +46,7 @@ while ($true) {
           gh run download $id --name playwright-report --dir $outdir 2>$null
           Write-Output "[ci-monitor] Download complete for run $id"
         } catch {
-          Write-Output "[ci-monitor] artifact download failed for run $id: $_"
+          Write-Output ("[ci-monitor] artifact download failed for run {0}: {1}" -f $id, $_)
         }
 
         # Extract traces
@@ -55,7 +55,7 @@ while ($true) {
           & pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/ci/merge-traces.ps1 -RunDir $outdir
           Write-Output "[ci-monitor] Extract & merge complete for run $id"
         } catch {
-          Write-Output "[ci-monitor] extract/merge failed for run $id: $_"
+          Write-Output ("[ci-monitor] extract/merge failed for run {0}: {1}" -f $id, $_)
         }
 
         # Run sweep
@@ -73,7 +73,7 @@ while ($true) {
             Write-Output "[ci-monitor] sweeps aggregated for run $id"
           }
         } catch {
-          Write-Output "[ci-monitor] sweep failed for run $id: $_"
+          Write-Output ("[ci-monitor] sweep failed for run {0}: {1}" -f $id, $_)
         }
 
         Mark-Processed $id
@@ -81,7 +81,7 @@ while ($true) {
       }
     }
   } catch {
-    Write-Output "[ci-monitor] monitor error: $_"
+    Write-Output ("[ci-monitor] monitor error: {0}" -f $_)
   }
 
   Start-Sleep -Seconds $IntervalSeconds
