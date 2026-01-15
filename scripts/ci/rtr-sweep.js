@@ -84,6 +84,29 @@ function run() {
     // ignore
   }
 
+  // Also check for a lifecycle file with start/abort/finish events
+  try {
+    const lifecyclePath = path.join(ROOT, RUN, 'test-results', 'ci-prefetch-lifecycle.log');
+    if (fs.existsSync(lifecyclePath)) {
+      const raw = fs.readFileSync(lifecyclePath, 'utf8').trim();
+      const lines = raw.split(/\r?\n/).filter(Boolean);
+      for (const l of lines) {
+        try {
+          const parsed = JSON.parse(l);
+          const item = { file: lifecyclePath, line: 0, text: JSON.stringify(parsed), type: 'server_lifecycle' };
+          allMatches.unshift(item);
+          totals['server_lifecycle'] = (totals['server_lifecycle'] || 0) + 1;
+        } catch (e) {
+          const item = { file: lifecyclePath, line: 0, text: l, type: 'server_lifecycle' };
+          allMatches.unshift(item);
+          totals['server_lifecycle'] = (totals['server_lifecycle'] || 0) + 1;
+        }
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+
   const out = {
     run: RUN,
     traceDir: TRACE_DIR,
