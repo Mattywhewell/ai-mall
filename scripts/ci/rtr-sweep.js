@@ -60,6 +60,30 @@ function run() {
   const totals = {};
   for (const m of allMatches) totals[m.type] = (totals[m.type] || 0) + 1;
 
+  // Also check for a persistent server receipts file (uploaded as part of the Playwright artifact)
+  try {
+    const receiptsPath = path.join(ROOT, RUN, 'test-results', 'ci-prefetch-received.log');
+    if (fs.existsSync(receiptsPath)) {
+      const raw = fs.readFileSync(receiptsPath, 'utf8').trim();
+      const lines = raw.split(/\r?\n/).filter(Boolean);
+      for (const l of lines) {
+        try {
+          const parsed = JSON.parse(l);
+          const item = { file: receiptsPath, line: 0, text: JSON.stringify(parsed), type: 'server_receipt' };
+          allMatches.unshift(item);
+          totals['server_receipt'] = (totals['server_receipt'] || 0) + 1;
+        } catch (e) {
+          // non-JSON line - include raw
+          const item = { file: receiptsPath, line: 0, text: l, type: 'server_receipt' };
+          allMatches.unshift(item);
+          totals['server_receipt'] = (totals['server_receipt'] || 0) + 1;
+        }
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+
   const out = {
     run: RUN,
     traceDir: TRACE_DIR,
