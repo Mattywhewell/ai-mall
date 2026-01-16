@@ -2,8 +2,6 @@
 
 import React, { Suspense } from "react";
 
-const ThreeRenderer = React.lazy(() => import("./ThreeRenderer"));
-
 type VisualLayerRendererProps = {
   strength?: number; // 0..1
   tint?: string; // hex color
@@ -11,6 +9,7 @@ type VisualLayerRendererProps = {
 
 export default function VisualLayerRenderer({ strength = 0.6, tint = "#FFC87A" }: VisualLayerRendererProps) {
   const [hasWebGL, setHasWebGL] = React.useState<boolean | null>(null);
+  const [RendererComponent, setRendererComponent] = React.useState<React.ComponentType<any> | null>(null);
 
   React.useEffect(() => {
     try {
@@ -39,6 +38,25 @@ export default function VisualLayerRenderer({ strength = 0.6, tint = "#FFC87A" }
     }
   }, []);
 
+  // If WebGL is available, attempt to dynamically import the heavy renderer only on the client.
+  // If the import fails (e.g., due to runtime errors in bundled three.js/react-three code),
+  // fall back to the static preview so tests and CI remain stable.
+  React.useEffect(() => {
+    if (hasWebGL) {
+      (async () => {
+        try {
+          const mod = await import("./ThreeRenderer");
+          setRendererComponent(() => mod.default);
+        } catch (err) {
+          // Import failed; disable WebGL rendering and fall back to static preview
+          // eslint-disable-next-line no-console
+          console.error('Failed to load ThreeRenderer, falling back to static preview:', err);
+          setHasWebGL(false);
+        }
+      })();
+    }
+  }, [hasWebGL]);
+
   if (hasWebGL === false) {
     // Fallback static preview when WebGL is unavailable
     return (
@@ -49,22 +67,19 @@ export default function VisualLayerRenderer({ strength = 0.6, tint = "#FFC87A" }
   }
 
   // If still checking, show a small loader placeholder to avoid layout shift
-  if (hasWebGL === null) {
+  if (hasWebGL === null || (hasWebGL && RendererComponent === null)) {
     return (
       <div style={{ width: '100%', height: '500px', borderRadius: 12, overflow: 'hidden', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: '#fff' }}>Checking renderer…</div>
+        <div style={{ color: '#fff' }}>{RendererComponent ? 'Loading renderer…' : 'Checking renderer…'}</div>
       </div>
     );
   }
 
-  // Lazy-load the heavy 3D renderer to avoid importing three.js/react-three during module evaluation which
-  // can fail in test/SSR environments. If the lazy import fails, Suspense will fallback to null and
-  // the outer dynamic import in the page will also handle the failure.
+  // If we have a client-side renderer component loaded, render it. Otherwise, the fallback preview will be shown.
+  const Loaded = RendererComponent as React.ComponentType<any>;
   return (
     <div style={{ width: "100%", height: "500px", borderRadius: 12, overflow: "hidden", background: "#111" }}>
-      <Suspense fallback={<div style={{ color: '#fff' }}>Loading renderer…</div>}>
-        <ThreeRenderer strength={strength} tint={tint} />
-      </Suspense>
+      {Loaded ? <Loaded strength={strength} tint={tint} /> : null}
     </div>
   );
 }
