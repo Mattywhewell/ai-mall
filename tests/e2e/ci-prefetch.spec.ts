@@ -13,25 +13,23 @@ test.describe('CI prefetch simulation', () => {
     await page.goto('/');
 
     // Simulate a prefetch via query param and a fetch with custom header
-    await page.evaluate(async (id) => {
+    // Use a synchronous evaluate that triggers fetches but does not await them to avoid hangs
+    await page.evaluate((id) => {
       try {
-        fetch('/?ci_prefetch_id=' + encodeURIComponent(id)).catch(() => {});
+        // fire-and-forget prefetch
+        void fetch('/?ci_prefetch_id=' + encodeURIComponent(id)).catch(() => {});
       } catch (e) {}
       try {
-        fetch('/visual-layers/demo', { headers: { 'x-ci-prefetch-id': id } }).catch(() => {});
+        void fetch('/visual-layers/demo', { headers: { 'x-ci-prefetch-id': id } }).catch(() => {});
       } catch (e) {}
 
-      // POST the id to a server endpoint so the request body is captured in traces reliably
+      // POST the id to a server endpoint but don't await to avoid blocking the evaluate
       try {
-        const res = await fetch('/api/ci-prefetch', {
+        fetch('/api/ci-prefetch', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ci_prefetch_id: id }),
-        });
-        try {
-          const json = await res.json();
-          console.log('[CI-RTR] ci-prefetch-server-response ' + JSON.stringify(json));
-        } catch (e) {}
+        }).then(res => res.json().then(json => console.log('[CI-RTR] ci-prefetch-server-response ' + JSON.stringify(json))).catch(()=>{})).catch(()=>{});
       } catch (e) {}
 
       // Add an explicit console marker too

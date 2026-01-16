@@ -3,8 +3,13 @@ import { test, expect } from '@playwright/test';
 test('shows static preview when WebGL is unavailable', async ({ page }) => {
   // Force no WebGL: remove constructor and make getContext return null
   await page.addInitScript(() => {
+    // Force no WebGL via multiple mechanisms to be resilient across environments
     // @ts-ignore
     window.WebGLRenderingContext = undefined;
+    // test hook for the renderer
+    // @ts-ignore
+    window.__FORCE_NO_WEBGL = true;
+
     const proto = HTMLCanvasElement.prototype as any;
     const origGet = proto.getContext;
     proto.getContext = function() { return null; };

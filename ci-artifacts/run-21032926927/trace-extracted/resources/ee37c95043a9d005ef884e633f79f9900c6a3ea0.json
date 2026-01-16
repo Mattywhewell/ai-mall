@@ -1,1 +1,0 @@
-{"status":"degraded","timestamp":"2026-01-15T13:31:38.183Z","uptime":198.046729899,"version":"1.0.0","services":{"environment":{"status":"missing_vars","variables":{"supabaseUrl":true,"supabaseKey":false,"openaiKey":false,"stripeKey":true}}},"checks":{"environment":false,"memory":{"used":"161MB","total":"166MB"}}}

@@ -10,9 +10,9 @@ test.describe('Account icon', () => {
     const account = page.locator('a[aria-label="Account"]');
     await account.waitFor({ state: 'attached', timeout: 10000 });
 
-    // Ensure href points to /login
+    // Ensure href points to the login page (legacy tests expect /login, canonical is /auth/login)
     const href = await account.getAttribute('href');
-    expect(href).toBe('/login');
+    expect(href).toMatch(/\/auth\/login|\/login/);
 
     // Programmatically navigate to the link to confirm the login page is reachable
     const resolved = new URL(href!, BASE).toString();

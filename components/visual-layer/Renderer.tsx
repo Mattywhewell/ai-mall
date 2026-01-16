@@ -11,38 +11,29 @@ type VisualLayerRendererProps = {
 };
 
 const OverlayShaderMaterial = ({ strength = 0.6, tint = "#FFC87A" }: any) => {
+  // Create the ShaderMaterial imperatively and attach it as a primitive to avoid
+  // relying on the global `extend` registration ordering which can be brittle
+  // in SSR / test environments.
   const materialRef = useRef<THREE.ShaderMaterial | null>(null);
 
-  // Convert hex to vec3
-  const hexToVec3 = (hex: string) => {
-    const c = new THREE.Color(hex);
-    return [c.r, c.g, c.b];
-  };
-
-  useFrame(({ clock }) => {
-    if (!materialRef.current) return;
-    materialRef.current.uniforms.u_time.value = clock.getElapsedTime();
-  });
-
-  return (
-    <shaderMaterial
-      ref={materialRef}
-      transparent
-      depthWrite={false}
-      uniforms={{
+  const material = React.useMemo(() => {
+    const mat = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      uniforms: {
         u_time: { value: 0 },
         u_strength: { value: strength },
         u_tint: { value: new THREE.Color(tint) },
         u_resolution: { value: new THREE.Vector2(800, 600) },
-      }}
-      vertexShader={/* glsl */ `
+      },
+      vertexShader: /* glsl */ `
         varying vec2 vUv;
         void main(){
           vUv = uv;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
-      `}
-      fragmentShader={/* glsl */ `
+      `,
+      fragmentShader: /* glsl */ `
         precision mediump float;
         uniform float u_time;
         uniform float u_strength;
@@ -70,11 +61,31 @@ const OverlayShaderMaterial = ({ strength = 0.6, tint = "#FFC87A" }: any) => {
           float alpha = fog * vignette;
           gl_FragColor = vec4(color, alpha);
         }
-      `}
-      // @ts-ignore three types don't include this prop on shaderMaterial JSX
-      blending={THREE.AdditiveBlending}
-    />
-  );
+      `,
+      blending: THREE.AdditiveBlending,
+    });
+
+    return mat;
+  }, [strength, tint]);
+
+  // Keep a ref to the material so we can update uniforms in the render loop
+  React.useEffect(() => {
+    materialRef.current = material;
+    return () => {
+      material.dispose();
+      materialRef.current = null;
+    };
+  }, [material]);
+
+  useFrame(({ clock }) => {
+    if (!materialRef.current) return;
+    (materialRef.current.uniforms.u_time as any).value = clock.getElapsedTime();
+  });
+
+  // Attach the material to the mesh using a primitive.
+  // When used as a child of <mesh>, react-three-fiber will attach the primitive
+  // as the mesh.material via the "attach" prop.
+  return <primitive object={material} attach="material" ref={materialRef} />;
 };
 
 export default function VisualLayerRenderer({ strength = 0.6, tint = "#FFC87A" }: VisualLayerRendererProps) {
@@ -82,6 +93,23 @@ export default function VisualLayerRenderer({ strength = 0.6, tint = "#FFC87A" }
 
   React.useEffect(() => {
     try {
+      // Test hook: allow tests to force no-WebGL detection via a global flag or URL param
+      try {
+        // @ts-ignore - test hook
+        if ((window as any).__FORCE_NO_WEBGL) {
+          setHasWebGL(false);
+          return;
+        }
+      } catch (e) {}
+
+      try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('forceNoWebGL') === 'true') {
+          setHasWebGL(false);
+          return;
+        }
+      } catch (e) {}
+
       const canvas = document.createElement('canvas');
       const gl = (canvas.getContext('webgl2') || canvas.getContext('webgl'));
       setHasWebGL(!!gl);

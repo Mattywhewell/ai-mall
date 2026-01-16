@@ -164,7 +164,7 @@ export function OrderSync({ onUpdate }: OrderSyncProps) {
 
   if (errorMessage) {
     return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded" role="alert" aria-live="assertive">
+      <div data-testid="error-alert-orders" className="p-4 bg-red-50 border border-red-200 rounded" role="alert" aria-live="assertive">
         <div className="flex items-start gap-3">
           <div className="w-6 h-6 text-red-600">!</div>
           <div>
