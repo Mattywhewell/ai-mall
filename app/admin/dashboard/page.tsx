@@ -35,8 +35,9 @@ import {
   Line,
 } from 'recharts';
 import Link from 'next/link';
-import { Eye, ShoppingCart, TrendingUp, DollarSign, Package } from 'lucide-react';
+import { Eye, ShoppingCart, TrendingUp, DollarSign, Package, Heart, Store } from 'lucide-react';
 import { DropshippingOrdersTable } from './DropshippingOrdersTable';
+import { AdminOnly } from '@/components/RoleGuard';
 
 const COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
@@ -139,9 +140,10 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Top Navigation Bar */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
+    <AdminOnly>
+      <div className="min-h-screen bg-gray-50">
+        {/* Top Navigation Bar */}
+        <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -480,5 +482,6 @@ export default function AdminDashboard() {
         </div>
       </div>
     </div>
+    </AdminOnly>
   );
 }
