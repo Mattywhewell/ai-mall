@@ -10,7 +10,7 @@ export default function UserMenu() {
   const { user, userRole, signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [devUser, setDevUser] = useState<any>(() => {
-    if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
+    if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (params.get('test_user') === 'true') {
         const roleParam = params.get('role');
@@ -197,7 +197,7 @@ export default function UserMenu() {
           </div>
 
           {/* Dev-only hook for E2E to trigger sign-out reliably when UI events are flaky */}
-          {process.env.NODE_ENV !== 'production' && (
+          {(process.env.NODE_ENV !== 'production' || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('test_user') === 'true')) && (
             <button
               data-testid="test-signout"
               onClick={handleSignOut}
