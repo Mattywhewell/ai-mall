@@ -6,9 +6,11 @@ test.describe('Channel Connections UI', () => {
     await page.route('**/api/seller/channels', route => route.fulfill({ status: 500, body: 'server error' }));
     await page.route('**/api/seller/channels/supported', route => route.fulfill({ status: 500, body: 'server error' }));
 
-    await page.goto('/supplier/listing-manager');
+    // Use a dev-only test page that mounts ChannelConnections directly
+    await page.goto('/test-pages/channel-connections?test_user=true&role=supplier', { waitUntil: 'load' });
+
     // Expect an error alert to be visible
-    await expect(page.getByRole('alert')).toBeVisible();
+    await expect(page.locator('[data-testid="error-alert-channels"]')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Retry loading channels' })).toBeVisible();
 
     // Now mock success response and click retry

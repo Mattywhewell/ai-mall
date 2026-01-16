@@ -262,34 +262,45 @@ const LayerMaterial: React.FC<{
   const materialRef = useRef<THREE.ShaderMaterial | null>(null);
   const shader = SHADER_LIBRARY[layer.slug];
 
-  useFrame(({ clock }) => {
-    if (!materialRef.current || !shader) return;
-    materialRef.current.uniforms.u_time.value = clock.getElapsedTime();
-    materialRef.current.uniforms.u_motion_reduced.value = motionReduced;
-  });
-
   if (!shader) return null;
 
-  const uniforms = useMemo(() => ({
-    u_time: { value: 0 },
-    u_resolution: { value: new THREE.Vector2(800, 600) },
-    u_motion_reduced: { value: motionReduced },
-    ...shader.defaultParams,
-    ...layer.params,
-    u_strength: { value: layer.strength }
-  }), [layer, motionReduced, shader]);
+  const material = useMemo(() => {
+    const uniforms = {
+      u_time: { value: 0 },
+      u_resolution: { value: new THREE.Vector2(800, 600) },
+      u_motion_reduced: { value: motionReduced },
+      ...shader.defaultParams,
+      ...(layer.params || {}),
+      u_strength: { value: layer.strength }
+    } as any;
 
-  return (
-    <shaderMaterial
-      ref={materialRef}
-      transparent
-      depthWrite={false}
-      blending={shader.blendMode}
-      uniforms={uniforms}
-      vertexShader={shader.vertexShader}
-      fragmentShader={shader.fragmentShader}
-    />
-  );
+    const mat = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      blending: shader.blendMode,
+      uniforms,
+      vertexShader: shader.vertexShader,
+      fragmentShader: shader.fragmentShader,
+    });
+
+    return mat;
+  }, [layer, motionReduced, shader]);
+
+  React.useEffect(() => {
+    materialRef.current = material;
+    return () => {
+      material.dispose();
+      materialRef.current = null;
+    };
+  }, [material]);
+
+  useFrame(({ clock }) => {
+    if (!materialRef.current) return;
+    (materialRef.current.uniforms.u_time as any).value = clock.getElapsedTime();
+    (materialRef.current.uniforms.u_motion_reduced as any).value = motionReduced;
+  });
+
+  return <primitive object={material} attach="material" ref={materialRef} />;
 };
 
 export default function MythicLayerRenderer({

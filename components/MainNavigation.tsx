@@ -87,7 +87,7 @@ export function MainNavigation() {
             {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
             {/* @ts-ignore-next */}
             {user && ((user.user_metadata as any)?.roles && (user.user_metadata as any).roles.includes('supplier')) && (
-              <Link href="/supplier" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
+              <Link href="/supplier" data-testid="nav-supplier-dashboard" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
                 <TrendingUp className="w-4 h-4" />
                 <span>Dashboard</span>
               </Link>
@@ -132,11 +132,11 @@ export function MainNavigation() {
             {/* @ts-ignore-next */}
             {((user && ((user.user_metadata as any)?.is_admin || ((user.user_metadata as any)?.roles && (user.user_metadata as any).roles.includes('admin')) || user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL)) || false) && (
               <div className="flex items-center space-x-4">
-                <Link href="/admin" className="text-gray-700 hover:text-purple-600 transition-colors">Dashboard</Link>
-                <Link href="/admin/assets" className="text-gray-700 hover:text-purple-600 transition-colors">Assets</Link>
-                <Link href="/admin/audio" className="text-gray-700 hover:text-purple-600 transition-colors">Audio</Link>
-                <Link href="/admin/revenue" className="text-gray-700 hover:text-purple-600 transition-colors">Revenue</Link>
-                <Link href="/admin/commerce-engine" className="text-gray-700 hover:text-purple-600 transition-colors">AI Systems</Link>
+                <Link href="/admin" data-testid="nav-admin-dashboard" className="text-gray-700 hover:text-purple-600 transition-colors">Dashboard</Link>
+                <Link href="/admin/assets" data-testid="nav-admin-assets" className="text-gray-700 hover:text-purple-600 transition-colors">Assets</Link>
+                <Link href="/admin/audio" data-testid="nav-admin-audio" className="text-gray-700 hover:text-purple-600 transition-colors">Audio</Link>
+                <Link href="/admin/revenue" data-testid="nav-admin-revenue" className="text-gray-700 hover:text-purple-600 transition-colors">Revenue</Link>
+                <Link href="/admin/commerce-engine" data-testid="nav-admin-ai-systems" className="text-gray-700 hover:text-purple-600 transition-colors">AI Systems</Link>
               </div>
             )}
           </div>

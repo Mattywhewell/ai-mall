@@ -182,7 +182,7 @@ export function ChannelConnections({ onUpdate }: ChannelConnectionsProps) {
 
   if (errorMessage) {
     return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded" role="alert" aria-live="assertive">
+      <div data-testid="error-alert-channels" className="p-4 bg-red-50 border border-red-200 rounded" role="alert" aria-live="assertive">
         <div className="flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-red-600" />
           <div>
