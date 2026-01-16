@@ -4,6 +4,13 @@ import React, { useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
+import { reportRendererImportFailure } from "@/lib/telemetry/reportRendererImportFailure";
+
+// Exported helper so tests can stub or override the dynamic loader behavior
+export async function loadThreeRenderer() {
+  const mod = await import("./ThreeRenderer");
+  return mod.default;
+}
 
 type VisualLayerRendererProps = {
   strength?: number; // 0..1
@@ -79,6 +86,7 @@ const OverlayShaderMaterial = ({ strength = 0.6, tint = "#FFC87A" }: any) => {
 
 export default function VisualLayerRenderer({ strength = 0.6, tint = "#FFC87A" }: VisualLayerRendererProps) {
   const [hasWebGL, setHasWebGL] = React.useState<boolean | null>(null);
+  const [RendererComponent, setRendererComponent] = React.useState<React.ComponentType<any> | null>(null);
 
   React.useEffect(() => {
     try {
@@ -89,6 +97,28 @@ export default function VisualLayerRenderer({ strength = 0.6, tint = "#FFC87A" }
       setHasWebGL(false);
     }
   }, []);
+
+  // If WebGL is available, attempt to dynamically import the heavier renderer module on the client.
+  React.useEffect(() => {
+    if (hasWebGL) {
+      (async () => {
+        try {
+          const Comp = await loadThreeRenderer();
+          setRendererComponent(() => Comp ?? null);
+        } catch (err) {
+          // Report import failure for telemetry without affecting UX besides falling back
+          try {
+            await reportRendererImportFailure(String((err as any)?.message || err), { stack: (err as any)?.stack });
+          } catch (e) {
+            // swallow telemetry errors
+          }
+          // eslint-disable-next-line no-console
+          console.error('Failed to load ThreeRenderer, falling back to built-in renderer:', err);
+          setHasWebGL(false);
+        }
+      })();
+    }
+  }, [hasWebGL]);
 
   if (hasWebGL === false) {
     // Fallback static preview when WebGL is unavailable
@@ -106,6 +136,14 @@ export default function VisualLayerRenderer({ strength = 0.6, tint = "#FFC87A" }
         <div style={{ color: '#fff' }}>Checking renderer…</div>
       </div>
     );
+  }
+
+  // If we successfully loaded the separate `ThreeRenderer` component, prefer that (it's the same UI
+  // but isolates three.js/react-three into a separate chunk). Otherwise fall back to the inline Canvas
+  // renderer defined above.
+  if (RendererComponent) {
+    const Loaded = RendererComponent as React.ComponentType<any>;
+    return <Loaded strength={strength} tint={tint} />;
   }
 
   return (
