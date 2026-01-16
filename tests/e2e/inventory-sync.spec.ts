@@ -19,15 +19,15 @@ test.describe('Inventory Sync UI', () => {
   });
 
   test('can sync item and shows loading state', async ({ page }) => {
-    await page.route('**/api/seller/inventory*', route => route.fulfill({ status: 200, body: JSON.stringify({ inventory: [{ id: 'i1', product_name: 'P1', product_sku: 'SKU1', channel_name: 'Mock', channel_stock: 5, local_stock: 10, sync_enabled: true, sync_status: 'synced', stock_threshold: 2 }] }) }));
-    await page.route('**/api/seller/channels*', route => route.fulfill({ status: 200, body: JSON.stringify({ connections: [{ id: 'c1', channel_name: 'Mock' }] }) }));
-
     let syncCalled = false;
     await page.route('**/api/seller/inventory/*/sync', async route => {
       syncCalled = true;
       await new Promise(r => setTimeout(r, 200));
       route.fulfill({ status: 200, body: JSON.stringify({ success: true }) });
     });
+
+    await page.route('**/api/seller/inventory*', route => route.fulfill({ status: 200, body: JSON.stringify({ inventory: [{ id: 'i1', product_name: 'P1', product_sku: 'SKU1', channel_name: 'Mock', channel_stock: 5, local_stock: 10, sync_enabled: true, sync_status: 'synced', stock_threshold: 2 }] }) }));
+    await page.route('**/api/seller/channels*', route => route.fulfill({ status: 200, body: JSON.stringify({ connections: [{ id: 'c1', channel_name: 'Mock' }] }) }));
 
     await page.goto('/test-pages/inventory-sync?test_user=true&role=supplier', { waitUntil: 'load' });
     await expect(page.getByText('P1')).toBeVisible();
