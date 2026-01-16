@@ -55,7 +55,20 @@ export function InventorySync({ onUpdate }: InventorySyncProps) {
     setErrorMessage(null);
     setLoading(true);
 
+    // Test hook: when ?test_seed=inventory is present we short-circuit network calls and use deterministic seeded data.
     try {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('test_seed') === 'inventory') {
+          // Import seeded data (kept outside to avoid shipping heavy test assets accidentally)
+          const { seededInventory, seededChannels } = await import('@/lib/test/seeds');
+          setInventory(seededInventory as any[]);
+          setChannels(seededChannels as any[]);
+          setLoading(false);
+          return;
+        }
+      }
+
       const [inventoryRes, channelsRes] = await Promise.all([
         fetch('/api/seller/inventory'),
         fetch('/api/seller/channels?active=true')

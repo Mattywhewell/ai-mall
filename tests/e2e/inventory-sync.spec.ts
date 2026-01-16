@@ -74,27 +74,14 @@ test.describe('Inventory Sync UI', () => {
       route.fulfill({ status: 200, body: JSON.stringify({ success: true }) });
     });
 
-    await page.goto('/supplier/listing-manager?test_user=true&role=supplier', { waitUntil: 'load' });
+    // Use deterministic seeded data for this test so the item row is predictable
+    await page.goto('/supplier/listing-manager?test_user=true&role=supplier&test_seed=inventory', { waitUntil: 'load' });
     await dismissOnboarding(page);
-
-    // Ensure Listing Manager loaded; skip if the page doesn't render in this environment
-    const listingVisible = (await page.getByRole('heading', { name: 'Listing Manager' }).count()) > 0;
-    if (!listingVisible) {
-      test.skip(true, 'Listing Manager not rendered in this environment');
-      return;
-    }
 
     // Wait for the main Sync UI to settle (Inventory Synchronization card should be visible)
     await expect(page.getByText('Inventory Synchronization')).toBeVisible({ timeout: 7000 });
 
-    // Wait for the item row to render and click its Sync button
-    const p1Count = await page.locator('text=P1').count();
-    if (p1Count === 0) {
-      // In some CI environments the listing manager does not render list rows reliably; skip test gracefully.
-      test.skip(true, 'Inventory rows not rendered in this environment');
-      return;
-    }
-
+    // The seeded item 'P1' should always be present
     await page.waitForSelector('text=P1', { timeout: 7000 });
     const row = page.locator('tr', { hasText: 'P1' });
     await row.getByRole('button', { name: /Sync/i }).click();
