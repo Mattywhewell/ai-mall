@@ -115,7 +115,6 @@ export default function HomePage() {
 
           {/* Progressive Navigation - Adapts to user experience level */}
           <ProgressiveNavigation />
-          </div>
         </div>
       </section>
 
