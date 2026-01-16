@@ -10,14 +10,22 @@ describe('reportRendererImportFailure', () => {
     vi.restoreAllMocks();
   });
 
-  it('posts to the telemetry endpoint', async () => {
-    await reportRendererImportFailure('test error', { foo: 'bar' });
+  it('posts to the telemetry endpoint and alert endpoint', async () => {
+    await reportRendererImportFailure('test error', { foo: 'bar' }, { severity: 'warning' });
     expect(global.fetch).toHaveBeenCalled();
-    const calledWith = (global.fetch as any).mock.calls[0];
-    expect(calledWith[0]).toBe('/api/telemetry/hero-event');
-    const body = JSON.parse(calledWith[1].body);
-    expect(body.event).toBe('renderer-import-failure');
-    expect(body.message).toBe('test error');
-    expect(body.extra.foo).toBe('bar');
+    const calls = (global.fetch as any).mock.calls;
+    // First call posts to hero-event
+    expect(calls[0][0]).toBe('/api/telemetry/hero-event');
+    const body0 = JSON.parse(calls[0][1].body);
+    expect(body0.event).toBe('renderer-import-failure');
+    expect(body0.message).toBe('test error');
+    expect(body0.extra.foo).toBe('bar');
+
+    // Second call posts to alert endpoint (fire-and-forget)
+    expect(calls[1][0]).toBe('/api/telemetry/alert');
+    const body1 = JSON.parse(calls[1][1].body);
+    expect(body1.event).toBe('renderer-import-failure');
+    expect(body1.message).toBe('test error');
+    expect(body1.severity).toBe('warning');
   });
 });
