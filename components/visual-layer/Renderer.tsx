@@ -103,6 +103,14 @@ export default function VisualLayerRenderer({ strength = 0.6, tint = "#FFC87A" }
     if (hasWebGL) {
       (async () => {
         try {
+          // Test hook: allow tests to force an import failure via URL param to simulate runtime dynamic import errors
+          try {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('forceImportFail') === 'true') {
+              throw new Error('forced import failure (test)');
+            }
+          } catch (e) {}
+
           const Comp = await loadThreeRenderer();
           setRendererComponent(() => Comp ?? null);
         } catch (err) {
