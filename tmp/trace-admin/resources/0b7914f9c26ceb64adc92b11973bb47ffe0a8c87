@@ -1,0 +1,200 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "Aiverse" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e6]
+        - generic [ref=e8]: Aiverse
+      - generic [ref=e9]:
+        - link "Home" [ref=e10] [cursor=pointer]:
+          - /url: /
+          - img [ref=e11]
+          - generic [ref=e14]: Home
+        - link "Explore" [ref=e15] [cursor=pointer]:
+          - /url: /city
+          - img [ref=e16]
+          - generic [ref=e19]: Explore
+        - link "Commons" [ref=e20] [cursor=pointer]:
+          - /url: /commons
+          - img [ref=e21]
+          - generic [ref=e24]: Commons
+        - link "Collections" [ref=e25] [cursor=pointer]:
+          - /url: /collections
+          - img [ref=e26]
+          - generic [ref=e30]: Collections
+        - link "Gifts" [ref=e31] [cursor=pointer]:
+          - /url: /gifts
+          - img [ref=e32]
+          - generic [ref=e36]: Gifts
+        - link "Loyalty" [ref=e37] [cursor=pointer]:
+          - /url: /loyalty
+          - img [ref=e38]
+          - generic [ref=e40]: Loyalty
+        - link "Profile" [ref=e41] [cursor=pointer]:
+          - /url: /profile
+          - img [ref=e42]
+          - generic [ref=e45]: Profile
+        - link "AI Products" [ref=e46] [cursor=pointer]:
+          - /url: /agents
+          - img [ref=e47]
+          - generic [ref=e49]: AI Products
+        - link "Events" [ref=e50] [cursor=pointer]:
+          - /url: /events
+          - img [ref=e51]
+          - generic [ref=e54]: Events
+        - link "Subscriptions" [ref=e55] [cursor=pointer]:
+          - /url: /subscriptions
+          - img [ref=e56]
+          - generic [ref=e59]: Subscriptions
+        - link "Become a Creator" [ref=e60] [cursor=pointer]:
+          - /url: /digital-products
+          - img [ref=e61]
+          - generic [ref=e63]: Become a Creator
+        - link "About" [ref=e64] [cursor=pointer]:
+          - /url: /about
+          - generic [ref=e65]: About
+        - generic [ref=e66]:
+          - link "Dashboard" [ref=e67] [cursor=pointer]:
+            - /url: /admin
+          - link "Assets" [ref=e68] [cursor=pointer]:
+            - /url: /admin/assets
+          - link "Audio" [ref=e69] [cursor=pointer]:
+            - /url: /admin/audio
+          - link "Revenue" [ref=e70] [cursor=pointer]:
+            - /url: /admin/revenue
+          - link "AI Systems" [ref=e71] [cursor=pointer]:
+            - /url: /admin/commerce-engine
+      - generic [ref=e72]:
+        - button "Search" [ref=e73] [cursor=pointer]:
+          - img [ref=e74]
+        - button "Change currency" [ref=e78] [cursor=pointer]:
+          - img [ref=e79]
+          - generic [ref=e82]: $ USD
+        - button "Notifications" [ref=e84] [cursor=pointer]:
+          - img [ref=e85]
+          - generic [ref=e88]: "2"
+        - link "Wishlist" [ref=e89] [cursor=pointer]:
+          - /url: /wishlist
+          - img [ref=e90]
+        - link "Shopping cart" [ref=e92] [cursor=pointer]:
+          - /url: /cart
+          - img [ref=e93]
+        - generic [ref=e97]:
+          - button "User menu" [expanded] [active] [ref=e98] [cursor=pointer]:
+            - img [ref=e100]
+            - img [ref=e102]
+          - menu "User menu list" [ref=e104]:
+            - generic [ref=e105]:
+              - paragraph [ref=e106]: Test User
+              - paragraph [ref=e107]: test@example.com
+              - paragraph [ref=e108]: admin
+            - generic [ref=e109]:
+              - menuitem "Profile" [ref=e110] [cursor=pointer]:
+                - img [ref=e111]
+                - text: Profile
+              - menuitem "Orders" [ref=e114] [cursor=pointer]:
+                - img [ref=e115]
+                - text: Orders
+            - menuitem "Sign Out" [ref=e120] [cursor=pointer]:
+              - img [ref=e121]
+              - text: Sign Out
+  - generic [ref=e125]:
+    - generic [ref=e127]:
+      - generic [ref=e128]:
+        - generic [ref=e129]:
+          - img [ref=e131]
+          - button [ref=e134] [cursor=pointer]:
+            - img [ref=e135]
+        - generic [ref=e138]:
+          - heading "Test User" [level=1] [ref=e139]
+          - generic [ref=e141]:
+            - img [ref=e142]
+            - generic [ref=e145]: test@example.com
+          - generic [ref=e146]:
+            - img [ref=e147]
+            - generic [ref=e149]: Member since Invalid Date
+          - paragraph [ref=e150]: "Role: admin"
+          - generic [ref=e151]:
+            - generic [ref=e152]:
+              - img [ref=e153]
+              - generic [ref=e157]: 0 orders
+            - generic [ref=e158]:
+              - img [ref=e159]
+              - generic [ref=e161]: 0 favorites
+      - generic [ref=e162]:
+        - button "Edit Profile" [ref=e163] [cursor=pointer]
+        - button "Sign Out" [ref=e164] [cursor=pointer]
+    - generic [ref=e165]:
+      - navigation [ref=e167]:
+        - link "Profile" [ref=e168] [cursor=pointer]:
+          - /url: "#profile"
+          - img [ref=e169]
+          - generic [ref=e172]: Profile
+        - link "3D Avatar" [ref=e173] [cursor=pointer]:
+          - /url: "#avatar"
+          - img [ref=e174]
+          - generic [ref=e177]: 3D Avatar
+        - link "Orders" [ref=e178] [cursor=pointer]:
+          - /url: "#orders"
+          - img [ref=e179]
+          - generic [ref=e183]: Orders
+        - link "profile-tab-wl" [ref=e184] [cursor=pointer]:
+          - /url: "#wishlist"
+          - img [ref=e185]
+          - generic [ref=e187]: Wishlist
+        - link "Payment Methods" [ref=e188] [cursor=pointer]:
+          - /url: "#payment"
+          - img [ref=e189]
+          - generic [ref=e191]: Payment Methods
+      - generic [ref=e192]:
+        - generic [ref=e193]:
+          - link "Admin Dashboard" [ref=e194] [cursor=pointer]:
+            - /url: /admin/dashboard
+          - link "System Health" [ref=e195] [cursor=pointer]:
+            - /url: /admin/system-health
+          - link "profile-quicklink-revenue" [ref=e196] [cursor=pointer]:
+            - /url: /admin/revenue
+            - text: Revenue
+        - generic [ref=e197]:
+          - generic [ref=e198]:
+            - paragraph [ref=e199]: Total Users
+            - paragraph [ref=e200]: "0"
+          - generic [ref=e201]:
+            - paragraph [ref=e202]: Total Products
+            - paragraph [ref=e203]: "0"
+          - generic [ref=e204]:
+            - paragraph [ref=e205]: Total Orders
+            - paragraph [ref=e206]: "0"
+      - generic [ref=e208]:
+        - heading "Personal Information" [level=2] [ref=e209]
+        - generic [ref=e210]:
+          - generic [ref=e211]:
+            - generic [ref=e212]: Full Name
+            - textbox [disabled] [ref=e213]: Test User
+          - generic [ref=e214]:
+            - generic [ref=e215]: Email Address
+            - textbox [disabled] [ref=e216]: test@example.com
+          - generic [ref=e217]:
+            - generic [ref=e218]: Location
+            - textbox "City, Country" [disabled] [ref=e219]
+          - generic [ref=e220]:
+            - generic [ref=e221]: Phone Number
+            - textbox "+1 (555) 000-0000" [disabled] [ref=e222]
+  - generic [ref=e227] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e228]:
+      - img [ref=e229]
+    - generic [ref=e232]:
+      - button "Open issues overlay" [ref=e233]:
+        - generic [ref=e234]:
+          - generic [ref=e235]: "2"
+          - generic [ref=e236]: "3"
+        - generic [ref=e237]:
+          - text: Issue
+          - generic [ref=e238]: s
+      - button "Collapse issues badge" [ref=e239]:
+        - img [ref=e240]
+  - alert [ref=e242]
+```

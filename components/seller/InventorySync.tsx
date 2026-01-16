@@ -176,7 +176,7 @@ export function InventorySync({ onUpdate }: InventorySyncProps) {
 
   if (errorMessage) {
     return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded" role="alert" aria-live="assertive">
+      <div data-testid="error-alert-inventory" className="p-4 bg-red-50 border border-red-200 rounded" role="alert" aria-live="assertive">
         <div className="flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-red-600" />
           <div>
@@ -386,6 +386,7 @@ export function InventorySync({ onUpdate }: InventorySyncProps) {
                         variant="outline"
                         onClick={() => handleSyncInventory(item.id)}
                         disabled={syncing === item.id}
+                        aria-label={`Sync inventory item ${item.id}`}
                       >
                         {syncing === item.id ? (
                           <RefreshCw className="w-4 h-4 animate-spin" />

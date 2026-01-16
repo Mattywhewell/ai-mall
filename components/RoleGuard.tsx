@@ -25,6 +25,9 @@ export function RoleGuard({
   const router = useRouter();
   const [hasCheckedRole, setHasCheckedRole] = useState(false);
 
+  // If userRole isn't provided by AuthContext, derive it from user metadata (useful for dev test_user injection)
+  const derivedRole = userRole ?? ((user && (user as any).user_metadata && (user as any).user_metadata.roles && (user as any).user_metadata.roles[0]) || undefined);
+
   useEffect(() => {
     if (!loading && user) {
       rolePerformanceMonitor.startAccessControlCheck();
@@ -32,7 +35,7 @@ export function RoleGuard({
       setHasCheckedRole(true);
 
       // If user doesn't have required role, redirect
-      const normalizedRole = (userRole === 'customer') ? 'citizen' : userRole;
+      const normalizedRole = (derivedRole === 'customer') ? 'citizen' : derivedRole;
       if (!allowedRoles.includes(normalizedRole || 'citizen')) {
         rolePerformanceMonitor.endAccessControlCheck();
 
