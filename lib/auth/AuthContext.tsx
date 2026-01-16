@@ -23,11 +23,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Allow dev-only test user via ?test_user=true (run this before Supabase checks so tests can toggle a mock user even when Supabase isn't configured)
-    if (process.env.NODE_ENV !== 'production' && typeof window !== 'undefined') {
+    // Allow test user via ?test_user=true (run this before Supabase checks so tests and previews can simulate users)
+    if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (params.get('test_user') === 'true') {
-        console.log('AuthContext: test_user flag detected; injecting mock user');
+        console.log('AuthContext: test_user flag detected; injecting mock user (test-mode)');
         const roleParam = params.get('role');
         const roles = roleParam ? roleParam.split(',').map(r => r.trim()) : [];
         const mock = {
