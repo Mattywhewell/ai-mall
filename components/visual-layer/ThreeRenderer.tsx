@@ -10,7 +10,7 @@ type ThreeRendererProps = {
   tint?: string;
 };
 
-const OverlayShaderMaterial = ({ strength = 0.6, tint = "#FFC87A" }: any) => {
+export const OverlayShaderMaterial = ({ strength = 0.6, tint = "#FFC87A" }: any) => {
   const materialRef = useRef<THREE.ShaderMaterial | null>(null);
 
   const material = React.useMemo(() => {
