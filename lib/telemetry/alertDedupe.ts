@@ -1,3 +1,5 @@
+import type RedisType from 'ioredis';
+
 type EventRecord = {
   timestamps: number[];
 };
@@ -8,7 +10,36 @@ type EventRecord = {
 const STORE = new Map<string, EventRecord>();
 const DEFAULT_WINDOW_MS = 60 * 1000; // 1 minute
 
-export function recordEvent(key: string, now = Date.now(), windowMs = DEFAULT_WINDOW_MS) {
+let redisClient: RedisType | null = null;
+let redisEnabled = process.env.TELEMETRY_REDIS_ENABLED === 'true' && !!process.env.TELEMETRY_REDIS_URL;
+
+if (redisEnabled) {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const IORedis = require('ioredis');
+    redisClient = new IORedis(process.env.TELEMETRY_REDIS_URL);
+  } catch (e) {
+    // If ioredis is not available or connection fails, fall back to in-memory and log a warning.
+    // Do not fail the application.
+    // eslint-disable-next-line no-console
+    console.warn('Redis telemetry dedupe unavailable, falling back to in-memory store:', e);
+    redisClient = null;
+    redisEnabled = false;
+  }
+}
+
+export async function recordEvent(key: string, now = Date.now(), windowMs = DEFAULT_WINDOW_MS) {
+  if (redisEnabled && redisClient) {
+    // use Redis INCR with expiry (window seconds)
+    const redisKey = `telemetry:${key}:${Math.floor(now / 1000 / (windowMs / 1000))}`;
+    const count = await redisClient.incr(redisKey);
+    // set expiry to window if newly created
+    if (count === 1) {
+      await redisClient.expire(redisKey, Math.ceil(windowMs / 1000));
+    }
+    return count;
+  }
+
   const rec = STORE.get(key) ?? { timestamps: [] };
   // keep only timestamps within the window
   const cutoff = now - windowMs;
@@ -18,7 +49,13 @@ export function recordEvent(key: string, now = Date.now(), windowMs = DEFAULT_WI
   return rec.timestamps.length;
 }
 
-export function getEventCount(key: string, now = Date.now(), windowMs = DEFAULT_WINDOW_MS) {
+export async function getEventCount(key: string, now = Date.now(), windowMs = DEFAULT_WINDOW_MS) {
+  if (redisEnabled && redisClient) {
+    const redisKey = `telemetry:${key}:${Math.floor(now / 1000 / (windowMs / 1000))}`;
+    const val = await redisClient.get(redisKey);
+    return val ? parseInt(val, 10) : 0;
+  }
+
   const rec = STORE.get(key);
   if (!rec) return 0;
   const cutoff = now - windowMs;
@@ -27,9 +64,12 @@ export function getEventCount(key: string, now = Date.now(), windowMs = DEFAULT_
 
 export function clearStore() {
   STORE.clear();
+  if (redisClient) {
+    try { redisClient.flushdb(); } catch (e) { /* ignore */ }
+  }
 }
 
-export function shouldForwardAlert({ key, severity = 'warning', threshold = 3, now = Date.now(), windowMs = DEFAULT_WINDOW_MS }: {
+export async function shouldForwardAlert({ key, severity = 'warning', threshold = 3, now = Date.now(), windowMs = DEFAULT_WINDOW_MS }: {
   key: string;
   severity?: 'warning' | 'critical' | string;
   threshold?: number; // number of events in window to trigger alert when severity is not critical
@@ -37,6 +77,6 @@ export function shouldForwardAlert({ key, severity = 'warning', threshold = 3, n
   windowMs?: number;
 }) {
   if (severity === 'critical') return true;
-  const count = getEventCount(key, now, windowMs);
+  const count = await getEventCount(key, now, windowMs);
   return count >= threshold;
 }

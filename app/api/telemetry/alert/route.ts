@@ -15,9 +15,14 @@ export async function POST(req: Request) {
     const threshold = parseInt(process.env.TELEMETRY_ALERT_THRESHOLD || '3', 10);
 
     // Decide whether to forward: critical always forwards; otherwise require threshold
-    const shouldForward = shouldForwardAlert({ key: fingerprint, severity, threshold });
+    const shouldForward = await shouldForwardAlert({ key: fingerprint, severity, threshold });
 
-    if (!process.env.TELEMETRY_ALERT_WEBHOOK) {
+    // Select webhook based on severity (support for default and critical webhooks)
+    const webhookCritical = process.env.TELEMETRY_ALERT_WEBHOOK_CRITICAL;
+    const webhookDefault = process.env.TELEMETRY_ALERT_WEBHOOK_DEFAULT || process.env.TELEMETRY_ALERT_WEBHOOK;
+    const webhookToUse = severity === 'critical' ? (webhookCritical || webhookDefault) : webhookDefault;
+
+    if (!webhookToUse) {
       // Not configured; nothing to forward but acknowledge the receipt
       return NextResponse.json({ ok: true, forwarded: false, reason: 'no webhook configured' });
     }
@@ -30,7 +35,7 @@ export async function POST(req: Request) {
     const slackText = `*${event}* reported${buildSha ? ` (build ${buildSha})` : ''}\n• Message: ${message || '<none>'}\n• Count in window: ${count}\n• URL: ${url || '<none>'}`;
 
     // Forward to webhook
-    await fetch(process.env.TELEMETRY_ALERT_WEBHOOK!, {
+    await fetch(webhookToUse, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: slackText }),
