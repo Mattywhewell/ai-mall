@@ -1,0 +1,63 @@
+name: Auto-mark PR #20 ready when PR #16 merges or CI is green
+
+on:
+  pull_request:
+    types: [closed]
+  workflow_run:
+    types: [completed]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  mark-pr-20-ready:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine condition and mark PR #20 ready
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumberToWatch = 16;
+            const targetPr = 20;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            function isPr16Merged() {
+              if (context.payload.pull_request && context.payload.pull_request.number === prNumberToWatch) {
+                return context.payload.pull_request.merged === true;
+              }
+              return false;
+            }
+
+            function isWorkflowRunForPr16() {
+              const wr = context.payload.workflow_run;
+              if (!wr) return false;
+              if (wr.conclusion !== 'success') return false;
+              if (Array.isArray(wr.pull_requests) && wr.pull_requests.length) {
+                return wr.pull_requests.some(pr => pr.number === prNumberToWatch);
+              }
+              return false;
+            }
+
+            const shouldAct = isPr16Merged() || isWorkflowRunForPr16();
+            if (!shouldAct) {
+              core.info('Condition not met: event is not PR #16 merged or successful workflow for PR #16. No action taken.');
+              return;
+            }
+
+            // Get PR #20 and only act if it is currently a draft
+            const { data: pr20 } = await github.pulls.get({ owner, repo, pull_number: targetPr });
+            if (!pr20.draft) {
+              core.info('PR #20 is already ready for review. No action needed.');
+              return;
+            }
+
+            await github.pulls.update({ owner, repo, pull_number: targetPr, draft: false });
+            await github.issues.createComment({
+              owner,
+              repo,
+              issue_number: targetPr,
+              body: `Automated: PR #16 has merged or the CI workflow for PR #16 succeeded. Marking PR #${targetPr} ready for review as requested.`
+            });
+            core.info('PR #20 marked ready and a comment was posted.');

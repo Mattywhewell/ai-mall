@@ -1,7 +1,8 @@
 import { MetadataRoute } from 'next'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://alverse.app'
+  // Use environment variable or fallback to deployment URL
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ai-mall.vercel.app'
 
   // Static pages
   const staticPages = [

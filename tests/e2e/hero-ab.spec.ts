@@ -27,43 +27,28 @@ test.describe('Hero A/B analytics', () => {
       };
     });
 
-    // Visit variant A (test-only page that renders the Hero component)
-    await page.goto('/test/hero?ab=a');
-
-    // Dismiss potential onboarding overlays that can block hero rendering
-    await page.locator('button:has-text("Dismiss")').first().click({ timeout: 2000 }).catch(() => null);
-    await page.locator('button:has-text("Got it")').first().click({ timeout: 2000 }).catch(() => null);
-
-    // Wait for hero to initialize (tolerant to markup variants)
-    await Promise.race([
-      page.waitForSelector('section.hero-compact', { timeout: 8000 }).catch(() => null),
-      page.waitForSelector('a[aria-label="Enter the City"]', { timeout: 8000 }).catch(() => null),
-      page.waitForSelector('h1', { timeout: 8000 }).catch(() => null),
-    ]);
-
-    // Wait for analytics hits to be recorded
-    // If none appear, capture debug info to help diagnose
-    try {
-      await page.waitForFunction(() => (window as any).__gtag_calls && (window as any).__gtag_calls.length > 0, { timeout: 2000 });
-    } catch (e) {
-      const debug = await page.evaluate(() => ({
-        heroExists: !!document.querySelector('section.hero-compact'),
-        classes: (document.querySelector('section.hero-compact') && (document.querySelector('section.hero-compact') as Element).className) || null,
-        ls: localStorage.getItem('hero_variant'),
-        hasGtag: !!(window as any).gtag,
-        hasDataLayer: !!(window as any).dataLayer,
-        __gtag_calls_len: (window as any).__gtag_calls ? (window as any).__gtag_calls.length : 0,
-      }));
-      console.log('DEBUG', debug);
-    }
+    // Visit variant A
+    await page.goto('/');
+    // Wait for hero to initialize (be lenient about selector)
+    await page.waitForSelector('section:has(h1), h1', { timeout: 7000 });
+    // Visit variant A
+    await page.goto('/');
+    // Wait for hero to initialize (be lenient about selector)
+    await page.waitForSelector('section:has(h1), h1', { timeout: 7000 });
+>>>>>>> test/inventory-stability
 
     // Check that hero_variant_view was sent
     const callsA = await page.evaluate(() => (window as any).__gtag_calls || []);
     const hasVariantA = callsA.some((c: any[]) => c[0] === 'event' && c[1] === 'hero_variant_view');
     expect(hasVariantA).toBeTruthy();
 
-    // Click primary CTA
-    await page.click('a[aria-label="Enter the City"]');
+    // Click primary CTA via label or fallback /city link
+    const cta = page.getByRole('link', { name: /Enter the City|Explore the City|Enter Alverse|Begin Your Journey/i }).first();
+    if (await cta.isVisible().catch(() => false)) {
+      await cta.click();
+    } else {
+      await page.click('a[href^="/city"]');
+    }
 
     // Wait for CTA event to be recorded
     await page.waitForFunction(() => (window as any).__gtag_calls && (window as any).__gtag_calls.some((c: any[]) => c[0] === 'event' && c[1] === 'hero_cta_click'), { timeout: 2000 });

@@ -45,6 +45,8 @@ export default function ProfilePage() {
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
+    // Wait for auth loading to settle to avoid redirect race when test users are injected
+    if (loading) return;
     if (user) {
       fetchUserProfile();
       fetchUserOrders();
@@ -60,7 +62,7 @@ export default function ProfilePage() {
       // We only redirect when it is clear there is no logged-in user
       router.push('/auth/login');
     }
-  }, [user]);
+  }, [user, loading]);
 
   // Debug: when running E2E with test_user, log the nav text to help triage flakiness
   useEffect(() => {
@@ -283,10 +285,25 @@ export default function ProfilePage() {
                 {/* Human-readable role display (used by older tests that look for capitalized role text) */}
                 <p data-testid="profile-role-display" className="text-sm font-medium text-gray-700 mt-1">{((userRole ?? testRole ?? 'citizen').toString().charAt(0).toUpperCase() + (userRole ?? testRole ?? 'citizen').toString().slice(1))}</p>
                 <div className="flex items-center space-x-4 mt-3">
+                  {/* Role badge */}
+                  {userRole && (
+                    <div className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm font-semibold">
+                      {userRole === 'supplier' ? 'Supplier' : userRole === 'admin' ? 'Admin' : 'Citizen'}
+                    </div>
+                  )}
+
+                  {/* Debug info (non-production only) */}
+                  {process.env.NODE_ENV !== 'production' && (
+                    <div data-testid="auth-debug" className="text-xs text-gray-400 ml-4">
+                      {JSON.stringify({ user: user?.email || null, userRole, loading })}
+                    </div>
+                  )}
+
                   <div className="flex items-center text-sm text-gray-600">
                     <Package className="w-4 h-4 mr-1" />
                     <span>{orders.length} orders</span>
                   </div>
+
                   <div className="flex items-center text-sm text-gray-600">
                     <Heart className="w-4 h-4 mr-1" />
                     <span>{wishlist.length} favorites</span>

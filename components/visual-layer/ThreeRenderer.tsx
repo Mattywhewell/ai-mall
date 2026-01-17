@@ -1,36 +1,40 @@
 "use client";
 
-import React, { useRef } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import React from "react";
+import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 
-type ThreeRendererProps = {
-  strength?: number;
-  tint?: string;
-};
-
 const OverlayShaderMaterial = ({ strength = 0.6, tint = "#FFC87A" }: any) => {
-  const materialRef = useRef<THREE.ShaderMaterial | null>(null);
+  const materialRef = React.useRef<THREE.ShaderMaterial | null>(null);
 
-  const material = React.useMemo(() => {
-    const mat = new THREE.ShaderMaterial({
-      transparent: true,
-      depthWrite: false,
-      uniforms: {
+  React.useEffect(() => {
+    // update resolution on mount if needed
+    if (materialRef.current) {
+      materialRef.current.uniforms.u_resolution.value = new THREE.Vector2(800, 600);
+    }
+  }, []);
+
+  return (
+    // @ts-ignore three types don't include this prop on shaderMaterial JSX
+    <shaderMaterial
+      ref={materialRef}
+      transparent
+      depthWrite={false}
+      uniforms={{
         u_time: { value: 0 },
         u_strength: { value: strength },
         u_tint: { value: new THREE.Color(tint) },
         u_resolution: { value: new THREE.Vector2(800, 600) },
-      },
-      vertexShader: /* glsl */ `
+      }}
+      vertexShader={/* glsl */ `
         varying vec2 vUv;
         void main(){
           vUv = uv;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
-      `,
-      fragmentShader: /* glsl */ `
+      `}
+      fragmentShader={/* glsl */ `
         precision mediump float;
         uniform float u_time;
         uniform float u_strength;
@@ -54,30 +58,13 @@ const OverlayShaderMaterial = ({ strength = 0.6, tint = "#FFC87A" }: any) => {
           float alpha = fog * vignette;
           gl_FragColor = vec4(color, alpha);
         }
-      `,
-      blending: THREE.AdditiveBlending,
-    });
-
-    return mat;
-  }, [strength, tint]);
-
-  React.useEffect(() => {
-    materialRef.current = material;
-    return () => {
-      material.dispose();
-      materialRef.current = null;
-    };
-  }, [material]);
-
-  useFrame(({ clock }) => {
-    if (!materialRef.current) return;
-    (materialRef.current.uniforms.u_time as any).value = clock.getElapsedTime();
-  });
-
-  return <primitive object={material} attach="material" ref={materialRef} />;
+      `}
+      blending={THREE.AdditiveBlending}
+    />
+  );
 };
 
-export default function ThreeRenderer({ strength = 0.6, tint = "#FFC87A" }: ThreeRendererProps) {
+export default function ThreeRenderer({ strength = 0.6, tint = "#FFC87A" }: any) {
   return (
     <div style={{ width: "100%", height: "500px", borderRadius: 12, overflow: "hidden", background: "#111" }}>
       <Canvas camera={{ position: [0, 1.5, 3], fov: 55 }}>

@@ -18,6 +18,19 @@ const CityGateScene = dynamic(() => import('./CityGateScene'), {
 
 // Main page component
 export default function CityGatePage() {
+  const disable3D = process.env.NEXT_PUBLIC_DISABLE_3D === '1';
+
+  if (disable3D) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-3xl text-white font-bold">AI City (3D disabled for debugging)</h2>
+          <p className="text-cyan-300 mt-4">The immersive 3D gateway is temporarily disabled while we investigate a client-side issue.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-black flex items-center justify-center">

@@ -1,6 +1,13 @@
 "use client";
 
-import React, { Suspense } from "react";
+import React from "react";
+import { reportRendererImportFailure } from "@/lib/telemetry/reportRendererImportFailure";
+
+// Exported helper so tests can stub or override the dynamic loader behavior
+export async function loadThreeRenderer() {
+  const mod = await import("./ThreeRenderer");
+  return mod.default;
+}
 
 type VisualLayerRendererProps = {
   strength?: number; // 0..1
@@ -38,19 +45,30 @@ export default function VisualLayerRenderer({ strength = 0.6, tint = "#FFC87A" }
     }
   }, []);
 
-  // If WebGL is available, attempt to dynamically import the heavy renderer only on the client.
-  // If the import fails (e.g., due to runtime errors in bundled three.js/react-three code),
-  // fall back to the static preview so tests and CI remain stable.
+  // If WebGL is available, attempt to dynamically import the heavier renderer module on the client.
   React.useEffect(() => {
     if (hasWebGL) {
       (async () => {
         try {
-          const mod = await import("./ThreeRenderer");
-          setRendererComponent(() => mod.default);
+          // Test hook: allow tests to force an import failure via URL param to simulate runtime dynamic import errors
+          try {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('forceImportFail') === 'true') {
+              throw new Error('forced import failure (test)');
+            }
+          } catch (e) {}
+
+          const Comp = await loadThreeRenderer();
+          setRendererComponent(() => Comp ?? null);
         } catch (err) {
-          // Import failed; disable WebGL rendering and fall back to static preview
+          // Report import failure for telemetry without affecting UX besides falling back
+          try {
+            await reportRendererImportFailure(String((err as any)?.message || err), { stack: (err as any)?.stack });
+          } catch (e) {
+            // swallow telemetry errors
+          }
           // eslint-disable-next-line no-console
-          console.error('Failed to load ThreeRenderer, falling back to static preview:', err);
+          console.error('Failed to load ThreeRenderer, falling back to built-in renderer:', err);
           setHasWebGL(false);
         }
       })();
@@ -75,11 +93,29 @@ export default function VisualLayerRenderer({ strength = 0.6, tint = "#FFC87A" }
     );
   }
 
-  // If we have a client-side renderer component loaded, render it. Otherwise, the fallback preview will be shown.
-  const Loaded = RendererComponent as React.ComponentType<any>;
+  // If we successfully loaded the separate `ThreeRenderer` component, prefer that (it isolates three.js
+  // and react-three/fiber into a client-only chunk). If WebGL is available but the dynamic module is still
+  // loading, render a lightweight client-only loading placeholder. If WebGL is unavailable we fall back to
+  // the static preview above.
+  if (RendererComponent) {
+    const Loaded = RendererComponent as React.ComponentType<any>;
+    return <Loaded strength={strength} tint={tint} />;
+  }
+
+  if (hasWebGL) {
+    // WebGL is available but the heavy renderer hasn't loaded yet — show a minimal placeholder to avoid
+    // importing three.js into this module during evaluation.
+    return (
+      <div style={{ width: '100%', height: '500px', borderRadius: 12, overflow: 'hidden', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: '#fff' }}>Loading 3D renderer…</div>
+      </div>
+    );
+  }
+
+  // Should never reach here because `hasWebGL === false` is handled above, but keep a safe fallback.
   return (
-    <div style={{ width: "100%", height: "500px", borderRadius: 12, overflow: "hidden", background: "#111" }}>
-      {Loaded ? <Loaded strength={strength} tint={tint} /> : null}
+    <div style={{ width: '100%', height: '500px', borderRadius: 12, overflow: 'hidden', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <img src="/shader-previews/runic-medium.svg" alt="Runic glow preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
     </div>
   );
 }
