@@ -77,6 +77,7 @@ jobs:
         run: npx playwright test tests/e2e/visual-layers.spec.ts --project=chromium --reporter=github
         env:
           NEXT_PUBLIC_DISABLE_3D: 'true'
+          NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
@@ -85,6 +86,7 @@ jobs:
         run: npx playwright test tests/e2e/visual-layers-fallback.spec.ts --project=chromium --reporter=github
         env:
           NEXT_PUBLIC_DISABLE_3D: 'true'
+          NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
@@ -93,8 +95,9 @@ jobs:
         run: npx playwright test tests/e2e/visual-layers-ci-smoke.spec.ts --project=chromium --reporter=github
         env:
           NEXT_PUBLIC_DISABLE_3D: 'true'
+          NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}}]}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: Upload Playwright report
         if: always()
