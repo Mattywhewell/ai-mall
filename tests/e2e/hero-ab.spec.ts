@@ -31,11 +31,6 @@ test.describe('Hero A/B analytics', () => {
     await page.goto('/');
     // Wait for hero to initialize (be lenient about selector)
     await page.waitForSelector('section:has(h1), h1', { timeout: 7000 });
-    // Visit variant A
-    await page.goto('/');
-    // Wait for hero to initialize (be lenient about selector)
-    await page.waitForSelector('section:has(h1), h1', { timeout: 7000 });
->>>>>>> test/inventory-stability
 
     // Check that hero_variant_view was sent
     const callsA = await page.evaluate(() => (window as any).__gtag_calls || []);

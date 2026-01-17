@@ -4,30 +4,23 @@ test.describe('Visual Layers demo', () => {
   test('demo loads and slider updates the canvas', async ({ page }) => {
     await page.goto('/visual-layers/demo');
 
-<<<<<<< HEAD
-    // Try to detect a canvas; if WebGL is unavailable we may render a static preview instead.
+    // Detect whether a canvas is available (some envs don't support WebGL)
     let hasCanvas = true;
     try {
-      await page.waitForSelector('canvas', { timeout: 2000 });
+      await page.waitForSelector('canvas', { timeout: 5000 });
     } catch (e) {
       hasCanvas = false;
-=======
-    // Canvas should be present OR a fallback image should be shown in non-WebGL environments
-    let canvas = null;
-    try {
-      await page.waitForSelector('canvas', { timeout: 5000 });
-      canvas = await page.$('canvas');
-    } catch (e) {
-      canvas = null;
     }
 
-    if (!canvas) {
+    if (!hasCanvas) {
       // No canvas — accept the fallback image for environments without WebGL
       await page.waitForSelector('img[alt="Runic glow preview"]', { timeout: 5000 });
       const img = await page.$('img[alt="Runic glow preview"]');
       expect(img).not.toBeNull();
+      // Ensure the slider input exists and is interactive even when using the fallback
+      const range = await page.$('input[type="range"]');
+      expect(range).not.toBeNull();
       return;
->>>>>>> test/inventory-stability
     }
 
     if (hasCanvas) {

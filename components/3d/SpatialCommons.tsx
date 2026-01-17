@@ -1,20 +1,18 @@
 'use client';
 
-import { useState, useRef, Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Html } from '@react-three/drei';
+import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { MapPin, Users, ShoppingBag, Home, RotateCcw } from 'lucide-react';
-import * as THREE from 'three';
 
-// Sub-components
-import { SpatialEnvironment } from './SpatialEnvironment';
-import { Plaza } from './Plaza';
-import { DistrictPathways } from './DistrictPathways';
-import { AICitizens } from './AICitizens';
-import { ShopEntrances } from './ShopEntrances';
 import { NavigationControls } from './NavigationControls';
 import { ShopTourViewer } from './ShopTourViewer';
+
+// Dynamically load the heavy 3D scene so the module and its dependencies (three, fiber, drei) are only imported when needed
+const HeavySpatialScene = dynamic(() => import('./HeavySpatialScene'), {
+  ssr: false,
+  loading: () => <div className="p-4">Loading 3D preview...</div>,
+});
 
 interface SpatialCommonsProps {
   className?: string;
@@ -41,53 +39,24 @@ export function SpatialCommons({ className = '' }: SpatialCommonsProps) {
     // TODO: Implement camera teleportation to district
   };
 
+  // CI / test-friendly flag: when NEXT_PUBLIC_DISABLE_3D is set at build time (or force via query param), render a lightweight static preview instead of importing three.js
+  const disable3D = (process.env.NEXT_PUBLIC_DISABLE_3D === 'true') || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('forceNoWebGL') === 'true');
+
   return (
     <div className={`relative w-full h-full bg-gradient-to-b from-sky-200 to-sky-100 ${className}`}>
-      {/* 3D Canvas */}
-      <Canvas
-        camera={{
-          position: [0, 5, 10],
-          fov: 60,
-          near: 0.1,
-          far: 1000
-        }}
-        gl={{
-          antialias: true,
-          alpha: false,
-          powerPreference: 'high-performance'
-        }}
-        dpr={[1, 2]}
-        shadows
-      >
-        <Suspense fallback={
-          <Html center>
-            <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg shadow">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-              <span>Loading Aiverse Commons...</span>
-            </div>
-          </Html>
-        }>
-          {/* Environment */}
-          <SpatialEnvironment />
-
-          {/* Scene Objects */}
-          <Plaza />
-          <DistrictPathways onDistrictSelect={handleDistrictTeleport} />
-          <AICitizens />
-          <ShopEntrances onShopEnter={handleShopEnter} />
-
-          {/* Camera Controls */}
-          <OrbitControls
-            enablePan={navigationMode === 'walk'}
-            enableZoom={true}
-            enableRotate={true}
-            minDistance={3}
-            maxDistance={50}
-            maxPolarAngle={Math.PI / 2}
-            target={[0, 0, 0]}
-          />
-        </Suspense>
-      </Canvas>
+      {/* 3D Canvas or fallback preview */}
+      {disable3D ? (
+        <div className="w-full h-full flex items-center justify-center">
+          <img src="/shader-previews/runic-medium.svg" alt="Runic glow preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        </div>
+      ) : (
+        <HeavySpatialScene
+          navigationMode={navigationMode}
+          onShopEnter={handleShopEnter}
+          onShopExit={handleShopExit}
+          onDistrictTeleport={handleDistrictTeleport}
+        />
+      )}
 
       {/* UI Overlay */}
       <div className="absolute top-4 left-4 z-10">

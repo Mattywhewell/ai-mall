@@ -10,11 +10,9 @@ export default function ProfileLayout({ children, searchParams }: { children: Re
   return (
     <>
       {isTest ? (
-        // This script runs as part of the initial HTML and sets a data attribute synchronously
+        // Server-rendered, hidden marker for tests (readable synchronously by client-side code)
         <>
-          <script
-            dangerouslySetInnerHTML={{ __html: `document.documentElement.setAttribute('data-test-user-role', ${JSON.stringify(role)});` }}
-          />
+          <div id="__test_user" data-role={role} data-testid="test-user-server" style={{ display: 'none' }} />
           {/* Server-rendered, visible test-only role display (minimal, unobtrusive) */}
           <div data-testid="profile-role-display" style={{ position: 'fixed', right: 8, bottom: 8, background: 'rgba(0,0,0,0.05)', padding: '4px 6px', fontSize: 12, borderRadius: 4, zIndex: 9999, pointerEvents: 'none' }}>
             {role.charAt(0).toUpperCase() + role.slice(1)}

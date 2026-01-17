@@ -25,7 +25,7 @@ export default function RootLayout({
     : undefined;
 
   return (
-    <html lang="en" {...(initialUser ? { ['data-test-user-role']: initialUser.role } : {})}>
+    <html lang="en">
       <head>
         {/* Very early error capture script to catch errors before other client scripts execute */}
         <script dangerouslySetInnerHTML={{ __html: `
@@ -47,8 +47,10 @@ export default function RootLayout({
         `}} />
       </head>
       <body className={`${inter.className} flex flex-col min-h-screen`}>
-        {/* E2E test helper: inject a small script on initial HTML so test runner can observe test_user role synchronously */}
-        <script dangerouslySetInnerHTML={{ __html: "try{const p=new URLSearchParams(location.search);if(p.get('test_user')==='true'){document.documentElement.setAttribute('data-test-user-role', p.get('role')||'citizen')}}catch(e){}" }} />
+        {/* E2E test helper: if tests pass ?test_user and ?role, render a hidden server-side marker so both SSR and client can read the same role synchronously */}
+        {initialUser ? (
+          <div id="__test_user" data-role={initialUser.role} data-testid="test-user-server" style={{ display: 'none' }} />
+        ) : null}
 
         <AuthProvider initialUser={initialUser}>
           {/* Early client-side error capture for diagnostics */}
@@ -71,7 +73,7 @@ export default function RootLayout({
           `}} />
 
           {/* Site-wide navigation */}
-          <MainNavigation />
+          <MainNavigation initialRole={initialUser?.role} />
 
           {children}
         </AuthProvider>
