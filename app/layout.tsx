@@ -25,7 +25,7 @@ export default function RootLayout({
     : undefined;
 
   return (
-    <html lang="en">
+    <html lang="en" {...(initialUser ? { ['data-test-user-role']: initialUser.role } : {})}>
       <head>
         {/* Very early error capture script to catch errors before other client scripts execute */}
         <script dangerouslySetInnerHTML={{ __html: `

@@ -110,16 +110,14 @@ test.describe('Role-Based Access Control (RBAC)', () => {
       await page.goto(`${BASE}/admin/dashboard?test_user=true&role=citizen`, { waitUntil: 'load' });
       await dismissOnboarding(page);
 
-      // Should redirect or show access restricted message (give client-side guard time to run)
-      await page.waitForTimeout(7000);
-      try {
-        await page.getByText('Loading dashboard...').waitFor({ state: 'detached', timeout: 3000 });
-      } catch (e) {}
-      const redirected = !page.url().includes('/admin');
-      const hasMessage = (await page.getByText('Access Restricted').count()) > 0 || (await page.getByText('Access Denied').count()) > 0;
-      const adminHeadingCount = await page.getByRole('heading', { name: /Aiverse Admin|Admin Dashboard/i }).count();
-      // Pass if redirected OR access message shown OR admin heading not present (guard/redirect prevented access)
-      expect(redirected || hasMessage || adminHeadingCount === 0).toBe(true);
+      // Wait for either an 'Access Restricted' message or a redirect to login to avoid races
+      const result = await page.waitForFunction(() => {
+        const text = document.body && document.body.innerText;
+        const denied = !!(text && /Access Restricted|Access Denied|Unauthorized/i.test(text));
+        const redirected = !!(location && (location.pathname.includes('/auth/login') || location.pathname.includes('/login')));
+        return denied || redirected;
+      }, { timeout: 7000 }).catch(() => false);
+      expect(result).toBeTruthy();
     });
 
     test('supplier can access supplier dashboard', async ({ page }) => {
@@ -208,7 +206,6 @@ test.describe('Role-Based Access Control (RBAC)', () => {
       // Should not show role-specific tabs (supplier/admin) in citizen profile
       const hasRoleTabs = (await page.getByText(/Supplier Dashboard|Admin Dashboard/i).count()) > 0;
       expect(hasRoleTabs).toBe(false);
->>>>>>> test/inventory-stability
     });
 
     test('supplier sees supplier profile tabs', async ({ page }) => {
@@ -301,7 +298,8 @@ test.describe('Role-Based Access Control (RBAC)', () => {
       await page.addInitScript(() => { localStorage.setItem('test_user', JSON.stringify({ role: 'supplier' })); });
       await page.goto(`${BASE}/?test_user=true&role=supplier`, { waitUntil: 'load' });
       await page.waitForSelector('nav', { timeout: 7000 }).catch(() => null);
-      await expect(page.locator('nav').getByText(/Dashboard|Products/i)).toBeVisible();
+      // Prefer the supplier-specific testid to avoid ambiguous matches with 'AI Products'
+      await expect(page.locator('[data-testid="nav-supplier-dashboard"]')).toBeVisible();
 
       // Switch to admin role
       await page.addInitScript(() => { localStorage.setItem('test_user', JSON.stringify({ role: 'admin' })); });
@@ -320,7 +318,9 @@ test.describe('Role-Based Access Control (RBAC)', () => {
       } else {
         await page.goto(`${BASE}/profile?test_user=true&role=citizen`, { waitUntil: 'load' });
       }
-      await expect(page.getByText('Citizen')).toBeVisible();
+      // Use profile-specific test id to avoid ambiguous matches in the page copy
+      await page.waitForSelector('[data-testid="profile-role-display"]', { timeout: 7000 });
+      await expect(page.locator('[data-testid="profile-role-display"]')).toHaveText('Citizen');
 
       // Switch to supplier
       await page.goto(`${BASE}/?test_user=true&role=supplier`, { waitUntil: 'load' });
@@ -417,8 +417,9 @@ test.describe('Role-Based Access Control (RBAC)', () => {
         console.warn('PAGE_ERRORS:', errors);
       }
 
-      // Should show admin content (allow redirect -> consider redirect as failure to meet admin content)
-      const hasAdminContent = await page.getByText(/admin dashboard|total users/i).isVisible().catch(() => false);
+      // Check for admin content with a tolerant wait (avoid flakiness from late-loading metrics)
+      await page.waitForSelector('text=/admin dashboard|total users|total products/i', { timeout: 7000 }).catch(() => null);
+      const hasAdminContent = await page.getByText(/admin dashboard|total users|total products/i).isVisible().catch(() => false);
       expect(hasAdminContent).toBe(true);
     });
 
