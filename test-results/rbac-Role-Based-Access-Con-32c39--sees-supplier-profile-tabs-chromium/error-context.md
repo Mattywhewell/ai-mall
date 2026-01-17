@@ -1,191 +1,84 @@
 # Page snapshot
 
 ```yaml
-- generic [active] [ref=e1]:
-  - generic [ref=e3]:
-    - generic [ref=e4]:
-      - button [ref=e5] [cursor=pointer]:
-        - img [ref=e6]
-      - img [ref=e11]
+- generic [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - navigation [ref=e11]:
     - generic [ref=e13]:
-      - generic [ref=e14]:
-        - heading "Welcome to Aiverse! 👋" [level=2] [ref=e15]
-        - paragraph [ref=e16]: The world's first AI-native civilization. Let us show you around!
-      - button "Next" [ref=e23] [cursor=pointer]:
-        - generic [ref=e24]: Next
-        - img [ref=e25]
-      - button "Skip tutorial" [ref=e27] [cursor=pointer]
-  - navigation [ref=e28]:
-    - generic [ref=e30]:
-      - link "Aiverse" [ref=e31] [cursor=pointer]:
+      - link "Aiverse" [ref=e14] [cursor=pointer]:
         - /url: /
-        - img [ref=e32]
-        - generic [ref=e34]: Aiverse
-      - generic [ref=e35]:
-        - link "Home" [ref=e36] [cursor=pointer]:
+        - img [ref=e15]
+        - generic [ref=e17]: Aiverse
+      - generic [ref=e18]:
+        - link "Home" [ref=e19] [cursor=pointer]:
           - /url: /
-          - img [ref=e37]
-          - generic [ref=e40]: Home
-        - link "Explore" [ref=e41] [cursor=pointer]:
+          - img [ref=e20]
+          - generic [ref=e23]: Home
+        - link "Explore" [ref=e24] [cursor=pointer]:
           - /url: /city
-          - img [ref=e42]
-          - generic [ref=e45]: Explore
-        - link "AI Products" [ref=e46] [cursor=pointer]:
-          - /url: /agents
+          - img [ref=e25]
+          - generic [ref=e28]: Explore
+        - link "Commons" [ref=e29] [cursor=pointer]:
+          - /url: /commons
+          - img [ref=e30]
+          - generic [ref=e33]: Commons
+        - link "Collections" [ref=e34] [cursor=pointer]:
+          - /url: /collections
+          - img [ref=e35]
+          - generic [ref=e39]: Collections
+        - link "Gifts" [ref=e40] [cursor=pointer]:
+          - /url: /gifts
+          - img [ref=e41]
+          - generic [ref=e45]: Gifts
+        - link "Loyalty" [ref=e46] [cursor=pointer]:
+          - /url: /loyalty
           - img [ref=e47]
-          - generic [ref=e49]: AI Products
-        - link "Events" [ref=e50] [cursor=pointer]:
-          - /url: /events
+          - generic [ref=e49]: Loyalty
+        - link "Profile" [active] [ref=e50] [cursor=pointer]:
+          - /url: /profile
           - img [ref=e51]
-          - generic [ref=e54]: Events
-        - link "Subscriptions" [ref=e55] [cursor=pointer]:
-          - /url: /subscriptions
+          - generic [ref=e54]: Profile
+        - link "Dashboard" [ref=e55] [cursor=pointer]:
+          - /url: /supplier
           - img [ref=e56]
-          - generic [ref=e59]: Subscriptions
-        - link "Become a Creator" [ref=e60] [cursor=pointer]:
-          - /url: /digital-products
+          - generic [ref=e59]: Dashboard
+        - link "AI Products" [ref=e60] [cursor=pointer]:
+          - /url: /agents
           - img [ref=e61]
-          - generic [ref=e63]: Become a Creator
-        - link "About" [ref=e64] [cursor=pointer]:
+          - generic [ref=e63]: AI Products
+        - link "Events" [ref=e64] [cursor=pointer]:
+          - /url: /events
+          - img [ref=e65]
+          - generic [ref=e68]: Events
+        - link "Subscriptions" [ref=e69] [cursor=pointer]:
+          - /url: /subscriptions
+          - img [ref=e70]
+          - generic [ref=e73]: Subscriptions
+        - link "Become a Creator" [ref=e74] [cursor=pointer]:
+          - /url: /digital-products
+          - img [ref=e75]
+          - generic [ref=e77]: Become a Creator
+        - link "About" [ref=e78] [cursor=pointer]:
           - /url: /about
-          - generic [ref=e65]: About
-      - generic [ref=e66]:
-        - button "Search" [ref=e67] [cursor=pointer]:
-          - img [ref=e68]
-        - button "Change currency" [ref=e72] [cursor=pointer]:
-          - img [ref=e73]
-          - generic [ref=e76]: $ USD
-        - button "Notifications" [ref=e78] [cursor=pointer]:
-          - img [ref=e79]
-          - generic [ref=e82]: "2"
-        - link "Shopping cart" [ref=e83] [cursor=pointer]:
+          - generic [ref=e79]: About
+      - generic [ref=e80]:
+        - button "Search" [ref=e81] [cursor=pointer]:
+          - img [ref=e82]
+        - button "Change currency" [ref=e86] [cursor=pointer]:
+          - img [ref=e87]
+          - generic [ref=e90]: $ USD
+        - button "Notifications" [ref=e92] [cursor=pointer]:
+          - img [ref=e93]
+          - generic [ref=e96]: "2"
+        - link "Wishlist" [ref=e97] [cursor=pointer]:
+          - /url: /wishlist
+          - img [ref=e98]
+        - link "Shopping cart" [ref=e100] [cursor=pointer]:
           - /url: /cart
-          - img [ref=e84]
-        - button "User menu" [ref=e89] [cursor=pointer]:
-          - generic [ref=e90]:
-            - img [ref=e92]
-            - img [ref=e96]
-          - img [ref=e99]
-  - main [ref=e101]:
-    - generic [ref=e103]:
-      - generic [ref=e104]:
-        - heading "Welcome Back" [level=1] [ref=e105]
-        - paragraph [ref=e106]: Sign in to your Aiverse account
-      - button "Continue with Google" [ref=e108] [cursor=pointer]:
-        - img [ref=e109]
-        - text: Continue with Google
-      - generic [ref=e118]: Or continue with email
-      - generic [ref=e119]:
-        - generic [ref=e120]:
-          - generic [ref=e121]: Email Address
-          - textbox "Email Address" [ref=e122]:
-            - /placeholder: you@example.com
-        - generic [ref=e123]:
-          - generic [ref=e124]: Password
-          - textbox "Password" [ref=e125]:
-            - /placeholder: ••••••••
-        - link "Forgot password?" [ref=e127] [cursor=pointer]:
-          - /url: /auth/forgot-password
-        - button "Sign In" [ref=e128] [cursor=pointer]
-      - paragraph [ref=e130]:
-        - text: Don't have an account?
-        - link "Sign up" [ref=e131] [cursor=pointer]:
-          - /url: /auth/signup
-  - contentinfo [ref=e132]:
-    - generic [ref=e133]:
-      - generic [ref=e134]:
-        - generic [ref=e135]:
-          - generic [ref=e136]:
-            - img [ref=e137]
-            - generic [ref=e139]: Aiverse
-          - paragraph [ref=e140]: The world's first AI-native marketplace with emotional intelligence
-          - generic [ref=e141]:
-            - img [ref=e142]
-            - generic [ref=e145]: San Francisco, CA
-          - generic [ref=e146]:
-            - img [ref=e147]
-            - generic [ref=e150]: hello@alverse.app
-        - generic [ref=e151]:
-          - heading "Company" [level=3] [ref=e152]
-          - list [ref=e153]:
-            - listitem [ref=e154]:
-              - link "About Us" [ref=e155] [cursor=pointer]:
-                - /url: /about
-            - listitem [ref=e156]:
-              - link "Contact" [ref=e157] [cursor=pointer]:
-                - /url: /contact
-            - listitem [ref=e158]:
-              - link "Become a Creator" [ref=e159] [cursor=pointer]:
-                - /url: /vendor-registration
-            - listitem [ref=e160]:
-              - link "AI Concierge" [ref=e161] [cursor=pointer]:
-                - /url: /ai-concierge
-        - generic [ref=e162]:
-          - heading "Explore" [level=3] [ref=e163]
-          - list [ref=e164]:
-            - listitem [ref=e165]:
-              - link "City Explorer" [ref=e166] [cursor=pointer]:
-                - /url: /city
-            - listitem [ref=e167]:
-              - link "Districts" [ref=e168] [cursor=pointer]:
-                - /url: /districts
-            - listitem [ref=e169]:
-              - link "Chapels" [ref=e170] [cursor=pointer]:
-                - /url: /chapels
-            - listitem [ref=e171]:
-              - link "Live Events" [ref=e172] [cursor=pointer]:
-                - /url: /live
-        - generic [ref=e173]:
-          - heading "Legal" [level=3] [ref=e174]
-          - list [ref=e175]:
-            - listitem [ref=e176]:
-              - link "Privacy Policy" [ref=e177] [cursor=pointer]:
-                - /url: /privacy
-            - listitem [ref=e178]:
-              - link "Terms & Conditions" [ref=e179] [cursor=pointer]:
-                - /url: /terms
-            - listitem [ref=e180]:
-              - link "Refund Policy" [ref=e181] [cursor=pointer]:
-                - /url: /refunds
-            - listitem [ref=e182]:
-              - link "Cookie Policy" [ref=e183] [cursor=pointer]:
-                - /url: /cookies
-      - generic [ref=e185]:
-        - paragraph [ref=e186]: © 2026 Aiverse. All rights reserved.
-        - generic [ref=e187]:
-          - generic [ref=e188]: 🔒 Secure Payments via Stripe
-          - generic [ref=e189]: 🤖 Powered by AI
-  - generic [ref=e192]:
-    - generic [ref=e193]:
-      - heading "🍪 We value your privacy" [level=3] [ref=e194]
-      - paragraph [ref=e195]: We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking "Accept All", you consent to our use of cookies. You can customize your preferences or decline non-essential cookies.
-      - link "Learn more about cookies →" [ref=e196] [cursor=pointer]:
-        - /url: /cookies
-    - generic [ref=e197]:
-      - button "Accept All" [ref=e198] [cursor=pointer]
-      - button "Necessary Only" [ref=e199] [cursor=pointer]
-      - button "Customize" [ref=e200] [cursor=pointer]:
-        - img [ref=e201]
-        - text: Customize
-  - button "Ask AI Guide" [ref=e204] [cursor=pointer]:
-    - generic [ref=e205]:
-      - img [ref=e206]
-      - img [ref=e208]
-    - generic [ref=e210]: Ask AI Guide
-  - button "Open chat" [ref=e211] [cursor=pointer]:
-    - img [ref=e212]
-  - generic [ref=e219] [cursor=pointer]:
-    - button "Open Next.js Dev Tools" [ref=e220]:
-      - img [ref=e221]
-    - generic [ref=e224]:
-      - button "Open issues overlay" [ref=e225]:
-        - generic [ref=e226]:
-          - generic [ref=e227]: "3"
-          - generic [ref=e228]: "4"
-        - generic [ref=e229]:
-          - text: Issue
-          - generic [ref=e230]: s
-      - button "Collapse issues badge" [ref=e231]:
-        - img [ref=e232]
-  - alert [ref=e234]
+          - img [ref=e101]
+        - button "User menu" [ref=e106] [cursor=pointer]:
+          - img [ref=e108]
+          - img [ref=e110]
+  - alert [ref=e112]
 ```

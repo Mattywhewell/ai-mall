@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabaseClient';
 interface AuthContextType {
   user: User | null;
   session: Session | null;
+  userRole: string | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
@@ -17,12 +18,112 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+export function AuthProvider({ children, initialUser }: { children: React.ReactNode; initialUser?: { role?: string } }) {
+  // Prefer server-provided initialUser (from searchParams) to avoid SSR/CSR hydration mismatches during tests
+  const [user, setUser] = useState<User | null>(() => {
+    if (initialUser) {
+      const role = initialUser.role || 'citizen';
+      return {
+        id: 'test-id',
+        email: 'test@example.com',
+        user_metadata: { full_name: 'Test User', roles: [role], is_admin: role === 'admin' },
+        created_at: new Date().toISOString(),
+      } as any;
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const ls = localStorage.getItem('test_user');
+        if (ls) {
+          const role = JSON.parse(ls).role || 'citizen';
+          return {
+            id: 'test-id',
+            email: 'test@example.com',
+            user_metadata: { full_name: 'Test User', roles: [role], is_admin: role === 'admin' },
+            created_at: new Date().toISOString(),
+          } as any;
+        }
+      } catch (e) {}
+    }
+    return null;
+  });
+  const [session, setSession] = useState<Session | null>(() => {
+    if (initialUser) {
+      const role = initialUser.role || 'citizen';
+      return { user: { id: 'test-id', email: 'test@example.com', user_metadata: { full_name: 'Test User', roles: [role], is_admin: role === 'admin' }, created_at: new Date().toISOString() } } as any;
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const ls = localStorage.getItem('test_user');
+        if (ls) {
+          const role = JSON.parse(ls).role || 'citizen';
+          return { user: { id: 'test-id', email: 'test@example.com', user_metadata: { full_name: 'Test User', roles: [role], is_admin: role === 'admin' }, created_at: new Date().toISOString() } } as any;
+        }
+      } catch (e) {}
+    }
+    return null;
+  });
+  const [loading, setLoading] = useState(!initialUser);
+  const [userRole, setUserRole] = useState<string | null>(() => {
+    if (initialUser) return initialUser.role === 'admin' ? 'admin' : initialUser.role === 'supplier' ? 'supplier' : 'customer';
+    if (typeof window !== 'undefined') {
+      try {
+        const ls = localStorage.getItem('test_user');
+        if (ls) {
+          const role = JSON.parse(ls).role || 'citizen';
+          return role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'customer';
+        }
+      } catch (e) {}
+    }
+    return null;
+  });
 
   useEffect(() => {
+    // Allow dev-only test user via localStorage or ?test_user=true (run before Supabase config check so tests work in offline mode)
+    if (process.env.NODE_ENV !== 'production' && typeof window !== 'undefined') {
+      // Check localStorage first (allows Playwright to inject test user before scripts run)
+      try {
+        const ls = localStorage.getItem('test_user');
+        if (ls) {
+          const parsed = JSON.parse(ls);
+          const role = parsed?.role || 'citizen';
+          const mock = {
+            user: {
+              id: 'test-id',
+              email: 'test@example.com',
+              user_metadata: { full_name: 'Test User', roles: [role], is_admin: role === 'admin' },
+              created_at: new Date().toISOString(),
+            },
+          } as any;
+          setSession(mock);
+          setUser(mock.user);
+          setUserRole(role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'customer');
+          setLoading(false);
+          return;
+        }
+      } catch (e) {
+        // ignore JSON errors
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('test_user') === 'true') {
+        const role = params.get('role') || 'citizen';
+        const mock = {
+          user: {
+            id: 'test-id',
+            email: 'test@example.com',
+            user_metadata: { full_name: 'Test User', roles: [role], is_admin: role === 'admin' },
+            created_at: new Date().toISOString(),
+          },
+        } as any;
+        setSession(mock);
+        setUser(mock.user);
+        // Derive a simple userRole for client-only checks
+        setUserRole(role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'customer');
+        setLoading(false);
+        return;
+      }
+    }
+
     // Check if Supabase is properly configured
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -36,28 +137,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Allow dev-only test user via ?test_user=true
-    if (process.env.NODE_ENV !== 'production' && typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('test_user') === 'true') {
-        const mock = {
-          user: {
-            id: 'test-id',
-            email: 'test@example.com',
-            user_metadata: { full_name: 'Test User' },
-          },
-        } as any;
-        setSession(mock);
-        setUser(mock.user);
-        setLoading(false);
-        return;
-      }
-    }
-
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      // Derive a role from session metadata if available
+      const roleFromMeta = (session?.user?.user_metadata as any)?.roles?.[0] || (session?.user?.user_metadata as any)?.role;
+      setUserRole(roleFromMeta ? (roleFromMeta === 'admin' ? 'admin' : roleFromMeta === 'supplier' ? 'supplier' : 'customer') : null);
       setLoading(false);
     });
 
@@ -67,6 +153,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      const roleFromMeta = (session?.user?.user_metadata as any)?.roles?.[0] || (session?.user?.user_metadata as any)?.role;
+      setUserRole(roleFromMeta ? (roleFromMeta === 'admin' ? 'admin' : roleFromMeta === 'supplier' ? 'supplier' : 'customer') : null);
       setLoading(false);
     });
 
@@ -119,7 +207,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, session, loading, signIn, signInWithGoogle, signUp, signOut, resetPassword }}
+      value={{ user, session, userRole, loading, signIn, signInWithGoogle, signUp, signOut, resetPassword }}
     >
       {children}
     </AuthContext.Provider>

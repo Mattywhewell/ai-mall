@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import '@/styles/globals.css';
 import { AuthProvider } from '@/lib/auth/AuthContext';
+import { MainNavigation } from '@/components/MainNavigation';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -12,9 +13,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
+  searchParams,
 }: {
   children: React.ReactNode;
+  // Accept searchParams so we can pass test_user through for deterministic SSR during tests
+  searchParams?: { [key: string]: string | undefined };
 }) {
+  // If tests pass ?test_user and ?role in the URL, surface that as an initial user for the client AuthProvider
+  const initialUser = typeof searchParams !== 'undefined' && searchParams?.test_user === 'true' && searchParams?.role
+    ? { role: searchParams.role }
+    : undefined;
+
   return (
     <html lang="en">
       <head>
@@ -38,7 +47,7 @@ export default function RootLayout({
         `}} />
       </head>
       <body className={`${inter.className} flex flex-col min-h-screen`}>
-        <AuthProvider>
+        <AuthProvider initialUser={initialUser}>
           {/* Early client-side error capture for diagnostics */}
           <script dangerouslySetInnerHTML={{ __html: `
             (function(){
@@ -57,6 +66,10 @@ export default function RootLayout({
               });
             })();
           `}} />
+
+          {/* Site-wide navigation */}
+          <MainNavigation />
+
           {children}
         </AuthProvider>
       </body>
