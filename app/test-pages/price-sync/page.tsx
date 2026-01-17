@@ -1,5 +1,7 @@
 import { PriceSync } from '@/components/seller/PriceSync';
 
+export const dynamic = "force-dynamic";
+
 export default function PriceSyncTestPage({ searchParams }: { searchParams?: Record<string, string | string[]> }) {
   // Guard: only available in non-production unless CI explicitly enables test pages
   const searchHasTestUser = !!searchParams && (searchParams.test_user === 'true' || (Array.isArray(searchParams.test_user) && searchParams.test_user.includes('true')) || Object.prototype.hasOwnProperty.call(searchParams, 'test_user'));
