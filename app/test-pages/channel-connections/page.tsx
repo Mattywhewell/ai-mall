@@ -6,11 +6,22 @@ export default function ChannelConnectionsTestPage({ searchParams }: { searchPar
   // Guard: only available in non-production unless CI explicitly enables test pages
   const searchHasTestUser = !!searchParams && (searchParams.test_user === 'true' || (Array.isArray(searchParams.test_user) && searchParams.test_user.includes('true')) || Object.prototype.hasOwnProperty.call(searchParams, 'test_user'));
   const allowTestPages = process.env.NEXT_PUBLIC_INCLUDE_TEST_PAGES === 'true' || searchHasTestUser;
+
+  // Diagnostic log to confirm server-side rendering and received search params in CI
+  try {
+    // eslint-disable-next-line no-console
+    console.log('[TestPage] ChannelConnections server render', { searchParams, allowTestPages, includeFlag: process.env.NEXT_PUBLIC_INCLUDE_TEST_PAGES });
+  } catch (e) {
+    // ignore
+  }
+
   if (process.env.NODE_ENV === 'production' && !allowTestPages) return <div>Not Found</div>;
 
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">Channel Connections Test Page</h1>
+      {/* Diagnostic element for HTML snapshot inspection */}
+      <div data-test-debug>{JSON.stringify({ searchParams, allowTestPages })}</div>
       <ChannelConnections onUpdate={() => {}} />
     </div>
   );

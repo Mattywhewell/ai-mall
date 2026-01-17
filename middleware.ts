@@ -26,7 +26,11 @@ export function middleware(request: NextRequest) {
       if (!url.searchParams.has('_test_user_force')) {
         url.searchParams.set('_test_user_force', '1');
         console.log('[Middleware] Rewriting test-pages request to bypass prerender cache', url.toString());
-        return NextResponse.rewrite(url);
+        const rewritten = NextResponse.rewrite(url);
+        // Add a diagnostic header so we can confirm middleware rewrites in network traces
+        rewritten.headers.set('x-test-pages-rewritten', '1');
+        rewritten.headers.set('x-test-pages-original', request.nextUrl.toString());
+        return rewritten;
       }
     }
   } catch (e) {
