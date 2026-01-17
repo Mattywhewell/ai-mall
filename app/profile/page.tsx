@@ -230,8 +230,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 py-12">
-      {/* E2E test helper: inject a synchronous attribute on <html> when using ?test_user=true so tests can assert quickly */}
-      <script dangerouslySetInnerHTML={{ __html: "if(typeof window !== 'undefined'){const p=new URLSearchParams(window.location.search);if(p.get('test_user')==='true'){document.documentElement.setAttribute('data-test-user-role', p.get('role')||'citizen')}}" }} />
+      {/* E2E test helper: tests should use `page.addInitScript` or the server-side marker (#__test_user) — avoid mutating <html> during SSR hydration */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
