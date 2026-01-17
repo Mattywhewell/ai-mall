@@ -2,7 +2,8 @@ import { OrderSync } from '@/components/seller/OrderSync';
 
 export default function OrderSyncTestPage({ searchParams }: { searchParams?: Record<string, string | string[]> }) {
   // Guard: only available in non-production unless CI explicitly enables test pages
-  const allowTestPages = process.env.NEXT_PUBLIC_INCLUDE_TEST_PAGES === 'true' || (searchParams && searchParams.test_user === 'true');
+  const searchHasTestUser = !!searchParams && (searchParams.test_user === 'true' || (Array.isArray(searchParams.test_user) && searchParams.test_user.includes('true')) || Object.prototype.hasOwnProperty.call(searchParams, 'test_user'));
+  const allowTestPages = process.env.NEXT_PUBLIC_INCLUDE_TEST_PAGES === 'true' || searchHasTestUser;
   if (process.env.NODE_ENV === 'production' && !allowTestPages) return <div>Not Found</div>;
 
   return (
