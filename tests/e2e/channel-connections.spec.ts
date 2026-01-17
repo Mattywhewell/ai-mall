@@ -6,8 +6,8 @@ test.describe('Channel Connections UI', () => {
     await page.route('**/api/seller/channels', route => route.fulfill({ status: 500, body: 'server error' }));
     await page.route('**/api/seller/channels/supported', route => route.fulfill({ status: 500, body: 'server error' }));
 
-    // Use a dev-only test page that mounts ChannelConnections directly
-    await page.goto('/test-pages/channel-connections?test_user=true&role=supplier', { waitUntil: 'load' });
+    // Use a dev-only test page that mounts ChannelConnections directly (always dynamic)
+    await page.goto('/dev-test-pages/channel-connections?test_user=true&role=supplier', { waitUntil: 'load' });
 
     // Expect an error alert to be visible
     await expect(page.locator('[data-testid="error-alert-channels"]')).toBeVisible();

@@ -1,0 +1,2 @@
+{"event":"start","request_id":"a69a6ecb-e54b-4713-99fd-6245807d003d","start_at":"2026-01-17T19:34:30.365Z","url":"http://localhost:3000/api/ci-prefetch"}
+{"event":"finish","request_id":"a69a6ecb-e54b-4713-99fd-6245807d003d","finished_at":"2026-01-17T19:34:30.370Z","ci_prefetch_id":"ci-prefetch-1768678470009"}
