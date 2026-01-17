@@ -16,6 +16,22 @@ export function middleware(request: NextRequest) {
   }
 
   const { pathname } = request.nextUrl;
+
+  // If the request targets a test page and includes ?test_user, rewrite
+  // to add a cache-busting param so Next.js serves it dynamically instead
+  // of returning a cached prerendered HTML that might contain "Not Found".
+  try {
+    const url = request.nextUrl.clone();
+    if (url.pathname.startsWith('/test-pages') && url.searchParams.has('test_user')) {
+      if (!url.searchParams.has('_test_user_force')) {
+        url.searchParams.set('_test_user_force', '1');
+        console.log('[Middleware] Rewriting test-pages request to bypass prerender cache', url.toString());
+        return NextResponse.rewrite(url);
+      }
+    }
+  } catch (e) {
+    console.warn('[Middleware] Failed to rewrite test-pages request', e);
+  }
   
   // Block test/development routes in production
   const isProduction = process.env.NODE_ENV === 'production';
