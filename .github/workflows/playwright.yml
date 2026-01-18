@@ -31,6 +31,21 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: E2E: Supabase pre-check (fail fast)
+        run: node scripts/e2e-precheck.js
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: E2E: seed database (if configured)
+        run: npm run e2e:setup
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          CI: true
+
       - name: Start production server
         run: |
           node -e "console.log('CI runtime NEXT_PUBLIC_INCLUDE_TEST_PAGES=', process.env.NEXT_PUBLIC_INCLUDE_TEST_PAGES, 'NEXT_PUBLIC_DISABLE_3D=', process.env.NEXT_PUBLIC_DISABLE_3D)"
@@ -38,8 +53,8 @@ jobs:
           echo "Waiting for server..."
           npx wait-on http://localhost:3000 -t 60000
         env:
-          NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy_key
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
           NEXT_PUBLIC_DISABLE_3D: 'true'
 
@@ -53,8 +68,9 @@ jobs:
           CI: true
           NEXT_PUBLIC_DISABLE_3D: 'true'
           NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
-          NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy_key
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: Upload Playwright report
         if: always()
@@ -93,8 +109,9 @@ jobs:
           echo "Waiting for server..."
           npx wait-on http://localhost:3000 -t 60000
         env:
-          NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy_key
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
@@ -106,15 +123,17 @@ jobs:
           CI: true
           NEXT_PUBLIC_DISABLE_3D: 'true'
           NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
-          NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy_key
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       - name: Run focused CI prefetch test
         run: npx playwright test tests/e2e/ci-prefetch.spec.ts --project=chromium --reporter=github
         env:
           BASE_URL: http://localhost:3000
           CI: true
-          NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy_key
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           STRIPE_SECRET_KEY: sk_test_ci_placeholder
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_placeholder
           STRIPE_WEBHOOK_SECRET: whsec_test_placeholder
