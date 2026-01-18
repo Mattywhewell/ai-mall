@@ -36,7 +36,7 @@ interface ChannelConnection {
 }
 
 interface ChannelConnectionsProps {
-  onUpdate: () => void;
+  onUpdate?: () => void;
 }
 
 export function ChannelConnections({ onUpdate }: ChannelConnectionsProps) {
@@ -59,10 +59,12 @@ export function ChannelConnections({ onUpdate }: ChannelConnectionsProps) {
   });
 
   useEffect(() => {
+    console.log('[ChannelConnections] mounted');
     fetchData();
   }, []);
 
   const fetchData = async () => {
+    console.log('[ChannelConnections] fetchData start');
     setErrorMessage(null);
     setLoading(true);
 
@@ -71,7 +73,6 @@ export function ChannelConnections({ onUpdate }: ChannelConnectionsProps) {
         fetch('/api/seller/channels'),
         fetch('/api/seller/channels/supported')
       ]);
-
       if (!connectionsRes.ok || !channelsRes.ok) {
         const text = await Promise.resolve(connectionsRes.ok ? channelsRes.text() : connectionsRes.text()).catch(() => '');
         throw new Error(`Server error: ${text}`);
@@ -116,7 +117,7 @@ export function ChannelConnections({ onUpdate }: ChannelConnectionsProps) {
           marketplace_id: ''
         });
         fetchData();
-        onUpdate();
+        onUpdate?.();
       }
     } catch (error) {
       console.error('Failed to add channel:', error);
@@ -131,7 +132,7 @@ export function ChannelConnections({ onUpdate }: ChannelConnectionsProps) {
         method: 'DELETE'
       });
       fetchData();
-      onUpdate();
+      onUpdate?.();
     } catch (error) {
       console.error('Failed to delete channel:', error);
     }
@@ -149,7 +150,7 @@ export function ChannelConnections({ onUpdate }: ChannelConnectionsProps) {
       }
 
       fetchData();
-      onUpdate();
+      onUpdate?.();
     } catch (error) {
       console.error('Failed to test connection:', error);
     }
@@ -390,7 +391,7 @@ export function ChannelConnections({ onUpdate }: ChannelConnectionsProps) {
                 if (res.ok) {
                   alert('Mock channel connected');
                   fetchData();
-                  onUpdate();
+                  onUpdate?.();
                 } else {
                   alert('Failed to connect mock channel: ' + (data.error || JSON.stringify(data)));
                 }
