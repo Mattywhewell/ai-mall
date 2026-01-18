@@ -1,0 +1,58 @@
+name: Apply Supabase Migrations (manual)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  apply-migrations:
+    runs-on: ubuntu-latest
+    env:
+      # placeholders will be overridden by secrets
+      NEXT_PUBLIC_DISABLE_3D: 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps --no-audit
+
+      - name: Apply DB migrations (setup-database.js)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "Running setup-database.js..."
+          node setup-database.js
+
+      - name: Run Supabase diagnostics
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "Running ci-supabase-diagnostic.js"
+          node scripts/ci-supabase-diagnostic.js
+
+      - name: Test admin create user
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "Running local-create-user.js (admin create/delete)"
+          node scripts/local-create-user.js || true
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-migrations-logs
+          path: |
+            supabase-auth-fixes.sql
+            supabase-rbac-fix-functions.sql
+            scripts/ci-supabase-diagnostic.js
+            scripts/local-create-user.js

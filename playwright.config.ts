@@ -12,12 +12,15 @@ export default defineConfig({
     ignoreHTTPSErrors: true,
   },
   // When BASE_URL points to a remote/staging host (or a local URL on a different port), skip starting the local dev server.
-  webServer: (process.env.BASE_URL && !/^(https?:\/\/)?(localhost(:3000)?|127\.0\.0\.1(:3000)?)$/i.test(process.env.BASE_URL)) ? undefined : {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    timeout: 120_000,
-    reuseExistingServer: true,
-  },
+  webServer: (process.env.BASE_URL && !/^(https?:\/\/)?(localhost(:3000)?|127\.0\.0\.1(:3000)?)$/i.test(process.env.BASE_URL)) ? undefined : (() => {
+    const isCI = !!process.env.CI;
+    return {
+      command: isCI ? 'npm run build && npm run start' : 'npm run dev',
+      url: 'http://localhost:3000',
+      timeout: 120_000,
+      reuseExistingServer: !isCI,
+    };
+  })(),
   projects: [
     { name: 'chromium', use: { browserName: 'chromium' } },
   ],

@@ -1,4 +1,5 @@
 import { ChannelAdapter } from './types';
+import { fetchWithRetry } from '@/lib/utils/fetchWithRetry';
 
 // eBay adapter implementation (basic)
 // Uses eBay Sell APIs (Inventory API + Fulfillment API). This implementation is a light wrapper and

@@ -29,7 +29,9 @@
       }
     ],
     "strictNullChecks": true,
-    "types": ["vitest/globals"]
+    "types": [
+      "vitest/globals"
+    ]
   },
   "include": [
     "next-env.d.ts",
