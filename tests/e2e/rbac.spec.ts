@@ -19,13 +19,28 @@ async function ensureTestUser(page: any, role: string) {
 
   // Try to set a cookie so that SSR (or middleware aware routes) can read the test user and render deterministically.
   // This cookie will be sent with the next navigation request. Use the shared BASE constant for the URL.
-  const cookie = { name: 'test_user', value: JSON.stringify({ role }), path: '/', url: BASE };
+  const urlObj = new URL(BASE);
+  const cookieWithUrl = { name: 'test_user', value: JSON.stringify({ role }), path: '/', url: urlObj.origin };
+  const cookieWithDomain = { name: 'test_user', value: JSON.stringify({ role }), domain: urlObj.hostname, path: '/' } as any;
+
   try {
-    await page.context().addCookies([cookie]);
-    return; // success
+    // Try primary approach (url)
+    await page.context().addCookies([cookieWithUrl]);
+    const cookies = await page.context().cookies();
+    const found = cookies.find(c => c.name === 'test_user');
+    if (found) return; // success
   } catch (e) {
-    // If addCookies fails (CI/driver differences), fall back to a page-level cookie write.
-    console.warn('ensureTestUser: addCookies failed, falling back to document.cookie', e && e.message ? e.message : e);
+    console.warn('ensureTestUser: addCookies(url) failed, will try domain fallback', e && e.message ? e.message : e);
+  }
+
+  try {
+    // Try domain-based cookie (some drivers prefer domain/path over url)
+    await page.context().addCookies([cookieWithDomain]);
+    const cookies = await page.context().cookies();
+    const found = cookies.find(c => c.name === 'test_user');
+    if (found) return; // success
+  } catch (e) {
+    console.warn('ensureTestUser: addCookies(domain) failed, falling back to document.cookie', e && e.message ? e.message : e);
   }
 
   // Fallback: navigate briefly to the base origin and set document.cookie so it's available for subsequent navigations.
@@ -34,6 +49,9 @@ async function ensureTestUser(page: any, role: string) {
     await page.evaluate((r) => {
       document.cookie = `test_user=${encodeURIComponent(JSON.stringify({ role: r }))}; path=/;`;
     }, role);
+
+    // Give the browser a moment to apply the cookie to the context
+    await page.waitForTimeout(200);
   } catch (e) {
     console.warn('ensureTestUser: fallback cookie via document.cookie failed', e && e.message ? e.message : e);
   }
