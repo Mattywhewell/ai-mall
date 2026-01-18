@@ -24,6 +24,8 @@ test.describe('Role-Based Access Control (RBAC)', () => {
     }
 
     test('citizen role shows standard navigation', async ({ page }) => {
+      // Ensure test_user is injected early (localStorage) so AuthProvider sees it before page scripts run
+      await page.addInitScript(() => { localStorage.setItem('test_user', JSON.stringify({ role: 'citizen' })); });
       await page.goto(`${BASE}/?test_user=true&role=citizen`, { waitUntil: 'load' });
 
       // Wait for navigation to load and dismiss onboarding overlays if present
@@ -57,6 +59,8 @@ test.describe('Role-Based Access Control (RBAC)', () => {
     });
 
     test('supplier role shows supplier navigation', async ({ page }) => {
+      // Ensure test_user is injected early (localStorage) so AuthProvider sees it before page scripts run
+      await page.addInitScript(() => { localStorage.setItem('test_user', JSON.stringify({ role: 'supplier' })); });
       await page.goto(`${BASE}/?test_user=true&role=supplier`, { waitUntil: 'load' });
 
       // Wait for navigation to load and dismiss onboarding overlays if present
@@ -77,6 +81,8 @@ test.describe('Role-Based Access Control (RBAC)', () => {
     });
 
     test('admin role shows admin navigation', async ({ page }) => {
+      // Ensure test_user is injected early (localStorage) so AuthProvider sees it before page scripts run
+      await page.addInitScript(() => { localStorage.setItem('test_user', JSON.stringify({ role: 'admin' })); });
       await page.goto(`${BASE}/?test_user=true&role=admin`, { waitUntil: 'load' });
 
       // Wait for navigation to load and dismiss onboarding overlays if present
@@ -161,6 +167,8 @@ test.describe('Role-Based Access Control (RBAC)', () => {
     });
 
     test('admin can access supplier dashboard', async ({ page }) => {
+      // Ensure test_user is injected early (localStorage)
+      await page.addInitScript(() => { localStorage.setItem('test_user', JSON.stringify({ role: 'admin' })); });
       await page.goto(`${BASE}/supplier?test_user=true&role=admin`, { waitUntil: 'load' });
 
       // Admin should have access to supplier areas
@@ -289,6 +297,8 @@ test.describe('Role-Based Access Control (RBAC)', () => {
   test.describe('Role Switching Behavior', () => {
     test('navigation updates when role changes', async ({ page }) => {
       // Start as citizen
+      // Ensure test_user is injected early to avoid hydration/race conditions
+      await page.addInitScript(() => { localStorage.setItem('test_user', JSON.stringify({ role: 'citizen' })); });
       await page.goto(`${BASE}/?test_user=true&role=citizen`, { waitUntil: 'load' });
       // Check for presence of Home or Explore link
       await expect(page.locator('nav').getByText('Home').first()).toBeVisible().catch(async () => {
@@ -311,6 +321,7 @@ test.describe('Role-Based Access Control (RBAC)', () => {
 
     test('profile page updates when role changes', async ({ page }) => {
       // Start as citizen (ensure AuthProvider initialized)
+      await page.addInitScript(() => { localStorage.setItem('test_user', JSON.stringify({ role: 'citizen' })); });
       await page.goto(`${BASE}/?test_user=true&role=citizen`, { waitUntil: 'load' });
       await page.waitForSelector('a[aria-label="Account"], nav', { timeout: 7000 }).catch(() => null);
       const accountLink = page.getByRole('link', { name: /Account|Profile/i }).first();
@@ -324,6 +335,7 @@ test.describe('Role-Based Access Control (RBAC)', () => {
       await expect(page.locator('[data-testid="profile-role-display"]')).toHaveText('Citizen');
 
       // Switch to supplier
+      await page.addInitScript(() => { localStorage.setItem('test_user', JSON.stringify({ role: 'supplier' })); });
       await page.goto(`${BASE}/?test_user=true&role=supplier`, { waitUntil: 'load' });
       await page.waitForSelector('a[aria-label="Account"], nav', { timeout: 7000 }).catch(() => null);
       if (await accountLink.isVisible().catch(() => false)) {
@@ -335,6 +347,7 @@ test.describe('Role-Based Access Control (RBAC)', () => {
       await expect(page.getByText('Supplier Dashboard')).toBeVisible();
 
       // Switch to admin
+      await page.addInitScript(() => { localStorage.setItem('test_user', JSON.stringify({ role: 'admin' })); });
       await page.goto(`${BASE}/?test_user=true&role=admin`, { waitUntil: 'load' });
       await page.waitForSelector('a[aria-label="Account"], nav', { timeout: 7000 }).catch(() => null);
       if (await accountLink.isVisible().catch(() => false)) {
