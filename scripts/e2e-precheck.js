@@ -1,4 +1,3 @@
-
 #!/usr/bin/env node
 // E2E pre-check: validate Supabase credentials and required tables
 // Usage: node scripts/e2e-precheck.js
@@ -111,3 +110,4 @@ main().catch(err => {
   console.error('❌ Unexpected pre-check failure:', err);
   process.exit(1);
 });
+
