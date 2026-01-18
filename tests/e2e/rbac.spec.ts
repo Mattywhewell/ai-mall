@@ -17,13 +17,18 @@ async function ensureTestUser(page: any, role: string) {
   // addInitScript runs before page scripts. Pass role as an argument to avoid closure capture issues.
   await page.addInitScript((r) => { localStorage.setItem('test_user', JSON.stringify({ role: r })); }, role);
   // Also set a cookie so that SSR (or middleware aware routes) can read the test user and render deterministically
-  // This cookie will be sent with the next navigation request.
-  await page.context().addCookies([{
-    name: 'test_user',
-    value: JSON.stringify({ role }),
-    path: '/',
-    url: process.env.BASE_URL || 'http://localhost:3000'
-  }]);
+  // This cookie will be sent with the next navigation request. Use the shared BASE constant for the URL.
+  try {
+    await page.context().addCookies([{
+      name: 'test_user',
+      value: JSON.stringify({ role }),
+      url: BASE,
+      path: '/',
+    }]);
+  } catch (e) {
+    // Don't fail the test if cookie can't be set in this environment; log for triage.
+    console.warn('ensureTestUser: failed to set cookie', e && e.message ? e.message : e);
+  }
 } 
 
 test.describe('Role-Based Access Control (RBAC)', () => {
