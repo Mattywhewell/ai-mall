@@ -21,14 +21,37 @@ async function ensureTestUsers(supabase, { password = process.env.E2E_TEST_USER_
     let found = existingUsers.find(x => x && x.email && x.email.toLowerCase() === u.email.toLowerCase());
     if (!found) {
       log.log(`🔁 Creating test auth user: ${u.email}`);
-      const createRes = await supabase.auth.admin.createUser({
-        email: u.email,
-        password,
-        email_confirm: true,
-      });
-      if (createRes && createRes.error) {
-        throw createRes.error;
+      // Try up to 3 times to create the user to handle transient DB/auth errors
+      let createRes;
+      let attempt = 0;
+      while (attempt < 3) {
+        attempt++;
+        try {
+          createRes = await supabase.auth.admin.createUser({
+            email: u.email,
+            password,
+            email_confirm: true,
+          });
+        } catch (err) {
+          // Network or unexpected exception
+          log.error(`Attempt ${attempt}: unexpected error calling createUser: ${err && (err.message || err)}`);
+          createRes = createRes || { error: err };
+        }
+        if (createRes && createRes.error) {
+          log.error(`Attempt ${attempt}: createUser error:`, createRes.error);
+          // small backoff
+          await new Promise(r => setTimeout(r, 1000 * attempt));
+          continue;
+        }
+        break;
       }
+
+      if (createRes && createRes.error) {
+        // Log full response for diagnosis
+        log.error('Full createUser response:', JSON.stringify(createRes, null, 2));
+        throw new Error('Database error creating new user: ' + (createRes.error && (createRes.error.message || createRes.error)));
+      }
+
       // Re-list users so we can get the new user's id
       existingUsers = await listUsers();
       found = existingUsers.find(x => x && x.email && x.email.toLowerCase() === u.email.toLowerCase());
