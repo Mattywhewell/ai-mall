@@ -18,7 +18,11 @@ export default function ChannelConnectionsTestPage({ searchParams }: { searchPar
   if (process.env.NODE_ENV === 'production' && !allowTestPages) return <div>Not Found</div>;
 
   // Support deterministic dev states for E2E (mirror dev-test-pages behavior)
-  if (searchParams?.dev_state === 'error') {
+  // If a test user is present but dev_state is not provided, default to 'error' for determinism in CI
+  const _sp = searchParams as any;
+  const devState = _sp?.dev_state ?? (searchHasTestUser ? 'error' : undefined);
+
+  if (devState === 'error') {
     return (
       <div className="p-8">
         <h1 className="text-2xl font-bold mb-4">Channel Connections Test Page (Dev State: error)</h1>
@@ -39,7 +43,7 @@ export default function ChannelConnectionsTestPage({ searchParams }: { searchPar
     );
   }
 
-  if (searchParams?.dev_state === 'success') {
+  if (devState === 'success') {
     return (
       <div className="p-8">
         <h1 className="text-2xl font-bold mb-4">Channel Connections Test Page (Dev State: success)</h1>
