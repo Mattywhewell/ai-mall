@@ -5,7 +5,7 @@ require('dotenv').config({ path: path.join(process.cwd(), '.env.local') });
 const { createClient } = require('@supabase/supabase-js');
 
 async function fail(msg) {
-  console.error('\nâŒ ' + msg + '\n');
+  console.error('\nERROR: ' + msg + '\n');
   process.exit(1);
 }
 
@@ -20,7 +20,7 @@ async function main() {
 
   const supabase = createClient(supabaseUrl, serviceKey);
 
-  console.log('\nðŸ”Ž Verifying seeded test users & roles');
+  console.log('\nVerifying seeded test users & roles');
 
   const REQUIRED_TEST_USERS = [
     { email: 'e2e-admin+ci@example.com', role: 'admin' },
@@ -47,10 +47,10 @@ async function main() {
         await fail(`Seeded test user ${tu.email} has no entry in user_roles â€” run scripts/e2e-setup.js to create test roles.`);
       }
 
-      console.log(`âœ… Verified seeded user ${tu.email}`);
+      console.log(`Verified seeded user ${tu.email}`);
     }
 
-    console.log('\nâœ… Seed verification passed.');
+    console.log('\nSeed verification passed.');
     process.exit(0);
   } catch (err) {
     await fail('Error verifying seeded test users: ' + (err && (err.message || err)));
@@ -58,6 +58,6 @@ async function main() {
 }
 
 main().catch(err => {
-  console.error('âŒ Unexpected verification failure:', err);
+  console.error('Unexpected verification failure:', err);
   process.exit(1);
 });
