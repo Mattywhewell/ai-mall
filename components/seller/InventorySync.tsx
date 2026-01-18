@@ -34,7 +34,7 @@ interface InventoryItem {
 }
 
 interface InventorySyncProps {
-  onUpdate: () => void;
+  onUpdate?: () => void;
 }
 
 export function InventorySync({ onUpdate }: InventorySyncProps) {
@@ -55,7 +55,20 @@ export function InventorySync({ onUpdate }: InventorySyncProps) {
     setErrorMessage(null);
     setLoading(true);
 
+    // Test hook: when ?test_seed=inventory is present we short-circuit network calls and use deterministic seeded data.
     try {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('test_seed') === 'inventory') {
+          // Import seeded data (kept outside to avoid shipping heavy test assets accidentally)
+          const { seededInventory, seededChannels } = await import('@/lib/test/seeds');
+          setInventory(seededInventory as any[]);
+          setChannels(seededChannels as any[]);
+          setLoading(false);
+          return;
+        }
+      }
+
       const [inventoryRes, channelsRes] = await Promise.all([
         fetch('/api/seller/inventory'),
         fetch('/api/seller/channels?active=true')
@@ -87,7 +100,7 @@ export function InventorySync({ onUpdate }: InventorySyncProps) {
         body: JSON.stringify({ sync_enabled: enabled })
       });
       fetchData();
-      onUpdate();
+      onUpdate?.();
     } catch (error) {
       console.error('Failed to update sync setting:', error);
     }
@@ -107,7 +120,7 @@ export function InventorySync({ onUpdate }: InventorySyncProps) {
 
       if (response.ok) {
         fetchData();
-        onUpdate();
+        onUpdate?.();
       }
     } catch (error) {
       console.error('Failed to sync inventory:', error);
@@ -124,7 +137,7 @@ export function InventorySync({ onUpdate }: InventorySyncProps) {
         body: JSON.stringify({ channel_stock: newStock })
       });
       fetchData();
-      onUpdate();
+      onUpdate?.();
     } catch (error) {
       console.error('Failed to update stock:', error);
     }
@@ -176,7 +189,7 @@ export function InventorySync({ onUpdate }: InventorySyncProps) {
 
   if (errorMessage) {
     return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded" role="alert" aria-live="assertive">
+      <div data-testid="error-alert-inventory" className="p-4 bg-red-50 border border-red-200 rounded" role="alert" aria-live="assertive">
         <div className="flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-red-600" />
           <div>
@@ -386,6 +399,7 @@ export function InventorySync({ onUpdate }: InventorySyncProps) {
                         variant="outline"
                         onClick={() => handleSyncInventory(item.id)}
                         disabled={syncing === item.id}
+                        aria-label={`Sync inventory item ${item.id}`}
                       >
                         {syncing === item.id ? (
                           <RefreshCw className="w-4 h-4 animate-spin" />

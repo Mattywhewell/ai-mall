@@ -76,6 +76,8 @@ jobs:
         # Ensure the visual layers demo loads and reacts to controls
         run: npx playwright test tests/e2e/visual-layers.spec.ts --project=chromium --reporter=github
         env:
+          NEXT_PUBLIC_DISABLE_3D: 'true'
+          NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
@@ -83,6 +85,17 @@ jobs:
         # Verify fallback static preview when WebGL is unavailable
         run: npx playwright test tests/e2e/visual-layers-fallback.spec.ts --project=chromium --reporter=github
         env:
+          NEXT_PUBLIC_DISABLE_3D: 'true'
+          NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Run visual-layers CI smoke test
+        # Smoke: assert static preview is served when 3D is disabled (build-time flag)
+        run: npx playwright test tests/e2e/visual-layers-ci-smoke.spec.ts --project=chromium --reporter=github
+        env:
+          NEXT_PUBLIC_DISABLE_3D: 'true'
+          NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 

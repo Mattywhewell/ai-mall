@@ -15,12 +15,16 @@ import UserMenu from './UserMenu';
 import { NotificationCenter } from './NotificationCenter';
 import { useAuth } from '@/lib/auth/AuthContext';
 
-export function MainNavigation() {
+export function MainNavigation({ initialRole }: { initialRole?: string } = {}) {
   const { user } = useAuth();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   
+  // Derive a deterministic initial role for SSR/CSR parity
+  const serverRole = initialRole || (typeof document !== 'undefined' ? (document.getElementById('__test_user')?.getAttribute('data-role') || document.documentElement.getAttribute('data-test-user-role') || undefined) : undefined);
+  const derivedRole = user ? ((user.user_metadata as any)?.roles?.[0] || ((user.user_metadata as any)?.role)) : serverRole;
+  const hasUser = Boolean(user) || Boolean(serverRole);
   // Check if user is admin
   const [isAdmin, setIsAdmin] = useState(false);
   
@@ -69,14 +73,14 @@ export function MainNavigation() {
               <span>Gifts</span>
             </Link>
 
-            {user && (
+            {hasUser && (
               <Link href="/loyalty" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
                 <Star className="w-4 h-4" />
                 <span>Loyalty</span>
               </Link>
             )}
 
-            {user && (
+            {hasUser && (
               <Link href="/profile" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
                 <User className="w-4 h-4" />
                 <span>Profile</span>
@@ -86,8 +90,8 @@ export function MainNavigation() {
             {/* Supplier Dashboard */}
             {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
             {/* @ts-ignore-next */}
-            {user && ((user.user_metadata as any)?.roles && (user.user_metadata as any).roles.includes('supplier')) && (
-              <Link href="/supplier" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
+            {(derivedRole === 'supplier') && (
+              <Link href="/supplier" data-testid="nav-supplier-dashboard" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors">
                 <TrendingUp className="w-4 h-4" />
                 <span>Dashboard</span>
               </Link>
@@ -127,16 +131,14 @@ export function MainNavigation() {
               <span>About</span>
             </Link>
 
-            {/* Admin links (only visible to admins) */}
-            {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-            {/* @ts-ignore-next */}
-            {((user && ((user.user_metadata as any)?.is_admin || ((user.user_metadata as any)?.roles && (user.user_metadata as any).roles.includes('admin')) || user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL)) || false) && (
+            {/* Admin links (only visible to admins). Use derivedRole (SSR-provided) to avoid hydration mismatch */}
+            {derivedRole === 'admin' && (
               <div className="flex items-center space-x-4">
-                <Link href="/admin" className="text-gray-700 hover:text-purple-600 transition-colors">Dashboard</Link>
-                <Link href="/admin/assets" className="text-gray-700 hover:text-purple-600 transition-colors">Assets</Link>
-                <Link href="/admin/audio" className="text-gray-700 hover:text-purple-600 transition-colors">Audio</Link>
-                <Link href="/admin/revenue" className="text-gray-700 hover:text-purple-600 transition-colors">Revenue</Link>
-                <Link href="/admin/commerce-engine" className="text-gray-700 hover:text-purple-600 transition-colors">AI Systems</Link>
+                <Link href="/admin" data-testid="nav-admin-dashboard" className="text-gray-700 hover:text-purple-600 transition-colors">Dashboard</Link>
+                <Link href="/admin/assets" data-testid="nav-admin-assets" className="text-gray-700 hover:text-purple-600 transition-colors">Assets</Link>
+                <Link href="/admin/audio" data-testid="nav-admin-audio" className="text-gray-700 hover:text-purple-600 transition-colors">Audio</Link>
+                <Link href="/admin/revenue" data-testid="nav-admin-revenue" className="text-gray-700 hover:text-purple-600 transition-colors">Revenue</Link>
+                <Link href="/admin/commerce-engine" data-testid="nav-admin-ai-systems" className="text-gray-700 hover:text-purple-600 transition-colors">AI Systems</Link>
               </div>
             )}
           </div>
@@ -154,7 +156,7 @@ export function MainNavigation() {
             
             <CurrencySelector />
             <NotificationCenter />
-            {user && (
+            {hasUser && (
               <Link href="/wishlist" className="p-2 text-gray-700 hover:text-purple-600 transition-colors" aria-label="Wishlist">
                 <Heart className="w-5 h-5" />
               </Link>

@@ -1,7 +1,8 @@
 import { MetadataRoute } from 'next'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://alverse.app'
+  // Use environment variable or fallback to deployment URL
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ai-mall.vercel.app'
 
   // Static pages
   const staticPages = [
@@ -56,6 +57,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   try {
+    // If Supabase isn't configured in the build environment, skip dynamic sitemap generation.
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.info('Skipping dynamic sitemap generation: Supabase not configured in build environment');
+      return staticPages
+    }
+
     // Import Supabase client
     const { createClient } = await import('@supabase/supabase-js')
     const supabase = createClient(

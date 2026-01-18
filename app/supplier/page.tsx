@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Package, ShoppingCart, TrendingUp, DollarSign, Eye, AlertCircle, CreditCard } from 'lucide-react';
+import { SupplierOnly } from '@/components/RoleGuard';
 
 interface SupplierStats {
   totalProducts: number;
@@ -24,7 +25,7 @@ interface SupplierStats {
   stripeAccountId?: string; // Stripe account ID
 }
 
-export default function SupplierDashboard() {
+function SupplierDashboardContent() {
   const [stats, setStats] = useState<SupplierStats>({
     totalProducts: 0,
     activeOrders: 0,
@@ -415,5 +416,13 @@ export default function SupplierDashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SupplierDashboard() {
+  return (
+    <SupplierOnly showMessage={true}>
+      <SupplierDashboardContent />
+    </SupplierOnly>
   );
 }

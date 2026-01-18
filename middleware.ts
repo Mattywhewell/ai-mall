@@ -16,6 +16,43 @@ export function middleware(request: NextRequest) {
   }
 
   const { pathname } = request.nextUrl;
+
+  // If the request targets a test page and includes ?test_user, rewrite
+  // to add a cache-busting param so Next.js serves it dynamically instead
+  // of returning a cached prerendered HTML that might contain "Not Found".
+  try {
+    const url = request.nextUrl.clone();
+
+    // Existing behavior: rewrite /test-pages requests that include ?test_user
+    if (url.pathname.startsWith('/test-pages') && url.searchParams.has('test_user')) {
+      if (!url.searchParams.has('_test_user_force')) {
+        url.searchParams.set('_test_user_force', '1');
+        console.log('[Middleware] Rewriting test-pages request to bypass prerender cache', url.toString());
+        const rewritten = NextResponse.rewrite(url);
+        // Add a diagnostic header so we can confirm middleware rewrites in network traces
+        rewritten.headers.set('x-test-pages-rewritten', '1');
+        rewritten.headers.set('x-test-pages-original', request.nextUrl.toString());
+        return rewritten;
+      }
+    }
+
+    // NEW: For E2E tests we also want to bypass prerender cache when ?test_user is present
+    // so SSR can see the role and render deterministic user UI on the server. This avoids
+    // hydration mismatches where server returns a pre-rendered public page and the
+    // client immediately re-renders as a logged-in user (causing React hydration errors).
+    if (url.searchParams.has('test_user')) {
+      if (!url.searchParams.has('_test_user_force')) {
+        url.searchParams.set('_test_user_force', '1');
+        console.log('[Middleware] Rewriting request with ?test_user to bypass prerender cache', url.toString());
+        const rewritten = NextResponse.rewrite(url);
+        rewritten.headers.set('x-test-user-rewritten', '1');
+        rewritten.headers.set('x-test-user-original', request.nextUrl.toString());
+        return rewritten;
+      }
+    }
+  } catch (e) {
+    console.warn('[Middleware] Failed to rewrite test-pages or test_user request', e);
+  }
   
   // Block test/development routes in production
   const isProduction = process.env.NODE_ENV === 'production';

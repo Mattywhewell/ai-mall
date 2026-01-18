@@ -34,7 +34,7 @@ interface PriceItem {
 }
 
 interface PriceSyncProps {
-  onUpdate: () => void;
+  onUpdate?: () => void;
 }
 
 export function PriceSync({ onUpdate }: PriceSyncProps) {
@@ -87,7 +87,7 @@ export function PriceSync({ onUpdate }: PriceSyncProps) {
         body: JSON.stringify({ sync_enabled: enabled })
       });
       fetchData();
-      onUpdate();
+      onUpdate?.();
     } catch (error) {
       console.error('Failed to update sync setting:', error);
     }
@@ -107,7 +107,7 @@ export function PriceSync({ onUpdate }: PriceSyncProps) {
 
       if (response.ok) {
         fetchData();
-        onUpdate();
+        onUpdate?.();
       }
     } catch (error) {
       console.error('Failed to sync prices:', error);
@@ -124,7 +124,7 @@ export function PriceSync({ onUpdate }: PriceSyncProps) {
         body: JSON.stringify({ channel_price: newPrice })
       });
       fetchData();
-      onUpdate();
+      onUpdate?.();
     } catch (error) {
       console.error('Failed to update price:', error);
     }
@@ -138,7 +138,7 @@ export function PriceSync({ onUpdate }: PriceSyncProps) {
         body: JSON.stringify({ markup_percentage: newMarkup })
       });
       fetchData();
-      onUpdate();
+      onUpdate?.();
     } catch (error) {
       console.error('Failed to update markup:', error);
     }
@@ -192,7 +192,7 @@ export function PriceSync({ onUpdate }: PriceSyncProps) {
 
   if (errorMessage) {
     return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded" role="alert" aria-live="assertive">
+      <div data-testid="error-alert-prices" className="p-4 bg-red-50 border border-red-200 rounded" role="alert" aria-live="assertive">
         <div className="flex items-start gap-3">
           <div className="w-6 h-6 text-red-600">!</div>
           <div>
@@ -417,6 +417,7 @@ export function PriceSync({ onUpdate }: PriceSyncProps) {
                         variant="outline"
                         onClick={() => handleSyncPrices(item.id)}
                         disabled={syncing === item.id}
+                        aria-label={`Sync price ${item.id}`}
                       >
                         {syncing === item.id ? (
                           <RefreshCw className="w-4 h-4 animate-spin" />
