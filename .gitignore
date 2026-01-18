@@ -38,3 +38,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# test artifacts & traces (Playwright)
+ci-artifacts/
+tmp-artifacts/
+test-results/
+tmp-*
+run-*.zip
+tmp-server-start.log
+tmp-page-response*
+
+# local dev logs
+dev.log
+
