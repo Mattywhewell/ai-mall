@@ -26,7 +26,8 @@
     "test:scaling": "tsx scripts/test-scaling.ts",
     "test:cost-optimization": "tsx scripts/test-cost-optimization.ts",
     "sweep:watch": "node scripts/ci/watch-and-sweep.js",
-    "watch:pr": "node scripts/watch-pr-ci.js --pr=16"
+    "watch:pr": "node scripts/watch-pr-ci.js --pr=16",
+    "monitor:e2e": "tsx scripts/ci/monitor-e2e-runs.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.17.2",
