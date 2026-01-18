@@ -54,11 +54,6 @@ main().catch(err => {
   console.error('Unexpected pre-check failure:', err);
   process.exit(1);
 });
-#!/usr/bin/env node
-// E2E pre-check: validate Supabase credentials and required tables
-// Usage: node scripts/e2e-precheck.js
-
-const path = require('path');
 require('dotenv').config({ path: path.join(process.cwd(), '.env.local') });
 const { createClient } = require('@supabase/supabase-js');
 
