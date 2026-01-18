@@ -16,6 +16,14 @@ async function dismissOnboarding(page: any) {
 async function ensureTestUser(page: any, role: string) {
   // addInitScript runs before page scripts. Pass role as an argument to avoid closure capture issues.
   await page.addInitScript((r) => { localStorage.setItem('test_user', JSON.stringify({ role: r })); }, role);
+  // Also set a cookie so that SSR (or middleware aware routes) can read the test user and render deterministically
+  // This cookie will be sent with the next navigation request.
+  await page.context().addCookies([{
+    name: 'test_user',
+    value: JSON.stringify({ role }),
+    path: '/',
+    url: process.env.BASE_URL || 'http://localhost:3000'
+  }]);
 } 
 
 test.describe('Role-Based Access Control (RBAC)', () => {
