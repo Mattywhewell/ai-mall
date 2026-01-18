@@ -50,10 +50,18 @@ export default function VisualLayerRenderer({ strength = 0.6, tint = "#FFC87A" }
     if (hasWebGL) {
       (async () => {
         try {
-          // Test hook: allow tests to force an import failure via URL param to simulate runtime dynamic import errors
+          // Test hook: allow tests to force an import failure via URL param or global flag to simulate runtime dynamic import errors
           try {
+            // @ts-ignore - test hook
+            if ((window as any).__FORCE_IMPORT_FAIL) {
+              // eslint-disable-next-line no-console
+              console.log('[TEST HOOK] FORCED IMPORT FAIL DETECTED');
+              throw new Error('forced import failure (test)');
+            }
             const params = new URLSearchParams(window.location.search);
             if (params.get('forceImportFail') === 'true') {
+              // eslint-disable-next-line no-console
+              console.log('[TEST HOOK] FORCED IMPORT FAIL DETECTED (via URL)');
               throw new Error('forced import failure (test)');
             }
           } catch (e) {}
@@ -69,7 +77,11 @@ export default function VisualLayerRenderer({ strength = 0.6, tint = "#FFC87A" }
           }
           // eslint-disable-next-line no-console
           console.error('Failed to load ThreeRenderer, falling back to built-in renderer:', err);
+          // eslint-disable-next-line no-console
+          console.log('[TEST HOOK] setHasWebGL(false) about to be called');
           setHasWebGL(false);
+          // eslint-disable-next-line no-console
+          console.log('[TEST HOOK] setHasWebGL(false) called');
         }
       })();
     }

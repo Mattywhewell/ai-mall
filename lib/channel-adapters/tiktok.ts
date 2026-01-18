@@ -1,4 +1,5 @@
 import { ChannelAdapter } from './types';
+import { fetchWithRetry } from '@/lib/utils/fetchWithRetry';
 
 // TikTok Shop adapter (basic) - uses Open Platform API endpoints. Exact endpoints and response
 // shapes can vary by region; this is a conservative, generic implementation.

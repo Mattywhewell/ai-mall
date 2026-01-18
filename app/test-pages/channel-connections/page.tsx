@@ -4,7 +4,14 @@ export const dynamic = "force-dynamic";
 
 export default function ChannelConnectionsTestPage({ searchParams }: { searchParams?: Record<string, string | string[]> }) {
   // Guard: only available in non-production unless CI explicitly enables test pages
-  const searchHasTestUser = !!searchParams && (searchParams.test_user === 'true' || (Array.isArray(searchParams.test_user) && searchParams.test_user.includes('true')) || Object.prototype.hasOwnProperty.call(searchParams, 'test_user'));
+  function hasTestUser(searchParams?: Record<string, string | string[]>) {
+    try {
+      return !!searchParams && (searchParams.test_user === 'true' || (Array.isArray(searchParams.test_user) && searchParams.test_user.includes('true')) || Object.prototype.hasOwnProperty.call(searchParams, 'test_user'));
+    } catch (err) {
+      return false;
+    }
+  }
+  const searchHasTestUser = hasTestUser(searchParams);
   const allowTestPages = process.env.NEXT_PUBLIC_INCLUDE_TEST_PAGES === 'true' || searchHasTestUser;
 
   // Diagnostic log to confirm server-side rendering and received search params in CI
