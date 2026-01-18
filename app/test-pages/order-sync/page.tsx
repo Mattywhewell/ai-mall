@@ -11,7 +11,7 @@ export default function OrderSyncTestPage({ searchParams }: { searchParams?: Rec
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">Order Sync Test Page</h1>
-      <OrderSync onUpdate={() => {}} />
+      <OrderSync />
     </div>
   );
 }

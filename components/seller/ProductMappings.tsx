@@ -45,7 +45,7 @@ interface ProductMapping {
 }
 
 interface ProductMappingsProps {
-  onUpdate: () => void;
+  onUpdate?: () => void;
 }
 
 export function ProductMappings({ onUpdate }: ProductMappingsProps) {
@@ -126,7 +126,7 @@ export function ProductMappings({ onUpdate }: ProductMappingsProps) {
           channel_price: ''
         });
         fetchData();
-        onUpdate();
+        onUpdate?.();
       }
     } catch (error) {
       console.error('Failed to create mapping:', error);
@@ -141,7 +141,7 @@ export function ProductMappings({ onUpdate }: ProductMappingsProps) {
         method: 'DELETE'
       });
       fetchData();
-      onUpdate();
+      onUpdate?.();
     } catch (error) {
       console.error('Failed to delete mapping:', error);
     }
@@ -153,7 +153,7 @@ export function ProductMappings({ onUpdate }: ProductMappingsProps) {
         method: 'POST'
       });
       fetchData();
-      onUpdate();
+      onUpdate?.();
     } catch (error) {
       console.error('Failed to sync mapping:', error);
     }

@@ -34,7 +34,7 @@ interface InventoryItem {
 }
 
 interface InventorySyncProps {
-  onUpdate: () => void;
+  onUpdate?: () => void;
 }
 
 export function InventorySync({ onUpdate }: InventorySyncProps) {
@@ -100,7 +100,7 @@ export function InventorySync({ onUpdate }: InventorySyncProps) {
         body: JSON.stringify({ sync_enabled: enabled })
       });
       fetchData();
-      onUpdate();
+      onUpdate?.();
     } catch (error) {
       console.error('Failed to update sync setting:', error);
     }
@@ -120,7 +120,7 @@ export function InventorySync({ onUpdate }: InventorySyncProps) {
 
       if (response.ok) {
         fetchData();
-        onUpdate();
+        onUpdate?.();
       }
     } catch (error) {
       console.error('Failed to sync inventory:', error);
@@ -137,7 +137,7 @@ export function InventorySync({ onUpdate }: InventorySyncProps) {
         body: JSON.stringify({ channel_stock: newStock })
       });
       fetchData();
-      onUpdate();
+      onUpdate?.();
     } catch (error) {
       console.error('Failed to update stock:', error);
     }

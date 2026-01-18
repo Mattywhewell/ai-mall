@@ -31,7 +31,7 @@ interface ChannelOrder {
 }
 
 interface OrderSyncProps {
-  onUpdate: () => void;
+  onUpdate?: () => void;
 }
 
 export function OrderSync({ onUpdate }: OrderSyncProps) {
@@ -94,7 +94,7 @@ export function OrderSync({ onUpdate }: OrderSyncProps) {
 
       if (response.ok) {
         fetchData();
-        onUpdate();
+        onUpdate?.();
       }
     } catch (error) {
       console.error('Failed to sync orders:', error);

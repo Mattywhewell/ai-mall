@@ -34,7 +34,7 @@ interface PriceItem {
 }
 
 interface PriceSyncProps {
-  onUpdate: () => void;
+  onUpdate?: () => void;
 }
 
 export function PriceSync({ onUpdate }: PriceSyncProps) {
@@ -87,7 +87,7 @@ export function PriceSync({ onUpdate }: PriceSyncProps) {
         body: JSON.stringify({ sync_enabled: enabled })
       });
       fetchData();
-      onUpdate();
+      onUpdate?.();
     } catch (error) {
       console.error('Failed to update sync setting:', error);
     }
@@ -107,7 +107,7 @@ export function PriceSync({ onUpdate }: PriceSyncProps) {
 
       if (response.ok) {
         fetchData();
-        onUpdate();
+        onUpdate?.();
       }
     } catch (error) {
       console.error('Failed to sync prices:', error);
@@ -124,7 +124,7 @@ export function PriceSync({ onUpdate }: PriceSyncProps) {
         body: JSON.stringify({ channel_price: newPrice })
       });
       fetchData();
-      onUpdate();
+      onUpdate?.();
     } catch (error) {
       console.error('Failed to update price:', error);
     }
@@ -138,7 +138,7 @@ export function PriceSync({ onUpdate }: PriceSyncProps) {
         body: JSON.stringify({ markup_percentage: newMarkup })
       });
       fetchData();
-      onUpdate();
+      onUpdate?.();
     } catch (error) {
       console.error('Failed to update markup:', error);
     }

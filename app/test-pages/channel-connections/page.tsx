@@ -22,7 +22,7 @@ export default function ChannelConnectionsTestPage({ searchParams }: { searchPar
       <h1 className="text-2xl font-bold mb-4">Channel Connections Test Page</h1>
       {/* Diagnostic element for HTML snapshot inspection */}
       <div data-test-debug>{JSON.stringify({ searchParams, allowTestPages })}</div>
-      <ChannelConnections onUpdate={() => {}} />
+      <ChannelConnections />
     </div>
   );
 }

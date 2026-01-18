@@ -202,23 +202,23 @@ export default function ListingManagerPage() {
         </TabsList>
 
         <TabsContent value="channels">
-          <ChannelConnections onUpdate={fetchDashboardData} />
+          <ChannelConnections />
         </TabsContent>
 
         <TabsContent value="products">
-          <ProductMappings onUpdate={fetchDashboardData} />
+          <ProductMappings />
         </TabsContent>
 
         <TabsContent value="orders">
-          <OrderSync onUpdate={fetchDashboardData} />
+          <OrderSync />
         </TabsContent>
 
         <TabsContent value="inventory">
-          <InventorySync onUpdate={fetchDashboardData} />
+          <InventorySync />
         </TabsContent>
 
         <TabsContent value="prices">
-          <PriceSync onUpdate={fetchDashboardData} />
+          <PriceSync />
         </TabsContent>
       </Tabs>
     </div>

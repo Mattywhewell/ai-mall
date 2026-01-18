@@ -11,7 +11,7 @@ export default function InventorySyncTestPage({ searchParams }: { searchParams?:
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">Inventory Sync Test Page</h1>
-      <InventorySync onUpdate={() => {}} />
+      <InventorySync />
     </div>
   );
 }

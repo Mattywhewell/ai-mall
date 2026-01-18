@@ -11,7 +11,7 @@ export default function ProductMappingsTestPage({ searchParams }: { searchParams
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">Product Mappings Test Page</h1>
-      <ProductMappings onUpdate={() => {}} />
+      <ProductMappings />
     </div>
   );
 }
