@@ -3,19 +3,7 @@
 
 DO $$
 BEGIN
-  -- Create enum in auth schema if missing (helps GoTrue/admin sessions that use auth schema search_path)
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_type t
-    JOIN pg_namespace n ON t.typnamespace = n.oid
-    WHERE t.typname = 'user_role' AND n.nspname = 'auth'
-  ) THEN
-    CREATE TYPE auth.user_role AS ENUM ('admin','supplier','customer','ai_agent');
-  END IF;
-END $$;
-
-DO $$
-BEGIN
-  -- Ensure public enum exists too (safe to re-run)
+  -- Ensure public enum exists (safe to re-run)
   IF NOT EXISTS (
     SELECT 1 FROM pg_type t
     JOIN pg_namespace n ON t.typnamespace = n.oid
