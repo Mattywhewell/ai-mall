@@ -49,6 +49,11 @@ async function ensureTestUsers(supabase, { password = process.env.E2E_TEST_USER_
       if (createRes && createRes.error) {
         // Log full response for diagnosis
         log.error('Full createUser response:', JSON.stringify(createRes, null, 2));
+        // If this is a 500 from Supabase Auth service, provide actionable guidance
+        const status = createRes.error && createRes.error.status;
+        if (status === 500) {
+          throw new Error(`Supabase Auth error (500) creating user ${u.email}. This may indicate a project/service issue - check Supabase Auth logs, ensure the service role key is valid, and try creating the user manually via the Supabase dashboard.`);
+        }
         throw new Error('Database error creating new user: ' + (createRes.error && (createRes.error.message || createRes.error)));
       }
 
