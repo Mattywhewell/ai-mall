@@ -9,13 +9,25 @@ on:
       - 'scripts/**'
 
 jobs:
+  # NOTE: Temporarily disabled due to Supabase support ticket SU-315234 (auto-reply received).
+  # This job depends on external Supabase services and is currently producing noisy failures
+  # that obscure real CI signal. Re-enable when Supabase confirms support or when an
+  # introspection artifact/reliable test endpoint is available.
   integration:
-    name: Run integration tests (Supabase)
+    # TEMPORARILY DISABLED: set to 'false' until SU-315234 is resolved (see TODO below)
+    if: false
+    name: Run integration tests (Supabase)  # disabled
     runs-on: ubuntu-latest
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       TEST_CLEANUP_TOKEN: 'test-token'  # used by integration tests to authorize cleanup endpoint
+
+    # TODO: Re-enable this job when one of the following is true:
+    # - Supabase support responds with a resolvable action OR
+    # - You have a paid support ticket and the webhook/response confirms liveliness OR
+    # - The integration tests are updated to run against a self-hosted/stable test database
+
 
     steps:
       - name: Checkout
