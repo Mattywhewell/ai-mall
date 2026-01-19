@@ -1,0 +1,83 @@
+name: CI Heartbeat
+
+on:
+  workflow_run:
+    types: [completed]
+  issue_comment:
+    types: [created]
+  issues:
+    types: [opened]
+
+jobs:
+  heartbeat:
+    name: Post CI heartbeat
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post heartbeat comment
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const runEvent = context.payload.workflow_run;
+            const issueTitle = 'CI heartbeat';
+
+            async function findOrCreateIssue(){
+              // find existing issue by title
+              const { data: issues } = await github.rest.issues.listForRepo({ owner: context.repo.owner, repo: context.repo.repo, state: 'open' });
+              let issue = issues.find(i => i.title === issueTitle);
+              if (!issue){
+                const created = await github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo, title: issueTitle, body: 'Automated CI heartbeat — this issue is updated with short status pulses from workflow runs and maintainer signals.' });
+                issue = created.data;
+              }
+              return issue;
+            }
+
+            async function upsertHeartbeatComment(issue, body){
+              const { data: comments } = await github.rest.issues.listComments({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issue.number });
+              // prefer updating the most recent comment made by this action
+              const existing = comments.reverse().find(c => c.user && (c.user.login === 'github-actions[bot]' || c.user.login === context.actor) && c.body && c.body.includes('CI heartbeat'));
+              if (existing){
+                await github.rest.issues.updateComment({ owner: context.repo.owner, repo: context.repo.repo, comment_id: existing.id, body });
+              } else {
+                await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issue.number, body });
+              }
+            }
+
+            const issue = await findOrCreateIssue();
+
+            if (runEvent){
+              const wfName = runEvent.name || runEvent.workflow_id || 'workflow';
+              const conclusion = runEvent.conclusion;
+              const runId = runEvent.id;
+              const url = runEvent.html_url || `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${runId}`;
+
+              let statusMsg = '';
+              if (conclusion === 'success'){
+                statusMsg = `✅ **All green** — workflow **${wfName}** completed successfully.\nRun: ${url}`;
+              } else {
+                // treat specific noisy workflows as 'Noise detected' (configurable)
+                const noisy = ['Integration Tests (Supabase)', 'Apply Supabase Migrations', 'Verify Supabase Bucket'];
+                if (noisy.includes(wfName)){
+                  statusMsg = `⚠️ **Noise detected** — workflow **${wfName}** concluded: **${conclusion}**. This may be external noise (e.g., Supabase). See ticket SU-315234.\nRun: ${url}`;
+                } else {
+                  statusMsg = `❌ **New failure** — workflow **${wfName}** concluded: **${conclusion}**.\nRun: ${url}`;
+                }
+              }
+
+              const body = `CI heartbeat — ${new Date().toISOString()}\n\n${statusMsg}\n\n*If you prefer notifications elsewhere, add a comment on this issue with '@bot notify me' or configure a dedicated channel.*\n`;
+              await upsertHeartbeatComment(issue, 'CI heartbeat\n\n' + body);
+              return;
+            }
+
+            // Handle maintainer signals (issue opened or comment)
+            const comment = context.payload.comment || context.payload.issue || null;
+            if (comment){
+              const actor = (comment.user && comment.user.login) || context.actor;
+              // Check if actor is a collaborator with push access
+              const perm = await github.rest.repos.getCollaboratorPermissionLevel({ owner: context.repo.owner, repo: context.repo.repo, username: actor });
+              const level = perm.data && perm.data.permission || '';
+              if (['write','admin','maintain'].includes(level)){
+                const body = `🔔 **New signal from maintainer** by @${actor} — ${comment.html_url || ''}\n\nPlease see the comment or issue for details.`;
+                await upsertHeartbeatComment(issue, 'CI heartbeat\n\n' + body);
+              }
+            }
