@@ -67,6 +67,10 @@ jobs:
           SUPABASE_DATABASE_URL: ${{ secrets.repo_secret }}
         run: |
           echo "Running local-create-user.js (admin create/delete)"
+          echo "Listing scripts dir:"
+          ls -la scripts || true
+          echo "PWD: $(pwd)"
+          echo "Node version: $(node -v)"
           node scripts/local-create-user.js || true
 
       - name: Upload logs
