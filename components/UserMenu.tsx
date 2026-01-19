@@ -11,10 +11,19 @@ export default function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [devUser, setDevUser] = useState<any>(() => {
     if (typeof window !== 'undefined') {
+      // 1) URL query param takes precedence (allows Playwright to inject before scripts run)
       const params = new URLSearchParams(window.location.search);
       if (params.get('test_user') === 'true') {
         const roleParam = params.get('role');
         const roles = roleParam ? [roleParam] : [];
+        return { id: 'test-id', email: 'test@example.com', user_metadata: { full_name: 'Test User', roles, is_admin: roles.includes('admin') } };
+      }
+
+      // 2) Fallback: server-side SSR injection (RootLayout renders a hidden marker) — read synchronously
+      const marker = document.getElementById('__test_user');
+      if (marker) {
+        const roleAttr = marker.getAttribute('data-role') || 'citizen';
+        const roles = roleAttr ? [roleAttr] : [];
         return { id: 'test-id', email: 'test@example.com', user_metadata: { full_name: 'Test User', roles, is_admin: roles.includes('admin') } };
       }
     }

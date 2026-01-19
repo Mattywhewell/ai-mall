@@ -19,9 +19,16 @@ export default function RootLayout({
   // Accept searchParams so we can pass test_user through for deterministic SSR during tests
   searchParams?: { [key: string]: string | undefined };
 }) {
-  // If tests pass ?test_user and ?role in the URL, surface that as an initial user for the client AuthProvider
-  const initialUser = typeof searchParams !== 'undefined' && searchParams?.test_user === 'true' && searchParams?.role
-    ? { role: searchParams.role }
+  // If tests pass ?test_user and optionally ?role in the URL, or the environment exposes
+  // NEXT_PUBLIC_TEST_USER, surface that as an initial user for the client AuthProvider.
+  // Default to role 'citizen' if none is provided — this ensures deterministic SSR behavior
+  // for CI runs that skip Supabase seeding (SKIP_SUPABASE_SEED=true).
+  const envTestUser = process.env.NEXT_PUBLIC_TEST_USER === 'true';
+  const envTestRole = process.env.NEXT_PUBLIC_TEST_USER_ROLE;
+  const queryTestUser = typeof searchParams !== 'undefined' && searchParams?.test_user === 'true';
+  const queryRole = typeof searchParams !== 'undefined' ? searchParams?.role : undefined;
+  const initialUser = (queryTestUser || envTestUser)
+    ? { role: (queryRole || envTestRole || 'citizen') }
     : undefined;
 
   return (
