@@ -47,6 +47,7 @@ async function setupDatabase() {
     'supabase-complete-migration.sql',
     'supabase-v5.1-schema-fixed.sql',
     'world-architecture-schema.sql',
+    'supabase-exec-sql.sql',
     'supabase-auth-fixes.sql',
     'supabase-rbac-fix-functions.sql',
     '3d-generation-schema.sql'
