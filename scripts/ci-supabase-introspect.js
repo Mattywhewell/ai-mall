@@ -44,12 +44,30 @@ async function sqlRunnerPg(pgClient, sql, label) {
   let pgClient = null;
   if (pgUrl) {
     pgClient = new Client({ connectionString: pgUrl });
-    try {
-      await pgClient.connect();
-      console.log('🔒 Connected to DB via SUPABASE_DATABASE_URL fallback');
-    } catch (err) {
-      console.log('⚠️  Could not connect using SUPABASE_DATABASE_URL:', err.message);
+    // Try to connect with a small retry for transient failures and better diagnostics
+    let connected = false;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        await pgClient.connect();
+        console.log('🔒 Connected to DB via SUPABASE_DATABASE_URL fallback');
+        connected = true;
+        break;
+      } catch (err) {
+        console.error(`⚠️  Connection attempt ${attempt} failed:`,
+          err && err.stack ? err.stack : err);
+        // print host info (non-secret) to help debug networking issues
+        try {
+          const u = new URL(pgUrl);
+          console.error('Connection host:', u.hostname, 'port:', u.port || '(default)');
+        } catch (e) { /* ignore */ }
+        if (attempt < 2) {
+          await new Promise(r => setTimeout(r, 1500));
+        }
+      }
+    }
+    if (!connected) {
       pgClient = null;
+      console.error('⚠️  Could not connect using SUPABASE_DATABASE_URL after retries.');
     }
   }
 
