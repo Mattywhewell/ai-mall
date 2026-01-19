@@ -5,15 +5,28 @@
  * Prints functions, triggers, and columns referencing user_role / user_roles
  */
 const { createClient } = require('@supabase/supabase-js');
-const sqlRunner = async (supabase, sql, label) => {
+const { Client } = require('pg');
+
+async function sqlRunnerSupabase(supabase, sql, label) {
   console.log(`\n--- ${label} ---`);
   const { data, error } = await supabase.rpc('exec_sql', { sql });
   if (error) {
     console.error(`${label} ERROR:`, error.message || error);
-    return;
+    return { error: true, message: error.message || error };
   }
   console.log(`${label} RESULT:`, JSON.stringify(data, null, 2).slice(0, 20*1024));
-};
+  return { error: false };
+}
+
+async function sqlRunnerPg(pgClient, sql, label) {
+  console.log(`\n--- ${label} (direct PG) ---`);
+  try {
+    const res = await pgClient.query(sql);
+    console.log(`${label} RESULT:`, JSON.stringify(res.rows, null, 2).slice(0, 20*1024));
+  } catch (err) {
+    console.error(`${label} ERROR (direct PG):`, err.message || err);
+  }
+}
 
 (async () => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -24,6 +37,41 @@ const sqlRunner = async (supabase, sql, label) => {
   }
 
   const supabase = createClient(supabaseUrl, serviceKey);
+
+  // Optional direct PG fallback if a DB URL is provided (bootstrap case)
+  const pgUrl = process.env.SUPABASE_DATABASE_URL || process.env.DATABASE_URL;
+  console.log('🔍 SUPABASE_DATABASE_URL present:', !!pgUrl);
+  let pgClient = null;
+  if (pgUrl) {
+    // Try to connect with a small retry for transient failures and better diagnostics
+    let connected = false;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      const clientAttempt = new Client({ connectionString: pgUrl });
+      try {
+        await clientAttempt.connect();
+        console.log('🔒 Connected to DB via SUPABASE_DATABASE_URL fallback');
+        pgClient = clientAttempt;
+        connected = true;
+        break;
+      } catch (err) {
+        console.error(`⚠️  Connection attempt ${attempt} failed:`,
+          err && err.stack ? err.stack : err);
+        // print host info (non-secret) to help debug networking issues
+        try {
+          const u = new URL(pgUrl);
+          console.error('Connection host:', u.hostname, 'port:', u.port || '(default)');
+        } catch (e) { /* ignore */ }
+        try { await clientAttempt.end(); } catch (e) { /* ignore */ }
+        if (attempt < 2) {
+          await new Promise(r => setTimeout(r, 1500));
+        }
+      }
+    }
+    if (!connected) {
+      pgClient = null;
+      console.error('⚠️  Could not connect using SUPABASE_DATABASE_URL after retries.');
+    }
+  }
 
   const functionsSql = `SELECT p.oid, n.nspname AS schema, p.proname, pg_get_functiondef(p.oid) AS def
 FROM pg_proc p
@@ -58,14 +106,31 @@ JOIN pg_namespace n ON p.pronamespace = n.oid
 WHERE p.prorettype = (SELECT oid FROM pg_type WHERE typname='user_role')
    OR p.proargtypes::text ILIKE '%user_role%';`;
 
-  await sqlRunner(supabase, functionsSql, 'FUNCTIONS');
-  await sqlRunner(supabase, triggersSql, 'TRIGGERS');
-  await sqlRunner(supabase, columnsSql, 'COLUMNS');
-  await sqlRunner(supabase, authTriggersSql, 'AUTH_USERS_TRIGGERS');
+  // Run each query via RPC, but fall back to direct PG if exec_sql is unavailable
+  const runners = [
+    { sql: functionsSql, label: 'FUNCTIONS' },
+    { sql: triggersSql, label: 'TRIGGERS' },
+    { sql: columnsSql, label: 'COLUMNS' },
+    { sql: authTriggersSql, label: 'AUTH_USERS_TRIGGERS' },
+    { sql: depSql, label: 'DEPENDENCIES' },
+    { sql: attrSql, label: 'ATTRIBUTES' },
+    { sql: procTypeSql, label: 'PROC_TYPES' }
+  ];
 
-  await sqlRunner(supabase, depSql, 'DEPENDENCIES');
-  await sqlRunner(supabase, attrSql, 'ATTRIBUTES');
-  await sqlRunner(supabase, procTypeSql, 'PROC_TYPES');
+  for (const r of runners) {
+    const res = await sqlRunnerSupabase(supabase, r.sql, r.label);
+    if (res && res.error && pgClient) {
+      // Try direct PG fallback
+      await sqlRunnerPg(pgClient, r.sql, r.label);
+    } else if (res && res.error && !pgClient) {
+      console.log('⚠️  exec_sql unavailable and no SUPABASE_DATABASE_URL provided; cannot perform introspection automatically.');
+      console.log('    To run introspection re-run this workflow with SUPABASE_DATABASE_URL set to a Postgres connection string (trusted secret).');
+    }
+  }
+
+  if (pgClient) {
+    try { await pgClient.end(); } catch (e) { }
+  }
 
   console.log('\n--- Done ---');
   process.exit(0);
