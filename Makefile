@@ -23,8 +23,18 @@ introspect-vm:
 parse:
 	node scripts/parse-introspection.js ${DIR:-.}
 
+# Short aliases
+p: parse
+
 lint:
 	npm run dev:lint
 
 format:
 	npm run dev:format
+
+# Run project checks (lint + format + optional typecheck)
+check:
+	npm run dev:check
+
+# Convenience alias for introspect
+i: introspect

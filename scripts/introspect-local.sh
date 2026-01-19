@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 # Convenience wrapper to run introspection locally (no uploads)
+# Purpose: run dbconnect + introspect, collect logs, and package artifact for handoff.
 # Usage: ./scripts/introspect-local.sh
 set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# load utilities
+[ -f "$script_dir/utils.sh" ] && . "$script_dir/utils.sh"
 DOTENV_PATH=${DOTENV_PATH:-.env.local}
 if [ -f "$DOTENV_PATH" ]; then
   export DOTENV_CONFIG_PATH="$DOTENV_PATH"
-  echo "Loaded env from $DOTENV_PATH"
+  log "Loaded env from $DOTENV_PATH"
 else
-  echo "No $DOTENV_PATH found, relying on environment variables." >&2
+  warn "No $DOTENV_PATH found, relying on environment variables."
 fi
 TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 LOG_DIR="$(pwd)/introspect-logs-${TIMESTAMP}"

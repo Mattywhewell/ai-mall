@@ -30,3 +30,5 @@ This file describes the purpose and basic usage for the project's utility script
 Notes & tips
 - Always keep secrets (e.g., `SUPABASE_DATABASE_URL`, service role key) out of commits; use `.env.local` or export them as environment variables.
 - Use `make help` for a quick list of commands in the repo.
+- The repository provides a shared helper script at `scripts/utils.sh` with logging helpers (`log`, `warn`, `err`) and `require_cmd` checks. Source it at the top of any shell script: `. scripts/utils.sh`.
+- Make targets: `make introspect` (run local introspection), `make parse DIR=...` (run parser), `make check` (runs `npm run dev:check`).

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+// Purpose: introspect DB objects referencing `user_role` and output findings for patching.
 /**
  * Supabase introspection for RBAC issues
  * Prints functions, triggers, and columns referencing user_role / user_roles
@@ -106,6 +107,28 @@ JOIN pg_namespace n ON p.pronamespace = n.oid
 WHERE p.prorettype = (SELECT oid FROM pg_type WHERE typname='user_role')
    OR p.proargtypes::text ILIKE '%user_role%';`;
 
+  const viewsSql = `-- views referencing user_role
+SELECT table_schema, table_name, view_definition
+FROM information_schema.views
+WHERE view_definition ILIKE '%user_role%' OR view_definition ILIKE '%user_roles%';`;
+
+  const policiesSql = `-- policies referencing user_role
+SELECT polname, polrelid::regclass AS table, pg_get_expr(polqual, polrelid) AS qual, pg_get_expr(polwithcheck, polrelid) AS withcheck
+FROM pg_policy
+WHERE pg_get_expr(polqual, polrelid) ILIKE '%user_role%' OR pg_get_expr(polwithcheck, polrelid) ILIKE '%user_role%';`;
+
+  const defaultsSql = `-- column defaults referencing user_role
+SELECT c.relname AS table, a.attname AS column, pg_get_expr(ad.adbin, ad.adrelid) AS default_expr
+FROM pg_attrdef ad
+JOIN pg_attribute a ON ad.adrelid = a.attrelid AND ad.adnum = a.attnum
+JOIN pg_class c ON c.oid = ad.adrelid
+WHERE pg_get_expr(ad.adbin, ad.adrelid) ILIKE '%user_role%';`;
+
+  const constraintsSql = `-- constraints referencing user_role
+SELECT conname, conrelid::regclass AS table, pg_get_constraintdef(oid) AS def
+FROM pg_constraint
+WHERE pg_get_constraintdef(oid) ILIKE '%user_role%';`;
+
   // Run each query via RPC, but fall back to direct PG if exec_sql is unavailable
   const runners = [
     { sql: functionsSql, label: 'FUNCTIONS' },
@@ -114,7 +137,11 @@ WHERE p.prorettype = (SELECT oid FROM pg_type WHERE typname='user_role')
     { sql: authTriggersSql, label: 'AUTH_USERS_TRIGGERS' },
     { sql: depSql, label: 'DEPENDENCIES' },
     { sql: attrSql, label: 'ATTRIBUTES' },
-    { sql: procTypeSql, label: 'PROC_TYPES' }
+    { sql: procTypeSql, label: 'PROC_TYPES' },
+    { sql: viewsSql, label: 'VIEWS' },
+    { sql: policiesSql, label: 'POLICIES' },
+    { sql: defaultsSql, label: 'DEFAULTS' },
+    { sql: constraintsSql, label: 'CONSTRAINTS' }
   ];
 
   for (const r of runners) {

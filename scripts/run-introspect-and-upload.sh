@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
 # Run Supabase introspection locally or on a VM and upload logs (via gh CLI release or gist).
+# Purpose: wrapper to run dbconnect + introspect, package logs, and optionally upload to GitHub/Gist.
 # Usage:
 #   SUPABASE_DATABASE_URL=... GH_REPO=owner/repo GITHUB_TOKEN=... ./scripts/run-introspect-and-upload.sh
-# Options:
-#   GH_REPO - repo to upload a release to (requires GH auth token in $GITHUB_TOKEN or $GH_TOKEN)
-#   CREATE_GIST=1 - create a gist instead (requires GH auth token)
-#   DOTENV_PATH - optional, path to dotenv file (defaults to .env.local)
 set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+[ -f "$script_dir/utils.sh" ] && . "$script_dir/utils.sh"
 export DOTENV_PATH=${DOTENV_PATH:-.env.local}
 TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 LOG_DIR="$(pwd)/introspect-logs-${TIMESTAMP}"
