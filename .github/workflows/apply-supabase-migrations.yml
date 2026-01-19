@@ -13,6 +13,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Verify SUPABASE_DATABASE_URL secret & workspace
+        run: |
+          echo "🔎 Checking for repo_secret and scripts..."
+          if [ -z "${{ secrets.repo_secret }}" ]; then
+            echo "⚠️ repo_secret not set"
+          else
+            echo "🔍 repo_secret present"
+          fi
+          echo "Listing scripts dir:"
+          ls -la scripts || true
+          git rev-parse --short HEAD || true
+
       - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -26,6 +38,7 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_DATABASE_URL: ${{ secrets.repo_secret }}
         run: |
           echo "Running setup-database.js..."
           node setup-database.js
@@ -42,6 +55,7 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_DATABASE_URL: ${{ secrets.repo_secret }}
         run: |
           echo "Running ci-supabase-introspect.js"
           node scripts/ci-supabase-introspect.js 2>&1 | tee supabase-introspect.log || true
@@ -50,6 +64,7 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_DATABASE_URL: ${{ secrets.repo_secret }}
         run: |
           echo "Running local-create-user.js (admin create/delete)"
           node scripts/local-create-user.js || true
