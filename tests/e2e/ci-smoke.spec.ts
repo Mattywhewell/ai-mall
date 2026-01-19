@@ -14,3 +14,15 @@ test('ci smoke: app loads with injected test user and shows user menu', async ({
   const visible = await userMenu.isVisible().catch(() => false);
   expect(visible).toBe(true);
 });
+
+// Additional smoke: ensure SpatialEnvironment loads on /commons
+test('ci smoke: /commons environment loads', async ({ page }) => {
+  await ensureTestUser(page, 'admin');
+  await page.goto(`${BASE}/commons?test_user=true&role=admin`, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+  await dismissOnboarding(page);
+
+  const env = page.locator('[data-testid="spatial-environment"]');
+  const envVisible = await env.isVisible().catch(() => false);
+  expect(envVisible).toBe(true);
+});
