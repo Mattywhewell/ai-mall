@@ -35,6 +35,28 @@ You can run a one-off test to verify Slack and email notifications for nightly t
   python -m pytest -q scripts/tests
   ```
 
+Contributing micro‑guide (quick ritual)
+
+A short checklist to keep contributions focused and the CI signal clean:
+
+- Opening a PR: create a focused branch, run `npm run dev:check` and the sequencer tests if relevant, push the branch, open a PR against `main` with a concise description and any linked issues.
+- CI behavior: unit tests and Python tests run on PRs; the Supabase integration job is currently disabled (see PR #49) and the `CI heartbeat` issue (#51) summarizes runs.
+- Interpreting the heartbeat: check issue #51 for pulses — `All green` (good), `Noise detected` (known external noise), `New failure` (action required).
+- What a clean signal means: all required workflows pass and there are no noisy failing jobs; this is the state we seek before merging.
+- Philosophy: prefer small, reversible PRs, include tests or a short validation note, and re-run the sequencer or validations after making changes that touch introspection or the parser.
+
+## DB Patch Workflow (Introspection → Patch → Validate)
+
+This project follows a lightweight, repeatable workflow for DB changes discovered via introspection:
+
+1. Run introspection locally or on a reachable VM using `./scripts/introspect-local.sh` (see `docs/INTROSPECTION.md`).
+2. Upload the produced zip as a GitHub Release (or place it at a reachable URL) and open an issue using the **Supabase Introspection Artifact Attached** template.
+3. Trigger automated parsing by commenting `/introspect <url>` on the issue, or run `node scripts/parse-introspection.js` locally to generate findings.
+4. From the findings, prepare idempotent SQL patches (use `DO $$ BEGIN IF NOT EXISTS(...) THEN ... END IF; END $$;` patterns where possible) and include a short test that validates the change in staging.
+5. Open a PR with the SQL migration(s), reference the issue, and include rollback steps and a short validation checklist.
+6. After merging, re-run introspection and the admin createUser diagnostic to confirm the issue is resolved.
+
+This keeps DB changes surgical, reviewed, and testable.
 ## Reporting Issues
 - Open an issue with a clear title, steps to reproduce, and expected vs actual behavior.
 - For security issues, please email `security@alverse.app` directly.
