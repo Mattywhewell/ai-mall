@@ -38,6 +38,16 @@ This is a **fully autonomous, AI-native e-commerce platform** that learns, adapt
 
 ## 🌟 Core Features
 
+### Design Principles
+A few short principles that guide architecture and decision-making across the repository:
+
+- **Deterministic over clever** — prefer predictable, testable behavior to complex one-offs.
+- **Additive over mutative** — favor idempotent, additive changes rather than destructive edits.
+- **Introspective over reactive** — prioritize observable state and re-introspection over implicit assumptions.
+- **Clarity over completeness** — favor simple, auditable steps that reviewers can reason about.
+- **Reversible over final** — design for safe rollbacks and incremental validation.
+- **Signal over noise** — minimize noisy automation; surface clear, actionable signals.
+
 ### Phase 1: AI-Native Foundation
 1. ✅ **AI Product Descriptions** - GPT-4 generated with tone matching
 2. ✅ **Intelligent Auto-Tagging** - Smart categorization
@@ -165,6 +175,8 @@ npm run dev
 
 Visit [http://localhost:3000](http://localhost:3000) 🎉
 
+Tip: For developer tooling related to the SQL-patch arc (sequencer, JSON ingestion, and tests), see the `Sequencer runner & tests` section in `QUICK_START.md` for quick commands to run the sequencer and its tests locally.
+
 ## 🧪 Testing
 
 ### Enhanced Security Features Test
@@ -195,6 +207,25 @@ npm run test:email
 # Test moderation features
 npm run test:moderation
 ```
+
+### Sequencer runner & tests 🔧
+Quick commands to run the sequencing reference implementation and its tests locally:
+
+```bash
+# Install Python test dependencies
+python -m pip install -r requirements.txt
+
+# Run the demo sequencer (sample dataset)
+python scripts/sequencer_runner.py
+
+# Run the sequencer against a parser-output JSON
+python scripts/sequencer_runner.py --input scripts/introspection-findings.sample.json
+
+# Run the sequencer tests
+python -m pytest -q scripts/tests
+```
+
+This shows how to execute the sequencer, feed it real parser output, and run the unit tests that validate JSON→Patch mapping, cycle detection, and phase grouping.
 
 ## 📚 Documentation
 
