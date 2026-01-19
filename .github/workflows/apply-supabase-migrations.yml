@@ -38,6 +38,14 @@ jobs:
           echo "Running ci-supabase-diagnostic.js"
           node scripts/ci-supabase-diagnostic.js
 
+      - name: Run Supabase introspection (functions/triggers)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "Running ci-supabase-introspect.js"
+          node scripts/ci-supabase-introspect.js || true
+
       - name: Test admin create user
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
