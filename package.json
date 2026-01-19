@@ -7,6 +7,8 @@
     "build": "set NODE_OPTIONS=--max-old-space-size=8192 && next build",
     "start": "next start",
     "lint": "next lint",
+    "dev:lint": "npm run lint",
+    "dev:format": "npx eslint --fix . || true",
     "generate-embeddings": "tsx scripts/generate-embeddings.ts",
     "test:email": "tsx scripts/test-email-verification.ts",
     "test:moderation": "tsx scripts/test-moderation.ts",
