@@ -41,10 +41,31 @@ WHERE udt_name = 'user_role';`;
   const authTriggersSql = `SELECT * FROM information_schema.triggers
 WHERE event_object_schema='auth' AND event_object_table='users';`;
 
+  const depSql = `-- dependencies on user_role type
+SELECT d.classid::regclass::text AS class, d.objid, d.objid::regprocedure AS proc, d.refobjid::regtype AS ref_type
+FROM pg_depend d
+WHERE d.refobjid = (SELECT oid FROM pg_type WHERE typname='user_role');`;
+
+  const attrSql = `-- columns typed as user_role
+SELECT attrelid::regclass AS table, attname, atttypid::regtype AS type
+FROM pg_attribute
+WHERE atttypid = (SELECT oid FROM pg_type WHERE typname='user_role');`;
+
+  const procTypeSql = `-- functions with user_role in return/arg types
+SELECT p.oid, n.nspname AS schema, p.proname, p.prorettype::regtype AS return_type, p.proargtypes
+FROM pg_proc p
+JOIN pg_namespace n ON p.pronamespace = n.oid
+WHERE p.prorettype = (SELECT oid FROM pg_type WHERE typname='user_role')
+   OR p.proargtypes::text ILIKE '%user_role%';`;
+
   await sqlRunner(supabase, functionsSql, 'FUNCTIONS');
   await sqlRunner(supabase, triggersSql, 'TRIGGERS');
   await sqlRunner(supabase, columnsSql, 'COLUMNS');
   await sqlRunner(supabase, authTriggersSql, 'AUTH_USERS_TRIGGERS');
+
+  await sqlRunner(supabase, depSql, 'DEPENDENCIES');
+  await sqlRunner(supabase, attrSql, 'ATTRIBUTES');
+  await sqlRunner(supabase, procTypeSql, 'PROC_TYPES');
 
   console.log('\n--- Done ---');
   process.exit(0);
