@@ -76,7 +76,7 @@ async function testConnection(serviceKey) {
     const { createClient } = require('@supabase/supabase-js');
     const supabase = createClient('https://wmiqtmtjhlpfsjwjvwgl.supabase.co', serviceKey);
 
-    const { data, error } = await supabase.from('products').select('id').limit(1);
+    const { error } = await supabase.from('products').select('id').limit(1);
 
     if (error && !error.message.includes('relation') && !error.message.includes('does not exist')) {
       console.log('❌ Database connection failed:', error.message);
