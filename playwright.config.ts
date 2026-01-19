@@ -18,7 +18,9 @@ export default defineConfig({
       command: isCI ? 'npm run build && npm run start' : 'npm run dev',
       url: 'http://localhost:3000',
       timeout: 120_000,
-      reuseExistingServer: !isCI,
+      // When a BASE_URL is supplied (workflow starts the server), allow Playwright to reuse it.
+      // Keep the previous behavior of reusing the server in local dev (when not CI).
+      reuseExistingServer: !!process.env.BASE_URL || !isCI,
     };
   })(),
   projects: [
