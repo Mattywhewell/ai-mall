@@ -42,3 +42,34 @@ The sequencer classifies runtime issues into three failure modes to drive determ
   - Guidance: include these as `info`-level signals in the output so maintainers can review and triage as needed.
 
 These clear failure modes help automation and human reviewers respond consistently when the parser or artifact is imperfect.
+
+Lifecycle
+
+A brief overview of the sequencer's end-to-end flow (input → output):
+
+1. Ingest
+   - Accepts parser-produced findings JSON (top-level list or `{ "findings": [...] }`). Normalize legacy fields and apply defaulting.
+
+2. Validate
+   - Run schema validation and integrity checks. Hard-Fail on corrupted or invalid artifacts; emit integrity signals.
+
+3. Map & Classify
+   - Map findings to internal Patch objects, assign classifications (Additive/Corrective/Destructive), and compute confidence and impact.
+
+4. Graph Build & Detect
+   - Build dependency graph, detect cycles (SCC/Tarjan), and surface unmatched dependencies as signals.
+
+5. Schedule
+   - Run Kahn's algorithm with deterministic priority tie-breaks to produce ordered layers and phase groupings (Additive → Corrective → Destructive).
+
+6. Emit Plan
+   - Write machine-readable plan (JSON) and human-readable summary (MD); include warnings, cycles, unmatched deps, and suggested SQL.
+
+7. Re-introspection & Iterate
+   - After patches are applied, re-run introspection and the parser to re-evaluate findings; iterate in small, reversible phases.
+
+Notes
+- Dry-run mode: the sequencer can be used as a dry-run in CI to assert no cycles or destructive-only plans before human sign-off.
+- Files & contracts: the sequencer expects `introspection-findings.json` style inputs and emits a `sequencer-plan.json` (or equivalent) for downstream review.
+
+This lifecycle provides a compact mental model contributors can use to anticipate how artifacts will be handled and where to look for signals.
