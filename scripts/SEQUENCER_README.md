@@ -21,3 +21,24 @@ This sequencer emits machine- and human-readable signals when it ingests parser 
   - Examples: checksum mismatch, corrupted file, partial upload, missing assets.
 
 When a real introspection artifact arrives, these signals should guide triage: fix structural/ integrity problems first, then resolve semantic questions before applying patches.
+
+Failure Modes
+
+The sequencer classifies runtime issues into three failure modes to drive deterministic behavior when artifacts are imperfect:
+
+- Hard Failures (Stop Processing)
+  - Conditions where the sequencer must refuse to continue and surface a human action.
+  - Examples: invalid schema, corrupted artifact, missing required fields, checksum mismatch.
+  - Guidance: fail fast, write an explicit error in the output artifacts, and do not emit patch SQL.
+
+- Soft Failures (Process but Warn)
+  - Conditions that allow the sequencer to continue but require human attention.
+  - Examples: unknown/experimental patch type, deprecated fields, partial metadata, low confidence scores.
+  - Guidance: emit warnings alongside findings, mark affected patches for manual review, continue best-effort scheduling.
+
+- Non-Failures (Informational)
+  - Signals that are noteworthy but not errors.
+  - Examples: inferred relationships, optional fields missing, multi-file detection, normalization applied.
+  - Guidance: include these as `info`-level signals in the output so maintainers can review and triage as needed.
+
+These clear failure modes help automation and human reviewers respond consistently when the parser or artifact is imperfect.
