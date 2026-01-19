@@ -36,7 +36,8 @@ def test_cycle_findings_valid():
 
 def test_sample_introspection_valid():
     schema = load_schema()
-    path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'introspection-findings.sample.json'))
+    # Use a tracked sample for CI (original introspection outputs are ignored in .gitignore)
+    path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'samples', 'introspection-sample.json'))
     validate(path, schema)
 
 
