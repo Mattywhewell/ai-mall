@@ -27,3 +27,16 @@ You can run a one-off test to verify Slack and email notifications for nightly t
 - For security issues, please email `security@alverse.app` directly.
 
 Thanks again — contributions and feedback are welcome!
+
+## DB Patch Workflow (Introspection → Patch → Validate)
+
+This project follows a lightweight, repeatable workflow for DB changes discovered via introspection:
+
+1. Run introspection locally or on a reachable VM using `./scripts/introspect-local.sh` (see `docs/INTROSPECTION.md`).
+2. Upload the produced zip as a GitHub Release (or place it at a reachable URL) and open an issue using the **Supabase Introspection Artifact Attached** template.
+3. Trigger automated parsing by commenting `/introspect <url>` on the issue, or run `node scripts/parse-introspection.js` locally to generate findings.
+4. From the findings, prepare idempotent SQL patches (use `DO $$ BEGIN IF NOT EXISTS(...) THEN ... END IF; END $$;` patterns where possible) and include a short test that validates the change in staging.
+5. Open a PR with the SQL migration(s), reference the issue, and include rollback steps and a short validation checklist.
+6. After merging, re-run introspection and the admin createUser diagnostic to confirm the issue is resolved.
+
+This keeps DB changes surgical, reviewed, and testable.
