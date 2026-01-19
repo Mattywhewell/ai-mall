@@ -65,3 +65,5 @@ If you uploaded the introspection zip as a GitHub Release or hosted it at a reac
 
 The repository's automation will download the zip, run `scripts/parse-introspection.js`, post a findings summary, upload parsed artifacts, and apply the `introspection` and `schema-review` labels. Do **not** include secrets in the URL or comment.
 
+For a short roadmap of how this arc may evolve (multi-stream validation, schema versioning, and cross-artifact validation), see `docs/FUTURE_EXTENSION_PATH.md`.
+
