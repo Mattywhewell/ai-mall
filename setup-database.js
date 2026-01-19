@@ -7,6 +7,7 @@
  */
 
 const { createClient } = require('@supabase/supabase-js');
+const { Client } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
@@ -55,6 +56,20 @@ async function setupDatabase() {
 
   console.log('\n📄 Running database migrations...');
 
+  // Prepare optional direct PG client fallback if a DATABASE URL is provided
+  const pgUrl = process.env.SUPABASE_DATABASE_URL || process.env.DATABASE_URL;
+  let pgClient = null;
+  if (pgUrl) {
+    pgClient = new Client({ connectionString: pgUrl });
+    try {
+      await pgClient.connect();
+      console.log('🔒 Connected to DB via SUPABASE_DATABASE_URL fallback');
+    } catch (err) {
+      console.log('⚠️  Could not connect using SUPABASE_DATABASE_URL:', err.message);
+      pgClient = null;
+    }
+  }
+
   for (const sqlFile of sqlFiles) {
     const sqlPath = path.join(process.cwd(), sqlFile);
 
@@ -72,12 +87,30 @@ async function setupDatabase() {
       const statements = sql.split(';').filter(stmt => stmt.trim().length > 0);
 
       for (const statement of statements) {
-        if (statement.trim()) {
-          const { error } = await supabase.rpc('exec_sql', { sql: statement + ';' });
+        if (!statement.trim()) continue;
 
-          if (error) {
-            console.log(`⚠️  Statement failed: ${error.message}`);
-            // Continue with other statements
+        // Try to run via exec_sql RPC
+        const { error } = await supabase.rpc('exec_sql', { sql: statement + ';' });
+
+        if (error) {
+          console.log(`⚠️  Statement failed via RPC: ${error.message}`);
+
+          // If exec_sql is not available in the schema cache, try direct PG fallback
+          if (error.message && error.message.includes('Could not find the function public.exec_sql')) {
+            if (pgClient) {
+              try {
+                await pgClient.query(statement + ';');
+                console.log('✅ Statement executed via direct PG fallback');
+              } catch (pgErr) {
+                console.log('❌ Direct PG execution failed:', pgErr.message);
+              }
+            } else {
+              console.log('⚠️  exec_sql is missing and no SUPABASE_DATABASE_URL is configured.');
+              console.log('    To enable bootstrap execution, set SUPABASE_DATABASE_URL in this environment to a Postgres connection string (trusted secret).');
+            }
+          } else {
+            // Other RPC error; log and continue
+            console.log('    (non-bootstrap error, continuing)');
           }
         }
       }
@@ -86,6 +119,14 @@ async function setupDatabase() {
 
     } catch (error) {
       console.log(`❌ Error running ${sqlFile}:`, error.message);
+    }
+  }
+
+  if (pgClient) {
+    try {
+      await pgClient.end();
+    } catch (err) {
+      // ignore
     }
   }
 

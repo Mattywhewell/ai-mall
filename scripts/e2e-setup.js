@@ -142,17 +142,21 @@ async function main() {
   }
 
   // Ensure deterministic test users & roles (admin, supplier, standard)
-  try {
-    const { ensureTestUsers } = require('./e2e-seeders');
-    console.log('\n🔁 Ensuring deterministic test users and roles exist...');
-    await ensureTestUsers(supabase, { log: console });
-    console.log('✅ Test users & roles ensured');
-  } catch (err) {
-    if (isCI) {
-      console.error('❌ Failed to seed test users:', err && (err.message || JSON.stringify(err)));
-      process.exit(1);
+  if (process.env.SKIP_SUPABASE_SEED === 'true') {
+    console.log('\nℹ️  SKIP_SUPABASE_SEED=true -> skipping auth user creation (CI flag)');
+  } else {
+    try {
+      const { ensureTestUsers } = require('./e2e-seeders');
+      console.log('\n🔁 Ensuring deterministic test users and roles exist...');
+      await ensureTestUsers(supabase, { log: console });
+      console.log('✅ Test users & roles ensured');
+    } catch (err) {
+      if (isCI) {
+        console.error('❌ Failed to seed test users:', err && (err.message || JSON.stringify(err)));
+        process.exit(1);
+      }
+      console.warn('⚠️  Failed to seed test users locally — continuing:', err && (err.message || JSON.stringify(err)));
     }
-    console.warn('⚠️  Failed to seed test users locally — continuing:', err && (err.message || JSON.stringify(err)));
   }
 
   console.log('\n🎉 E2E seeding complete.');

@@ -1,0 +1,80 @@
+name: Introspect on comment
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  introspect:
+    if: startsWith(github.event.comment.body, '/introspect')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install unzip
+        run: sudo apt-get update && sudo apt-get install -y unzip zip curl
+
+      - name: Download artifact from comment
+        id: download
+        run: |
+          set -e
+          COMMENT="${{ github.event.comment.body }}"
+          ISSUE_NUMBER=${{ github.event.issue.number }}
+          echo "Got comment: $COMMENT"
+          URL=$(echo "$COMMENT" | grep -oE 'https?://[^ ]+' | head -n1 || true)
+          if [ -z "$URL" ]; then echo "No URL found in comment. Use: /introspect <release-or-gist-or-zip-url>" && exit 1; fi
+          echo "Downloading $URL"
+          curl -fSL "$URL" -o artifact.zip
+          unzip artifact.zip -d artifact || true
+          # find folder with supabase-introspect.log
+          DIR=$(find artifact -type f -name 'supabase-introspect.log' -printf '%h\n' | head -n1 || true)
+          if [ -z "$DIR" ]; then DIR=artifact; fi
+          echo "::set-output name=dir::$DIR"
+
+      - name: Run parser
+        run: |
+          DIR=${{ steps.download.outputs.dir }}
+          node scripts/parse-introspection.js "$DIR"
+
+      - name: Upload findings as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: introspection-findings-${{ github.run_id }}
+          path: |
+            introspection-findings.json
+            introspection-findings.md
+            introspection-patches.sql
+
+      - name: Comment results to issue
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          python - <<PY
+import os, json
+fn = 'introspection-findings.md'
+body = open(fn).read() if os.path.exists(fn) else 'No summary generated.'
+payload = json.dumps({'body': 'Automated introspection results:\n\n' + body})
+import subprocess, sys
+url = f"https://api.github.com/repos/{os.environ['REPO']}/issues/{os.environ['ISSUE_NUMBER']}/comments"
+proc = subprocess.run(['curl','-s','-X','POST','-H',f"Authorization: token {os.environ['GITHUB_TOKEN']}",'-H','Content-Type: application/json','-d',payload,url], check=False, capture_output=True)
+print(proc.stdout.decode())
+PY
+
+      - name: Add labels to issue
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          curl -s -X POST -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -d "{\"labels\": [\"introspection\", \"schema-review\"]}" "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/labels" || true

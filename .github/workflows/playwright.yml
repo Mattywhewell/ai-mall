@@ -43,6 +43,8 @@ jobs:
       STRIPE_WEBHOOK_SECRET: whsec_test_placeholder
       NEXT_PUBLIC_DISABLE_3D: 'true'
       NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
+      # When true, skip creating auth users in `scripts/e2e-setup.js` to avoid upstream Supabase Auth instability
+      SKIP_SUPABASE_SEED: 'true'
     steps:
       - uses: actions/checkout@v4
 
