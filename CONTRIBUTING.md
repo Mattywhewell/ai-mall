@@ -1,5 +1,7 @@
 # Contributing
 
+Where to start: See `QUICK_START.md` for a short setup and `docs/INTROSPECTION.md` for DB introspection & patching guidance.
+
 Thanks for contributing to Aiverse! This document covers quick guidelines for contributing, running tests, and validating CI notifications.
 
 ## Telemetry Notification Test (CI)
@@ -21,6 +23,17 @@ You can run a one-off test to verify Slack and email notifications for nightly t
 ## Running Tests Locally
 - Unit tests: `npm test` (or `npm run test`)
 - Playwright e2e: `npx playwright test` (ensure Playwright browsers are installed via `npx playwright install`)
+
+**How to run the sequencer locally**
+
+- Run the sequencer demo against a sample findings JSON:
+  ```bash
+  python scripts/sequencer_runner.py --input scripts/samples/normal-findings.json
+  ```
+- Run the sequencer tests:
+  ```bash
+  python -m pytest -q scripts/tests
+  ```
 
 ## Reporting Issues
 - Open an issue with a clear title, steps to reproduce, and expected vs actual behavior.
