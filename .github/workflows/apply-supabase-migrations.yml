@@ -56,7 +56,8 @@ jobs:
           SUPABASE_DATABASE_URL: ${{ secrets.repo_secret }}
         run: |
           echo "Checking TCP reachability to Postgres host from SUPABASE_DATABASE_URL..."
-          node -e "const net=require('net'),dns=require('dns'); const u=new URL(process.env.SUPABASE_DATABASE_URL); console.log('Host:',u.hostname,'Port:',u.port||5432); dns.lookup(u.hostname,(err,address)=>{ if(err){console.error('DNS_ERR',err.message); process.exit(4);} console.log('Resolved',address); const s=net.createConnection({host:address,port:u.port||5432},()=>{console.log('CONNECTED',address,(u.port||5432)); s.end(); process.exit(0)}); s.on('error',e=>{console.error('ERR',e.code||e.message); process.exit(2)}); setTimeout(()=>{console.error('TIMEOUT'); process.exit(3)},5000); })"
+          # Do not fail the job on reachability TIMEOUT so the SSL connection test runs and surfaces more detailed errors
+          node -e "const net=require('net'),dns=require('dns'); const u=new URL(process.env.SUPABASE_DATABASE_URL); console.log('Host:',u.hostname,'Port:',u.port||5432); dns.lookup(u.hostname,(err,address)=>{ if(err){console.error('DNS_ERR',err.message); process.exit(4);} console.log('Resolved',address); const s=net.createConnection({host:address,port:u.port||5432},()=>{console.log('CONNECTED',address,(u.port||5432)); s.end(); process.exit(0)}); s.on('error',e=>{console.error('ERR',e.code||e.message); process.exit(2)}); setTimeout(()=>{console.error('TIMEOUT'); process.exit(3)},5000); })" || true
 
       - name: DB Postgres SSL connect test
         env:
