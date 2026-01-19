@@ -1,0 +1,4 @@
+# Mark logs and generated artifacts as linguist-generated to keep diffs clean
+*.log linguist-generated=true
+supabase-migrations-logs-*.zip linguist-generated=true
+introspection-findings.* linguist-generated=true

@@ -51,3 +51,9 @@ tmp-page-response*
 # local dev logs
 dev.log
 
+# Introspection outputs (do not commit)
+introspect-logs-*/
+supabase-migrations-logs-*.zip
+introspection-findings.*
+
+

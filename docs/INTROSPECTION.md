@@ -56,3 +56,12 @@ Example Issue (copy into new issue using template)
   - introspect: `exec_sql missing`
 
 ---
+
+## Triggering automated parsing via `/introspect` (optional)
+
+If you uploaded the introspection zip as a GitHub Release or hosted it at a reachable URL (gist/raw zip), you can trigger the automated parser by commenting on the issue:
+
+`/introspect <url>`
+
+The repository's automation will download the zip, run `scripts/parse-introspection.js`, post a findings summary, upload parsed artifacts, and apply the `introspection` and `schema-review` labels. Do **not** include secrets in the URL or comment.
+
