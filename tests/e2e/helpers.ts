@@ -26,8 +26,14 @@ export async function ensureTestUser(page: Page, role: string) {
 
   // Try to set a cookie so that SSR (or middleware aware routes) can read the test user and render deterministically.
   const urlObj = new URL(BASE);
-  const cookieWithUrl = { name: 'test_user', value: JSON.stringify({ role }), path: '/', url: urlObj.origin };
+  // Playwright's addCookies prefers either `url` OR `domain`+`path` — not both. Use a url-only
+  // cookie for origin-based set (works well for the common case) and a domain/path cookie as a
+  // fallback for drivers that prefer domain-based cookies. Also attempt an alternate host (localhost
+  // vs 127.0.0.1) when possible, since CI environments can vary in hostname resolution.
+  const cookieWithUrl = { name: 'test_user', value: JSON.stringify({ role }), url: urlObj.origin } as any;
   const cookieWithDomain = { name: 'test_user', value: JSON.stringify({ role }), domain: urlObj.hostname, path: '/' } as any;
+  const alternateHost = urlObj.hostname === 'localhost' ? '127.0.0.1' : urlObj.hostname === '127.0.0.1' ? 'localhost' : null;
+  const cookieWithDomainAlt = alternateHost ? { name: 'test_user', value: JSON.stringify({ role }), domain: alternateHost, path: '/' } as any : null;
 
   // Attempt 1: set cookie using url (preferred). Verify it was set.
   let cookieSet = false;
@@ -55,10 +61,27 @@ export async function ensureTestUser(page: Page, role: string) {
         console.info('ensureTestUser: addCookies(domain) succeeded');
         cookieSet = true;
       } else {
-        console.warn('ensureTestUser: addCookies(domain) did not set cookie; will fall back to document.cookie');
+        console.warn('ensureTestUser: addCookies(domain) did not set cookie; will try alternate domain fallback or document.cookie');
       }
     } catch (e) {
-      console.warn('ensureTestUser: addCookies(domain) failed with error, falling back to document.cookie', e && e.message ? e.message : e);
+      console.warn('ensureTestUser: addCookies(domain) failed with error, will try alternate domain or document.cookie', e && e.message ? e.message : e);
+    }
+  }
+
+  // Attempt 2b: try alternate host domain (localhost <-> 127.0.0.1) if applicable
+  if (!cookieSet && cookieWithDomainAlt) {
+    try {
+      await page.context().addCookies([cookieWithDomainAlt]);
+      let cookies = await page.context().cookies();
+      let found = cookies.find(c => c.name === 'test_user');
+      if (found) {
+        console.info('ensureTestUser: addCookies(alternate domain) succeeded:', cookieWithDomainAlt.domain);
+        cookieSet = true;
+      } else {
+        console.warn('ensureTestUser: addCookies(alternate domain) did not set cookie; will fall back to document.cookie');
+      }
+    } catch (e) {
+      console.warn('ensureTestUser: addCookies(alternate domain) failed with error, falling back to document.cookie', e && e.message ? e.message : e);
     }
   }
 
