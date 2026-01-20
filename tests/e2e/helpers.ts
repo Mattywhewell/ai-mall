@@ -81,3 +81,35 @@ export async function ensureTestUser(page: Page, role: string) {
     console.warn('ensureTestUser: fallback cookie via document.cookie failed', e && e.message ? e.message : e);
   }
 }
+
+// Ensure no test user is present for a request. This clears localStorage and cookies so
+// pages rendered server-side with ?no_test_user=true will not see a test user injected.
+export async function ensureNoTestUser(page: Page) {
+  try {
+    // Run before the page scripts execute to avoid hydrating with a test user
+    // Clear any keys that could indicate a session (supabase or test harness)
+    await page.addInitScript(() => {
+      try {
+        localStorage.removeItem('test_user');
+        try { localStorage.clear(); } catch (e) {}
+      } catch (e) {}
+    });
+  } catch (e) {
+    // ignore
+  }
+
+  try {
+    // Clear cookies from the context to remove any test_user cookie
+    await page.context().clearCookies();
+    console.info('ensureNoTestUser: cleared cookies');
+  } catch (e) {
+    // Fallback: expire test_user cookie via document.cookie on the page origin
+    try {
+      await page.evaluate(() => { document.cookie = 'test_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'; });
+      console.info('ensureNoTestUser: expired test_user cookie via document.cookie fallback');
+    } catch (err) {
+      console.warn('ensureNoTestUser: failed to clear cookies', err && err.message ? err.message : err);
+    }
+  }
+}
+
