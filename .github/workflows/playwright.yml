@@ -98,7 +98,8 @@ jobs:
           # Quick verification printed from node runtime (will appear in job logs)
           node -e "console.log('CI runtime NEXT_PUBLIC_INCLUDE_TEST_PAGES=', process.env.NEXT_PUBLIC_INCLUDE_TEST_PAGES, 'NEXT_PUBLIC_DISABLE_3D=', process.env.NEXT_PUBLIC_DISABLE_3D, 'NEXT_PUBLIC_TEST_USER=', process.env.NEXT_PUBLIC_TEST_USER, 'NEXT_PUBLIC_TEST_USER_ROLE=', process.env.NEXT_PUBLIC_TEST_USER_ROLE)"
 
-          npm run start &
+          # Start server with explicit inline envs to guarantee the child process receives them
+          NEXT_PUBLIC_TEST_USER="$NEXT_PUBLIC_TEST_USER" NEXT_PUBLIC_TEST_USER_ROLE="$NEXT_PUBLIC_TEST_USER_ROLE" npm run start &
           echo "Waiting for server..."
           npx wait-on http://localhost:3000 -t 60000
         env:
