@@ -104,10 +104,37 @@ export async function ensureTestUser(page: Page, role: string) {
         console.info('ensureTestUser: document.cookie warmup succeeded');
         cookieSet = true;
       } else {
-        console.warn('ensureTestUser: document.cookie warmup did not result in a context cookie; tests may rely on localStorage or query params for SSR parity');
+        console.warn('ensureTestUser: document.cookie warmup did not result in a context cookie; will try server-side Set-Cookie fallback if available');
       }
     } catch (e) {
       console.warn('ensureTestUser: fallback cookie via document.cookie failed', e && e.message ? e.message : e);
+    }
+  }
+
+  // Server-side Set-Cookie fallback: in CI/debug we expose a gated endpoint `/api/test/set-test-user`
+  // that issues a Set-Cookie on the server response. This is the most reliable way to ensure
+  // SSR sees the cookie on the immediate next request. Only use when running in CI/debug.
+  let serverFallbackTried = false;
+  if (!cookieSet && (process.env.CI || process.env.NEXT_PUBLIC_E2E_DEBUG === 'true')) {
+    try {
+      serverFallbackTried = true;
+      const setUrl = `${BASE}/api/test/set-test-user?role=${encodeURIComponent(role)}`;
+      console.info('ensureTestUser: attempting server-set-cookie fallback via', setUrl);
+      // Use a navigation so the server response sets the cookie on the browser context
+      await page.goto(setUrl, { waitUntil: 'networkidle', timeout: 7000 }).catch(() => null);
+
+      // Give the browser a moment to apply the cookie to the context
+      await page.waitForTimeout(300);
+      const postServerCookies = await page.context().cookies();
+      const serverFound = postServerCookies.find(c => c.name === 'test_user');
+      if (serverFound) {
+        console.info('ensureTestUser: server-set cookie succeeded');
+        cookieSet = true;
+      } else {
+        console.warn('ensureTestUser: server-set cookie did not appear in context cookies');
+      }
+    } catch (e) {
+      console.warn('ensureTestUser: server-set cookie fallback failed', e && e.message ? e.message : e);
     }
   }
 
@@ -136,8 +163,31 @@ export async function ensureTestUser(page: Page, role: string) {
       await page.waitForSelector(selector, { timeout: 3000 });
       console.info('ensureTestUser: SSR probe confirmed server role via cookie:', role);
     } catch (err) {
+      console.warn('ensureTestUser: SSR probe failed on first attempt — will try server-set fallback if available');
+
+      // If we haven't already tried the server fallback, attempt it now and re-probe once.
+      if (!serverFallbackTried && (process.env.CI || process.env.NEXT_PUBLIC_E2E_DEBUG === 'true')) {
+        try {
+          const setUrl = `${BASE}/api/test/set-test-user?role=${encodeURIComponent(role)}`;
+          console.info('ensureTestUser: attempting server-set-cookie fallback (reprobe) via', setUrl);
+          await page.goto(setUrl, { waitUntil: 'networkidle', timeout: 7000 }).catch(() => null);
+          await page.waitForTimeout(300);
+
+          // Re-probe SSR
+          const probeUrl2 = `${BASE}/?__ssr_probe=${Date.now()}`;
+          await page.goto(probeUrl2, { waitUntil: 'domcontentloaded', timeout: 7000 });
+          const selector2 = '[data-testid="test-user-server"][data-role="' + role + '"]';
+          await page.waitForSelector(selector2, { timeout: 3000 });
+          console.info('ensureTestUser: SSR probe confirmed server role via server-set cookie:', role);
+          return;
+        } catch (err2) {
+          // fall-through to throw below
+          console.warn('ensureTestUser: server-set reprobe also failed');
+        }
+      }
+
       // Intentionally throw so the test fails fast with a trace when SSR did not reflect the cookie.
-      throw new Error(`ensureTestUser: SSR probe failed — server did not render test-user cookie for role "${role}". Last cookieSet=${cookieSet}.`);
+      throw new Error(`ensureTestUser: SSR probe failed — server did not render test-user cookie for role "${role}". Last cookieSet=${cookieSet}, serverFallbackTried=${serverFallbackTried}.`);
     }
   } else if (cookieSet) {
     console.info('ensureTestUser: cookie set; SSR probe skipped (not CI/debug)');
