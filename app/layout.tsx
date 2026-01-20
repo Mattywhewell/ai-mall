@@ -32,9 +32,9 @@ export default function RootLayout({
     : undefined;
 
   // Emit a short, CI-gated diagnostic so server-side logs show whether SSR initialUser was set in CI runs
-  if (process.env.CI && initialUser) {
+  if (process.env.CI) {
     // eslint-disable-next-line no-console
-    console.info('CI: SSR initialUser present:', initialUser.role);
+    console.info('CI: SSR initialUser:', initialUser ? initialUser.role : '<missing>');
   }
 
   return (
