@@ -112,8 +112,6 @@ export async function ensureTestUser(page: Page, role: string) {
         }
       }
 
-[...] (SNIP for context)
-
           // Re-probe SSR
           const probeUrl2 = `${BASE}/?__ssr_probe=${Date.now()}`;
 
