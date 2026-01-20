@@ -31,6 +31,12 @@ export default function RootLayout({
     ? { role: (queryRole || envTestRole || 'citizen') }
     : undefined;
 
+  // Emit a short, CI-gated diagnostic so server-side logs show whether SSR initialUser was set in CI runs
+  if (process.env.CI && initialUser) {
+    // eslint-disable-next-line no-console
+    console.info('CI: SSR initialUser present:', initialUser.role);
+  }
+
   return (
     <html lang="en">
       <head>
