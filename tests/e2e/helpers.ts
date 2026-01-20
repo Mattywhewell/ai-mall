@@ -91,31 +91,101 @@ export async function ensureTestUser(page: Page, role: string) {
       console.info('ensureTestUser: performing document.cookie warmup fallback');
       await page.goto(`${BASE}/?__test_cookie_warmup=1`, { waitUntil: 'domcontentloaded', timeout: 5000 }).catch(() => null);
 
-      await page.evaluate((r) => {
-        document.cookie = `test_user=${encodeURIComponent(JSON.stringify({ role: r }))}; path=/;`;
-      }, role);
+          // Set raw JSON value (no encode) to avoid double-encoding ambiguity
+          await page.evaluate((r) => {
+            document.cookie = `test_user=${JSON.stringify({ role: r })}; path=/;`;
+          }, role);
 
-      // Give the browser a moment to apply the cookie to the context
-      await page.waitForTimeout(500);
+          // Give the browser a moment to apply the cookie to the context
+          await page.waitForTimeout(500);
 
-      const finalCookies = await page.context().cookies();
-      const finalFound = finalCookies.find(c => c.name === 'test_user');
-      if (finalFound) {
-        console.info('ensureTestUser: document.cookie warmup succeeded');
-        cookieSet = true;
-      } else {
-        console.warn('ensureTestUser: document.cookie warmup did not result in a context cookie; will try server-side Set-Cookie fallback if available');
+          const finalCookies = await page.context().cookies();
+          const finalFound = finalCookies.find(c => c.name === 'test_user');
+          if (finalFound) {
+            console.info('ensureTestUser: document.cookie warmup succeeded');
+            cookieSet = true;
+          } else {
+            console.warn('ensureTestUser: document.cookie warmup did not result in a context cookie; will try server-side Set-Cookie fallback if available');
+          }
+        } catch (e) {
+          console.warn('ensureTestUser: fallback cookie via document.cookie failed', e && e.message ? e.message : e);
+        }
       }
-    } catch (e) {
-      console.warn('ensureTestUser: fallback cookie via document.cookie failed', e && e.message ? e.message : e);
-    }
-  }
 
-  // Server-side Set-Cookie fallback: in CI/debug we expose a gated endpoint `/api/test/set-test-user`
-  // that issues a Set-Cookie on the server response. This is the most reliable way to ensure
-  // SSR sees the cookie on the immediate next request. Only use when running in CI/debug.
-  let serverFallbackTried = false;
-  if (!cookieSet && (process.env.CI || process.env.NEXT_PUBLIC_E2E_DEBUG === 'true')) {
+[...] (SNIP for context)
+
+          // Re-probe SSR
+          const probeUrl2 = `${BASE}/?__ssr_probe=${Date.now()}`;
+
+          // set probe header for reprobe and force fresh SSR via cache-bypass
+          const probeHeader = { 'x-e2e-ssr-probe': '1', 'cache-control': 'no-cache', 'pragma': 'no-cache' };
+          try {
+            await page.context().setExtraHTTPHeaders(probeHeader);
+            console.info('ensureTestUser: setExtraHTTPHeaders for SSR reprobe:', JSON.stringify(probeHeader));
+          } catch (e) {
+            console.warn('ensureTestUser: failed to set reprobe header', e && e.message ? e.message : e);
+          }
+
+          // Guard: add a route-based header injection specifically for reprobe URLs as well
+          const probeRouteMatcher2 = new RegExp(`${urlObj.origin.replace(/[-\\/\^$*+?.()|[\\]{}]/g, '\\$&')}.*__ssr_probe=`);
+          const probeRouteHandler2 = async (route: any) => {
+            try {
+              const req = route.request();
+              const headers = { ...req.headers(), 'x-e2e-ssr-probe': '1', 'cache-control': 'no-cache', 'pragma': 'no-cache' };
+              await route.continue({ headers });
+            } catch (err) {
+              try { await route.continue(); } catch (e) {}
+            }
+          };
+          try { await page.route(probeRouteMatcher2, probeRouteHandler2); console.info('ensureTestUser: attached reprobe route handler'); } catch (e) { console.warn('ensureTestUser: failed to attach reprobe route handler', e && e.message ? e.message : e); }
+
+          const navRequestPromise2 = page.waitForRequest((req) => req.url().startsWith(BASE) && req.url().includes('__ssr_probe='), { timeout: 7000 }).catch(() => null);
+          const navResponsePromise2 = page.waitForResponse((res) => res.url().startsWith(BASE) && res.url().includes('__ssr_probe='), { timeout: 7000 }).catch(() => null);
+
+          await page.goto(probeUrl2, { waitUntil: 'domcontentloaded', timeout: 7000 }).catch(() => null);
+
+          // Remove the reprobe route handler and clear reprobe header
+          try { await page.unroute(probeRouteMatcher2, probeRouteHandler2); console.info('ensureTestUser: removed reprobe route handler'); } catch (e) {}
+          try { await page.context().setExtraHTTPHeaders({}); } catch (e) { }
+
+
+          const navReq2 = await navRequestPromise2;
+          if (navReq2) {
+            try {
+              console.info('ensureTestUser: reprobe request headers:', JSON.stringify(navReq2.headers()));
+            } catch (e) {
+              console.warn('ensureTestUser: failed to read reprobe request headers', e && e.message ? e.message : e);
+            }
+          }
+
+          const navRes2 = await navResponsePromise2;
+          if (navRes2) {
+            try {
+              console.info('ensureTestUser: reprobe response headers:', JSON.stringify(navRes2.headers()));
+            } catch (e) {
+              console.warn('ensureTestUser: failed to read reprobe response headers', e && e.message ? e.message : e);
+            }
+          }
+
+          // Additionally, call the deterministic probe API to verify server saw the cookie/header
+          try {
+            const probeApiRes = await page.evaluate(async (probeApi) => {
+              const r = await fetch(probeApi, { method: 'GET', headers: { 'x-e2e-ssr-probe': '1', 'cache-control': 'no-cache', 'pragma': 'no-cache' } });
+              try { return { status: r.status, body: await r.json() }; } catch (e) { return { status: r.status, text: await r.text() }; }
+            }, `${BASE}/api/test/ssr-probe?cb=${Date.now()}`);
+            console.info('ensureTestUser: server-side ssr-probe API response:', JSON.stringify(probeApiRes));
+          } catch (e) {
+            console.warn('ensureTestUser: failed to call ssr-probe API for diagnostics', e && e.message ? e.message : e);
+          }
+
+          const selector2 = '[data-testid="test-user-server"][data-role="' + role + '"]';
+          await page.waitForSelector(selector2, { timeout: 3000 });
+          console.info('ensureTestUser: SSR probe confirmed server role via server-set cookie:', role);
+          return;
+        } catch (err2) {
+          // fall-through to throw below
+          console.warn('ensureTestUser: server-set reprobe also failed');
+        }
     try {
       serverFallbackTried = true;
       const setUrl = `${BASE}/api/test/set-test-user?role=${encodeURIComponent(role)}`;
@@ -158,8 +228,8 @@ export async function ensureTestUser(page: Page, role: string) {
       // Probe the root to force SSR read of cookies (avoid passing ?test_user so we test the cookie path)
       const probeUrl = `${BASE}/?__ssr_probe=${Date.now()}`;
 
-      // Set a unique probe header so traces and server logs can identify this navigation, then capture headers
-      const probeHeader = { 'x-e2e-ssr-probe': '1' };
+      // Set a unique probe header and cache-bypass headers so traces and server logs can identify this navigation and force fresh SSR
+      const probeHeader = { 'x-e2e-ssr-probe': '1', 'cache-control': 'no-cache', 'pragma': 'no-cache' };
       try {
         await page.context().setExtraHTTPHeaders(probeHeader);
         console.info('ensureTestUser: setExtraHTTPHeaders for SSR probe:', JSON.stringify(probeHeader));
@@ -172,7 +242,7 @@ export async function ensureTestUser(page: Page, role: string) {
       const probeRouteHandler = async (route: any) => {
         try {
           const req = route.request();
-          const headers = { ...req.headers(), 'x-e2e-ssr-probe': '1' };
+          const headers = { ...req.headers(), 'x-e2e-ssr-probe': '1', 'cache-control': 'no-cache', 'pragma': 'no-cache' };
           await route.continue({ headers });
         } catch (err) {
           try { await route.continue(); } catch (e) {}
@@ -238,8 +308,8 @@ export async function ensureTestUser(page: Page, role: string) {
           // Re-probe SSR
           const probeUrl2 = `${BASE}/?__ssr_probe=${Date.now()}`;
 
-          // set probe header for reprobe
-          const probeHeader = { 'x-e2e-ssr-probe': '1' };
+          // set probe header for reprobe and force fresh SSR via cache-bypass
+          const probeHeader = { 'x-e2e-ssr-probe': '1', 'cache-control': 'no-cache', 'pragma': 'no-cache' };
           try {
             await page.context().setExtraHTTPHeaders(probeHeader);
             console.info('ensureTestUser: setExtraHTTPHeaders for SSR reprobe:', JSON.stringify(probeHeader));
@@ -252,7 +322,7 @@ export async function ensureTestUser(page: Page, role: string) {
           const probeRouteHandler2 = async (route: any) => {
             try {
               const req = route.request();
-              const headers = { ...req.headers(), 'x-e2e-ssr-probe': '1' };
+              const headers = { ...req.headers(), 'x-e2e-ssr-probe': '1', 'cache-control': 'no-cache', 'pragma': 'no-cache' };
               await route.continue({ headers });
             } catch (err) {
               try { await route.continue(); } catch (e) {}

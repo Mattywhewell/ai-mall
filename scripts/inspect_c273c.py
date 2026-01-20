@@ -1,5 +1,5 @@
 import zipfile
-z='c:/Users/cupca/Documents/ai-mall/artifacts/playwright-report/test-results/rbac-Role-Based-Access-Con-c273c--sees-standard-profile-tabs-chromium/trace.zip'
+z='tmp-ci-artifacts/21185953623/test-results/rbac-Role-Based-Access-Con-c273c--sees-standard-profile-tabs-chromium/trace.zip'
 with zipfile.ZipFile(z) as f:
     for name in f.namelist():
         try:

@@ -65,7 +65,15 @@ export default async function RootLayout({
       // cookie even though the global build exposes a default TEST_USER for deterministic runs.
       if (cookieVal && !noTestUser && !queryTestUser) {
         try {
-          const parsed = JSON.parse(decodeURIComponent(cookieVal));
+          let parsed: any = null;
+          // First try: common case where a cookie may be URL-encoded once
+          try {
+            parsed = JSON.parse(decodeURIComponent(cookieVal));
+          } catch (e) {
+            // Fallback: try parsing raw value (some clients set raw JSON directly)
+            try { parsed = JSON.parse(cookieVal); } catch (e2) { parsed = null; }
+          }
+
           if (parsed && parsed.role) {
             // Apply cookie role for this request. This will override env-driven defaults but not
             // an explicit ?test_user query param (handled above).
