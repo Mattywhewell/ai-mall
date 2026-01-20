@@ -47,19 +47,20 @@ export default async function RootLayout({
       const cookieStore = await cookies();
       const cookieVal = cookieStore.get('test_user')?.value;
       // Only allow cookie to apply when the test did not explicitly pass ?test_user in the URL
+      // and the per-request opt-out is not set. In CI/debug runs we want a per-request cookie to be
+      // able to *override* the build-time env defaults (NEXT_PUBLIC_TEST_USER), while still letting
+      // explicit query params take precedence. This allows individual tests to set the role via
+      // cookie even though the global build exposes a default TEST_USER for deterministic runs.
       if (cookieVal && !noTestUser && !queryTestUser) {
         try {
           const parsed = JSON.parse(decodeURIComponent(cookieVal));
           if (parsed && parsed.role) {
-            // Use cookie role to fill in a missing SSR initialUser (do not override explicit query param)
-            if (!initialUser) {
-              initialUser = { role: parsed.role };
-              // eslint-disable-next-line no-console
-              console.info('CI: SSR initialUser set from cookie (no query param):', initialUser.role);
-            } else {
-              // eslint-disable-next-line no-console
-              console.info('CI: SSR cookie present but query param or env already set initialUser; skipping cookie override');
-            }
+            // Apply cookie role for this request. This will override env-driven defaults but not
+            // an explicit ?test_user query param (handled above).
+            const prev = initialUser?.role;
+            initialUser = { role: parsed.role };
+            // eslint-disable-next-line no-console
+            console.info('CI: SSR initialUser set from cookie (overrode:', prev || '<none>', ') ->', initialUser.role);
           }
         } catch (e) {
           // ignore JSON parse issues
