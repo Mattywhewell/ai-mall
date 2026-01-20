@@ -114,6 +114,18 @@ export async function ensureTestUser(page: Page, role: string) {
   // Defensive SSR check (gated to CI or debug mode): navigate to root and verify the server-rendered
   // `data-testid="test-user-server"` marker exists and matches the expected role. This ensures
   // the SSR baseline actually sees the cookie before tests proceed.
+  if (cookieSet) {
+    // Print cookie details for diagnostics in CI/debug runs so we can verify domain/path/secure flags.
+    try {
+      const allCookies = await page.context().cookies();
+      if (process.env.CI || process.env.NEXT_PUBLIC_E2E_DEBUG === 'true') {
+        console.info('ensureTestUser: context cookies after set:', JSON.stringify(allCookies));
+      }
+    } catch (e) {
+      console.warn('ensureTestUser: failed to read context cookies for diagnostics', e && e.message ? e.message : e);
+    }
+  }
+
   if (cookieSet && (process.env.CI || process.env.NEXT_PUBLIC_E2E_DEBUG === 'true')) {
     try {
       // Probe the root to force SSR read of cookies (avoid passing ?test_user so we test the cookie path)
