@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import '@/styles/globals.css';
 import { AuthProvider } from '@/lib/auth/AuthContext';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { MainNavigation } from '@/components/MainNavigation';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -46,6 +46,18 @@ export default async function RootLayout({
     try {
       const cookieStore = await cookies();
       const cookieVal = cookieStore.get('test_user')?.value;
+
+      // If a trace-probe header is present, log it with cookie value so traces and server logs are unambiguous
+      try {
+        const probeHeaderVal = headers().get('x-e2e-ssr-probe');
+        if (probeHeaderVal) {
+          // eslint-disable-next-line no-console
+          console.info('CI: SSR PROBE RECEIVED header:', probeHeaderVal, 'cookieVal:', cookieVal || '<none>', 'searchParams:', JSON.stringify(searchParams || {}));
+        }
+      } catch (e) {
+        // ignore
+      }
+
       // Only allow cookie to apply when the test did not explicitly pass ?test_user in the URL
       // and the per-request opt-out is not set. In CI/debug runs we want a per-request cookie to be
       // able to *override* the build-time env defaults (NEXT_PUBLIC_TEST_USER), while still letting

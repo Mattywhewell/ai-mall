@@ -96,7 +96,7 @@ export async function ensureTestUser(page: Page, role: string) {
       }, role);
 
       // Give the browser a moment to apply the cookie to the context
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(500);
 
       const finalCookies = await page.context().cookies();
       const finalFound = finalCookies.find(c => c.name === 'test_user');
@@ -124,7 +124,7 @@ export async function ensureTestUser(page: Page, role: string) {
       await page.goto(setUrl, { waitUntil: 'networkidle', timeout: 7000 }).catch(() => null);
 
       // Give the browser a moment to apply the cookie to the context
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(500);
       const postServerCookies = await page.context().cookies();
       const serverFound = postServerCookies.find(c => c.name === 'test_user');
       if (serverFound) {
@@ -157,7 +157,60 @@ export async function ensureTestUser(page: Page, role: string) {
     try {
       // Probe the root to force SSR read of cookies (avoid passing ?test_user so we test the cookie path)
       const probeUrl = `${BASE}/?__ssr_probe=${Date.now()}`;
-      await page.goto(probeUrl, { waitUntil: 'domcontentloaded', timeout: 7000 });
+
+      // Set a unique probe header so traces and server logs can identify this navigation, then capture headers
+      const probeHeader = { 'x-e2e-ssr-probe': '1' };
+      try {
+        await page.context().setExtraHTTPHeaders(probeHeader);
+        console.info('ensureTestUser: setExtraHTTPHeaders for SSR probe:', JSON.stringify(probeHeader));
+      } catch (e) {
+        console.warn('ensureTestUser: failed to set probe header', e && e.message ? e.message : e);
+      }
+
+      // Guard: add a route-based header injection specifically for probe URLs in case extraHTTPHeaders doesn't apply to this navigation type.
+      const probeRouteMatcher = new RegExp(`${urlObj.origin.replace(/[-\\/\^$*+?.()|[\\]{}]/g, '\\\\$&')}.*__ssr_probe=`);
+      const probeRouteHandler = async (route: any) => {
+        try {
+          const req = route.request();
+          const headers = { ...req.headers(), 'x-e2e-ssr-probe': '1' };
+          await route.continue({ headers });
+        } catch (err) {
+          try { await route.continue(); } catch (e) {}
+        }
+      };
+      try { await page.route(probeRouteMatcher, probeRouteHandler); console.info('ensureTestUser: attached probe route handler'); } catch (e) { console.warn('ensureTestUser: failed to attach probe route handler', e && e.message ? e.message : e); }
+
+      // Capture the outgoing navigation request headers for diagnostics. Match any request with the probe query so RSC-prefetch or document navigations are caught.
+      const navRequestPromise = page.waitForRequest((req) => req.url().startsWith(BASE) && req.url().includes('__ssr_probe='), { timeout: 7000 }).catch(() => null);
+      const navResponsePromise = page.waitForResponse((res) => res.url().startsWith(BASE) && res.url().includes('__ssr_probe='), { timeout: 7000 }).catch(() => null);
+
+      await page.goto(probeUrl, { waitUntil: 'domcontentloaded', timeout: 7000 }).catch(() => null);
+
+      // Remove the probe route handler and clear the probe header so subsequent requests are unaffected
+      try { await page.unroute(probeRouteMatcher, probeRouteHandler); console.info('ensureTestUser: removed probe route handler'); } catch (e) {}
+      try { await page.context().setExtraHTTPHeaders({}); } catch (e) { }
+
+
+      const navReq = await navRequestPromise;
+      if (navReq) {
+        try {
+          const headers = navReq.headers();
+          console.info('ensureTestUser: probe request headers:', JSON.stringify(headers));
+        } catch (e) {
+          console.warn('ensureTestUser: failed to read probe request headers', e && e.message ? e.message : e);
+        }
+      }
+
+      const navRes = await navResponsePromise;
+      if (navRes) {
+        try {
+          const respHeaders: any = {};
+          for (const [k, v] of Object.entries(navRes.headers())) respHeaders[k] = v;
+          console.info('ensureTestUser: probe response headers:', JSON.stringify(respHeaders));
+        } catch (e) {
+          console.warn('ensureTestUser: failed to read probe response headers', e && e.message ? e.message : e);
+        }
+      }
 
       const selector = '[data-testid="test-user-server"][data-role="' + role + '"]';
       await page.waitForSelector(selector, { timeout: 3000 });
@@ -168,14 +221,73 @@ export async function ensureTestUser(page: Page, role: string) {
       // If we haven't already tried the server fallback, attempt it now and re-probe once.
       if (!serverFallbackTried && (process.env.CI || process.env.NEXT_PUBLIC_E2E_DEBUG === 'true')) {
         try {
+          serverFallbackTried = true; // record we've attempted the server-side Set-Cookie fallback
           const setUrl = `${BASE}/api/test/set-test-user?role=${encodeURIComponent(role)}`;
           console.info('ensureTestUser: attempting server-set-cookie fallback (reprobe) via', setUrl);
           await page.goto(setUrl, { waitUntil: 'networkidle', timeout: 7000 }).catch(() => null);
-          await page.waitForTimeout(300);
+          await page.waitForTimeout(500);
+
+          // Log cookies after server-set attempt for diagnostics
+          try {
+            const postServerCookies = await page.context().cookies();
+            console.info('ensureTestUser: context cookies after server-set attempt:', JSON.stringify(postServerCookies));
+          } catch (e) {
+            console.warn('ensureTestUser: failed to read context cookies after server-set reprobe', e && e.message ? e.message : e);
+          }
 
           // Re-probe SSR
           const probeUrl2 = `${BASE}/?__ssr_probe=${Date.now()}`;
-          await page.goto(probeUrl2, { waitUntil: 'domcontentloaded', timeout: 7000 });
+
+          // set probe header for reprobe
+          const probeHeader = { 'x-e2e-ssr-probe': '1' };
+          try {
+            await page.context().setExtraHTTPHeaders(probeHeader);
+            console.info('ensureTestUser: setExtraHTTPHeaders for SSR reprobe:', JSON.stringify(probeHeader));
+          } catch (e) {
+            console.warn('ensureTestUser: failed to set reprobe header', e && e.message ? e.message : e);
+          }
+
+          // Guard: add a route-based header injection specifically for reprobe URLs as well
+          const probeRouteMatcher2 = new RegExp(`${urlObj.origin.replace(/[-\\/\^$*+?.()|[\\]{}]/g, '\\\\$&')}.*__ssr_probe=`);
+          const probeRouteHandler2 = async (route: any) => {
+            try {
+              const req = route.request();
+              const headers = { ...req.headers(), 'x-e2e-ssr-probe': '1' };
+              await route.continue({ headers });
+            } catch (err) {
+              try { await route.continue(); } catch (e) {}
+            }
+          };
+          try { await page.route(probeRouteMatcher2, probeRouteHandler2); console.info('ensureTestUser: attached reprobe route handler'); } catch (e) { console.warn('ensureTestUser: failed to attach reprobe route handler', e && e.message ? e.message : e); }
+
+          const navRequestPromise2 = page.waitForRequest((req) => req.url().startsWith(BASE) && req.url().includes('__ssr_probe='), { timeout: 7000 }).catch(() => null);
+          const navResponsePromise2 = page.waitForResponse((res) => res.url().startsWith(BASE) && res.url().includes('__ssr_probe='), { timeout: 7000 }).catch(() => null);
+
+          await page.goto(probeUrl2, { waitUntil: 'domcontentloaded', timeout: 7000 }).catch(() => null);
+
+          // Remove the reprobe route handler and clear reprobe header
+          try { await page.unroute(probeRouteMatcher2, probeRouteHandler2); console.info('ensureTestUser: removed reprobe route handler'); } catch (e) {}
+          try { await page.context().setExtraHTTPHeaders({}); } catch (e) { }
+
+
+          const navReq2 = await navRequestPromise2;
+          if (navReq2) {
+            try {
+              console.info('ensureTestUser: reprobe request headers:', JSON.stringify(navReq2.headers()));
+            } catch (e) {
+              console.warn('ensureTestUser: failed to read reprobe request headers', e && e.message ? e.message : e);
+            }
+          }
+
+          const navRes2 = await navResponsePromise2;
+          if (navRes2) {
+            try {
+              console.info('ensureTestUser: reprobe response headers:', JSON.stringify(navRes2.headers()));
+            } catch (e) {
+              console.warn('ensureTestUser: failed to read reprobe response headers', e && e.message ? e.message : e);
+            }
+          }
+
           const selector2 = '[data-testid="test-user-server"][data-role="' + role + '"]';
           await page.waitForSelector(selector2, { timeout: 3000 });
           console.info('ensureTestUser: SSR probe confirmed server role via server-set cookie:', role);
