@@ -38,20 +38,28 @@ export default async function RootLayout({
     : undefined;
 
   // Gated SSR cookie fallback (test-only): when CI or debug flag is set, read the
-  // `test_user` cookie and use it to *override* env-driven defaults so tests can control
-  // the SSR initialUser deterministically. Query params still take precedence.
+  // `test_user` cookie and use it to influence env-driven defaults so tests can control
+  // the SSR initialUser deterministically. **Query params still take precedence**
+  // — only apply cookie-based override when the request did not already pass
+  // a `?test_user=true` query param (we want explicit query-level intent to win).
   if ((process.env.CI || process.env.NEXT_PUBLIC_E2E_DEBUG === 'true')) {
     try {
       const cookieStore = await cookies();
       const cookieVal = cookieStore.get('test_user')?.value;
-      if (cookieVal && !noTestUser) {
+      // Only allow cookie to apply when the test did not explicitly pass ?test_user in the URL
+      if (cookieVal && !noTestUser && !queryTestUser) {
         try {
           const parsed = JSON.parse(decodeURIComponent(cookieVal));
           if (parsed && parsed.role) {
-            // Use cookie role to override env default (but not query param which already won if present)
-            initialUser = { role: parsed.role };
-            // eslint-disable-next-line no-console
-            console.info('CI: SSR initialUser overridden from cookie:', initialUser.role);
+            // Use cookie role to fill in a missing SSR initialUser (do not override explicit query param)
+            if (!initialUser) {
+              initialUser = { role: parsed.role };
+              // eslint-disable-next-line no-console
+              console.info('CI: SSR initialUser set from cookie (no query param):', initialUser.role);
+            } else {
+              // eslint-disable-next-line no-console
+              console.info('CI: SSR cookie present but query param or env already set initialUser; skipping cookie override');
+            }
           }
         } catch (e) {
           // ignore JSON parse issues
