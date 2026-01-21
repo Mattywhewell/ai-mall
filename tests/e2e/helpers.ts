@@ -170,7 +170,12 @@ export async function ensureTestUser(page: Page, role: string) {
           try {
             const probeApiRes = await page.evaluate(async (probeApi) => {
               const r = await fetch(probeApi, { method: 'GET', headers: { 'x-e2e-ssr-probe': '1', 'cache-control': 'no-cache', 'pragma': 'no-cache' } });
-              try { return { status: r.status, body: await r.json() }; } catch (e) { return { status: r.status, text: await r.text() }; }
+              const text = await r.text();
+              try {
+                return { status: r.status, body: JSON.parse(text) };
+              } catch (e) {
+                return { status: r.status, text };
+              }
             }, `${BASE}/api/test/ssr-probe?cb=${Date.now()}`);
             console.info('ensureTestUser: server-side ssr-probe API response:', JSON.stringify(probeApiRes));
 
