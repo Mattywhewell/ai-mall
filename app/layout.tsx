@@ -37,22 +37,37 @@ export default async function RootLayout({
     ? { role: (queryRole || envTestRole || 'citizen') }
     : undefined;
 
-  // Gated SSR cookie fallback (test-only): when CI or debug flag is set, read the
-  // `test_user` cookie and use it to influence env-driven defaults so tests can control
-  // the SSR initialUser deterministically. **Query params still take precedence**
+  // Gated SSR cookie fallback (test-only): when CI or debug flag is set, OR when an E2E
+  // probe header (`x-e2e-ssr-probe`) or probe query param is present, read the `test_user`
+  // cookie and use it to influence env-driven defaults so tests can control SSR
+  // initialUser deterministically. **Query params still take precedence**
   // — only apply cookie-based override when the request did not already pass
   // a `?test_user=true` query param (we want explicit query-level intent to win).
-  if ((process.env.CI || process.env.NEXT_PUBLIC_E2E_DEBUG === 'true')) {
+  // Support for probe header/query lets local dev runs or route-injected headers force a one-off SSR evaluation.
+  // Probe header detection: use an awaited call to headers() to avoid Next.js sync-dynamic-api checks
+  let probeHeaderPresent: string | null = null;
+  try {
+    const _h = await headers();
+    probeHeaderPresent = _h.get('x-e2e-ssr-probe');
+  } catch (e) {
+    probeHeaderPresent = null;
+  }
+  const isProbeQuery = typeof searchParams !== 'undefined' && (typeof searchParams.__test_cookie_probe !== 'undefined' || typeof searchParams.__ssr_probe !== 'undefined');
+
+  if ((process.env.CI || process.env.NEXT_PUBLIC_E2E_DEBUG === 'true') || probeHeaderPresent || isProbeQuery) {
     try {
       const cookieStore = await cookies();
       const cookieVal = cookieStore.get('test_user')?.value;
 
-      // If a trace-probe header is present, log it with cookie value so traces and server logs are unambiguous
+      // If a trace-probe header or probe query is present, log it with cookie value so traces and server logs are unambiguous
       try {
-        const probeHeaderVal = headers().get('x-e2e-ssr-probe');
+        const probeHeaderVal = probeHeaderPresent;
         if (probeHeaderVal) {
           // eslint-disable-next-line no-console
           console.info('CI: SSR PROBE RECEIVED header:', probeHeaderVal, 'cookieVal:', cookieVal || '<none>', 'searchParams:', JSON.stringify(searchParams || {}));
+        } else if (isProbeQuery) {
+          // eslint-disable-next-line no-console
+          console.info('CI: SSR PROBE QUERY present:', JSON.stringify(searchParams || {}), 'cookieVal:', cookieVal || '<none>');
         }
       } catch (e) {
         // ignore
@@ -63,20 +78,43 @@ export default async function RootLayout({
       // able to *override* the build-time env defaults (NEXT_PUBLIC_TEST_USER), while still letting
       // explicit query params take precedence. This allows individual tests to set the role via
       // cookie even though the global build exposes a default TEST_USER for deterministic runs.
+      // Log probe header for clarity in traces
+      // eslint-disable-next-line no-console
+      console.info('CI: SSR PROBE HEADER:', probeHeaderPresent);
+
       if (cookieVal && !noTestUser && !queryTestUser) {
         try {
           let parsed: any = null;
+          let decodedVal: string | null = null;
           // First try: common case where a cookie may be URL-encoded once
           try {
-            parsed = JSON.parse(decodeURIComponent(cookieVal));
+            decodedVal = decodeURIComponent(cookieVal);
+            // eslint-disable-next-line no-console
+            console.info('CI: SSR COOKIE RAW:', cookieVal);
+            // eslint-disable-next-line no-console
+            console.info('CI: SSR COOKIE DECODED:', decodedVal);
+            parsed = JSON.parse(decodedVal);
           } catch (e) {
             // Fallback: try parsing raw value (some clients set raw JSON directly)
-            try { parsed = JSON.parse(cookieVal); } catch (e2) { parsed = null; }
+            try {
+              // eslint-disable-next-line no-console
+              console.info('CI: SSR COOKIE RAW (fallback):', cookieVal);
+              parsed = JSON.parse(cookieVal);
+              // eslint-disable-next-line no-console
+              console.info('CI: SSR COOKIE PARSED (fallback):', parsed);
+            } catch (e2) {
+              parsed = null;
+              // eslint-disable-next-line no-console
+              console.info('CI: SSR COOKIE PARSE FAILED:', e2 && (e2.message || e2));
+            }
           }
 
+          // eslint-disable-next-line no-console
+          console.info('CI: SSR COOKIE PARSED:', parsed);
+          // eslint-disable-next-line no-console
+          console.info('CI: SSR COOKIE ROLE:', parsed && parsed.role ? parsed.role : '<no-role>');
+
           if (parsed && parsed.role) {
-            // Apply cookie role for this request. This will override env-driven defaults but not
-            // an explicit ?test_user query param (handled above).
             const prev = initialUser?.role;
             initialUser = { role: parsed.role };
             // eslint-disable-next-line no-console
@@ -84,6 +122,8 @@ export default async function RootLayout({
           }
         } catch (e) {
           // ignore JSON parse issues
+          // eslint-disable-next-line no-console
+          console.info('CI: SSR COOKIE HANDLER ERROR:', e && (e.message || e));
         }
       }
     } catch (e) {
