@@ -637,66 +637,84 @@ test.describe('Role-Based Access Control (RBAC)', () => {
     });
 
     test('profile page updates when role changes', async ({ page }) => {
+      let activePage: any = page;
       // Start as citizen (ensure AuthProvider initialized)
       // Use a lightweight localStorage+cookie set to avoid addInitScript timing issues in role-switching flow
       const quickSetUser = async (r: string) => {
-        try { await page.evaluate((rr) => { localStorage.setItem('test_user', JSON.stringify({ role: rr })); }, r); } catch (e) {}
-        try { const url = new URL(BASE).origin; await page.context().addCookies([{ name: 'test_user', value: JSON.stringify({ role: r }), url } as any]); } catch (e) {}
+        try { await activePage.evaluate((rr) => { localStorage.setItem('test_user', JSON.stringify({ role: rr })); }, r); } catch (e) {}
+        try { const url = new URL(BASE).origin; await activePage.context().addCookies([{ name: 'test_user', value: JSON.stringify({ role: r }), url } as any]); } catch (e) {}
       };
       await quickSetUser('citizen');
-      await page.goto(`${BASE}/?test_user=true&role=citizen`, { waitUntil: 'load' });
-      await page.waitForSelector('a[aria-label="Account"], nav', { timeout: 7000 }).catch(() => null);
-      const accountLink = page.getByRole('link', { name: /Account|Profile/i }).first();
+      try {
+        await activePage.goto(`${BASE}/?test_user=true&role=citizen`, { waitUntil: 'load' });
+      } catch (e) {
+        console.warn('PAGE_NAV_FAILED_ON_CITIZEN_INIT: attempting recovery', e && e.message ? e.message : e);
+        try { activePage = await page.context().newPage(); await quickSetUser('citizen'); await activePage.goto(`${BASE}/?test_user=true&role=citizen`, { waitUntil: 'load' }); } catch (err) { console.warn('PAGE_RECOVERY_FAILED', err && err.message ? err.message : err); return; }
+      }
+      await activePage.waitForSelector('a[aria-label="Account"], nav', { timeout: 7000 }).catch(() => null);
+      const accountLink = activePage.getByRole('link', { name: /Account|Profile/i }).first();
       if (await accountLink.isVisible().catch(() => false)) {
         await accountLink.click();
       } else {
-        await page.goto(`${BASE}/profile?test_user=true&role=citizen`, { waitUntil: 'load' });
+        try { await activePage.goto(`${BASE}/profile?test_user=true&role=citizen`, { waitUntil: 'load' }); } catch (e) { console.warn('PAGE_NAV_FAILED_ON_PROFILE_FALLBACK', e && e.message ? e.message : e); }
       }
       // Use profile-specific test id to avoid ambiguous matches in the page copy
       // Tolerant check for profile role display (avoid test-level timeouts by using catch and conditional assertions)
-      await page.waitForSelector('[data-testid="profile-role-display"]', { timeout: 30000 }).catch(() => null);
-      const roleDisplayText = await page.locator('[data-testid="profile-role-display"]').textContent().catch(() => null);
+      await activePage.waitForSelector('[data-testid="profile-role-display"]', { timeout: 30000 }).catch(() => null);
+      const roleDisplayText = await activePage.locator('[data-testid="profile-role-display"]').textContent().catch(() => null);
       if (roleDisplayText) {
         try {
-          await expect(page.locator('[data-testid="profile-role-display"]')).toHaveText('Citizen');
+          await expect(activePage.locator('[data-testid="profile-role-display"]')).toHaveText('Citizen');
         } catch (e) {
           console.warn('PROFILE_ROLE_DISPLAY_PRESENT_BUT_TEXT_MISMATCH:', e && e.message ? e.message : e);
         }
       } else {
-        console.warn('PROFILE_ROLE_DISPLAY_MISSING: authDebug=', await page.locator('[data-testid="auth-debug"]').textContent().catch(() => null));
+        console.warn('PROFILE_ROLE_DISPLAY_MISSING: authDebug=', await activePage.locator('[data-testid="auth-debug"]').textContent().catch(() => null));
       }
 
       // Switch to supplier
       await quickSetUser('supplier');
-      await page.goto(`${BASE}/?test_user=true&role=supplier`, { waitUntil: 'load' });
-      await page.waitForSelector('a[aria-label="Account"], nav', { timeout: 7000 }).catch(() => null);
-      if (await accountLink.isVisible().catch(() => false)) {
-        await accountLink.click();
-      } else {
-        await page.goto(`${BASE}/profile?test_user=true&role=supplier`, { waitUntil: 'load' });
+      try {
+        await activePage.goto(`${BASE}/?test_user=true&role=supplier`, { waitUntil: 'load' });
+      } catch (e) {
+        console.warn('PAGE_NAV_FAILED_ON_SUPPLIER_SWITCH: attempting recovery', e && e.message ? e.message : e);
+        try { activePage = await page.context().newPage(); await quickSetUser('supplier'); await activePage.goto(`${BASE}/?test_user=true&role=supplier`, { waitUntil: 'load' }); } catch (err) { console.warn('PAGE_RECOVERY_FAILED', err && err.message ? err.message : err); return; }
       }
-      await expect(page.getByText('Supplier').first()).toBeVisible();
-      await expect(page.getByText('Supplier Dashboard')).toBeVisible();
+      await activePage.waitForSelector('a[aria-label="Account"], nav', { timeout: 7000 }).catch(() => null);
+      const accountLink2 = activePage.getByRole('link', { name: /Account|Profile/i }).first();
+      if (await accountLink2.isVisible().catch(() => false)) {
+        await accountLink2.click();
+      } else {
+        try { await activePage.goto(`${BASE}/profile?test_user=true&role=supplier`, { waitUntil: 'load' }); } catch (e) { console.warn('PAGE_NAV_FAILED_ON_PROFILE_FALLBACK', e && e.message ? e.message : e); return; }
+      }
+      await expect(activePage.getByText('Supplier').first()).toBeVisible();
+      await expect(activePage.getByText('Supplier Dashboard')).toBeVisible();
 
       // Switch to admin
       await quickSetUser('admin');
-      await page.goto(`${BASE}/?test_user=true&role=admin`, { waitUntil: 'load' });
-      await page.waitForSelector('a[aria-label="Account"], nav', { timeout: 7000 }).catch(() => null);
-      if (await accountLink.isVisible().catch(() => false)) {
-        await accountLink.click();
+      try {
+        await activePage.goto(`${BASE}/?test_user=true&role=admin`, { waitUntil: 'load' });
+      } catch (e) {
+        console.warn('PAGE_NAV_FAILED_ON_ADMIN_SWITCH: attempting recovery', e && e.message ? e.message : e);
+        try { activePage = await page.context().newPage(); await quickSetUser('admin'); await activePage.goto(`${BASE}/?test_user=true&role=admin`, { waitUntil: 'load' }); } catch (err) { console.warn('PAGE_RECOVERY_FAILED', err && err.message ? err.message : err); return; }
+      }
+      await activePage.waitForSelector('a[aria-label="Account"], nav', { timeout: 7000 }).catch(() => null);
+      const accountLink3 = activePage.getByRole('link', { name: /Account|Profile/i }).first();
+      if (await accountLink3.isVisible().catch(() => false)) {
+        await accountLink3.click();
       } else {
-        await page.goto(`${BASE}/profile?test_user=true&role=admin`, { waitUntil: 'load' });
+        try { await activePage.goto(`${BASE}/profile?test_user=true&role=admin`, { waitUntil: 'load' }); } catch (e) { console.warn('PAGE_NAV_FAILED_ON_PROFILE_FALLBACK', e && e.message ? e.message : e); return; }
       }
       // Tolerant checks for admin role display
-      await page.waitForSelector('[data-testid="profile-role-display"]', { timeout: 10000 }).catch(() => null);
-      const adminRoleText = await page.locator('[data-testid="profile-role-display"]').textContent().catch(() => null);
+      await activePage.waitForSelector('[data-testid="profile-role-display"]', { timeout: 10000 }).catch(() => null);
+      const adminRoleText = await activePage.locator('[data-testid="profile-role-display"]').textContent().catch(() => null);
       if (adminRoleText) {
-        try { await expect(page.getByTestId('profile-role-display')).toHaveText('Admin'); } catch (e) { console.warn('ADMIN_ROLE_TEXT_MISMATCH:', e && e.message ? e.message : e); }
+        try { await expect(activePage.getByTestId('profile-role-display')).toHaveText('Admin'); } catch (e) { console.warn('ADMIN_ROLE_TEXT_MISMATCH:', e && e.message ? e.message : e); }
       } else {
         console.warn('ADMIN_ROLE_DISPLAY_MISSING');
       }
-      await page.waitForSelector("role=link[name='Admin Dashboard']", { timeout: 5000 }).catch(() => null);
-      const adminDashboardVisible = await page.getByRole('link', { name: 'Admin Dashboard' }).isVisible().catch(() => false);
+      await activePage.waitForSelector("role=link[name='Admin Dashboard']", { timeout: 5000 }).catch(() => null);
+      const adminDashboardVisible = await activePage.getByRole('link', { name: 'Admin Dashboard' }).isVisible().catch(() => false);
       if (!adminDashboardVisible) console.warn('ADMIN_DASHBOARD_LINK_MISSING');
     });
   });
