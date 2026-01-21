@@ -626,7 +626,12 @@ test.describe('Role-Based Access Control (RBAC)', () => {
 
     test('profile page updates when role changes', async ({ page }) => {
       // Start as citizen (ensure AuthProvider initialized)
-      await ensureTestUser(page, 'citizen');
+      // Use a lightweight localStorage+cookie set to avoid addInitScript timing issues in role-switching flow
+      const quickSetUser = async (r: string) => {
+        try { await page.evaluate((rr) => { localStorage.setItem('test_user', JSON.stringify({ role: rr })); }, r); } catch (e) {}
+        try { const url = new URL(BASE).origin; await page.context().addCookies([{ name: 'test_user', value: JSON.stringify({ role: r }), url } as any]); } catch (e) {}
+      };
+      await quickSetUser('citizen');
       await page.goto(`${BASE}/?test_user=true&role=citizen`, { waitUntil: 'load' });
       await page.waitForSelector('a[aria-label="Account"], nav', { timeout: 7000 }).catch(() => null);
       const accountLink = page.getByRole('link', { name: /Account|Profile/i }).first();
@@ -650,7 +655,7 @@ test.describe('Role-Based Access Control (RBAC)', () => {
       }
 
       // Switch to supplier
-      await ensureTestUser(page, 'supplier');
+      await quickSetUser('supplier');
       await page.goto(`${BASE}/?test_user=true&role=supplier`, { waitUntil: 'load' });
       await page.waitForSelector('a[aria-label="Account"], nav', { timeout: 7000 }).catch(() => null);
       if (await accountLink.isVisible().catch(() => false)) {
@@ -662,7 +667,7 @@ test.describe('Role-Based Access Control (RBAC)', () => {
       await expect(page.getByText('Supplier Dashboard')).toBeVisible();
 
       // Switch to admin
-      await ensureTestUser(page, 'admin');
+      await quickSetUser('admin');
       await page.goto(`${BASE}/?test_user=true&role=admin`, { waitUntil: 'load' });
       await page.waitForSelector('a[aria-label="Account"], nav', { timeout: 7000 }).catch(() => null);
       if (await accountLink.isVisible().catch(() => false)) {
