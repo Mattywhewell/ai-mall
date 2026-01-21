@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { waitForGtagEvent } from './helpers';
 
 test.describe('Hero A/B analytics', () => {
   test('fires variant view and CTA click events (GA mock)', async ({ page }) => {
@@ -32,10 +33,9 @@ test.describe('Hero A/B analytics', () => {
     // Wait for hero to initialize (be lenient about selector)
     await page.waitForSelector('section:has(h1), h1', { timeout: 7000 });
 
-    // Check that hero_variant_view was sent
-    const callsA = await page.evaluate(() => (window as any).__gtag_calls || []);
-    const hasVariantA = callsA.some((c: any[]) => c[0] === 'event' && c[1] === 'hero_variant_view');
-    expect(hasVariantA).toBeTruthy();
+    // Check that hero_variant_view was sent (wait up to 5s)
+    const variantSent = await waitForGtagEvent(page, 'hero_variant_view', 5000);
+    expect(variantSent).toBeTruthy();
 
     // Click primary CTA via label or fallback /city link
     const cta = page.getByRole('link', { name: /Enter the City|Explore the City|Enter Alverse|Begin Your Journey/i }).first();

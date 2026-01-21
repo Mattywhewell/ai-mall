@@ -1,14 +1,21 @@
 import { test, expect } from '@playwright/test';
+import { ensureNoTestUser } from './helpers';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 
 test.describe('Account icon', () => {
   test('links to /login when not authenticated', async ({ page }) => {
-    await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+    // Ensure no test user injection (avoid false logged-in state)
+    await ensureNoTestUser(page);
 
-    // Wait for account link by selector
+    await page.goto(BASE, { waitUntil: 'load' });
+
+    // Wait for account link by selector (give more headroom in CI)
     const account = page.locator('a[aria-label="Account"]');
-    await account.waitFor({ state: 'attached', timeout: 10000 });
+    await account.waitFor({ state: 'attached', timeout: 20000 }).catch(async (e) => {
+      console.log('ACCOUNT_LINK_MISSING: page snippet:', (await page.content()).slice(0, 2000));
+      throw e;
+    });
 
     // Ensure href points to the login page (legacy tests expect /login, canonical is /auth/login)
     const href = await account.getAttribute('href');

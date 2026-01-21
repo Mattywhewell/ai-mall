@@ -408,3 +408,55 @@ export async function ensureNoTestUser(page: Page) {
   }
 }
 
+// NEW: wait for profile to be ready (SSR marker + header or role display)
+export async function waitForProfileReady(page: Page, role: string, timeout = 15000) {
+  // Wait for server-rendered marker first (fast path)
+  try {
+    await page.waitForSelector(`#__test_user[data-role="${role}"]`, { timeout: Math.min(4000, timeout) });
+  } catch (e) {
+    // ignore
+  }
+
+  const start = Date.now();
+  const deadline = start + timeout;
+  while (Date.now() < deadline) {
+    // Prefer profile-role-display, then H1, then any Profile link
+    const roleDisplay = await page.locator('[data-testid="profile-role-display"]').count().catch(() => 0);
+    if (roleDisplay > 0) return;
+    const h1 = await page.locator('h1').count().catch(() => 0);
+    if (h1 > 0) return;
+    const profileLink = await page.getByRole('link', { name: /Account|Profile/i }).count().catch(() => 0);
+    if (profileLink > 0) return;
+    await page.waitForTimeout(500);
+  }
+  // final attempt: let the test code handle failure (we return without throwing)
+}
+
+// NEW: wait for seeded row text to appear with retries
+export async function waitForSeededRow(page: Page, text: string, timeout = 20000) {
+  const start = Date.now();
+  const deadline = start + timeout;
+  while (Date.now() < deadline) {
+    const found = await page.locator(`text=${text}`).count().catch(() => 0);
+    if (found > 0) return true;
+    // Try giving the page a moment and then a soft reload to pick up server-side seeds
+    await page.waitForTimeout(500);
+    try { await page.reload({ waitUntil: 'domcontentloaded', timeout: 5000 }); } catch (e) {}
+    await page.waitForTimeout(500);
+  }
+  return false;
+}
+
+// NEW: wait for gtag event presence with timeout
+export async function waitForGtagEvent(page: Page, eventName: string, timeout = 5000) {
+  try {
+    await page.waitForFunction((name) => {
+      const calls = (window as any).__gtag_calls || [];
+      return calls.some((c: any[]) => c[0] === 'event' && c[1] === name);
+    }, eventName, { timeout });
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+

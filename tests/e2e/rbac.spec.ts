@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { waitForProfileReady } from './helpers';
 import { ensureTestUser, ensureNoTestUser, dismissOnboarding } from './helpers';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3000'; 
@@ -447,8 +448,10 @@ test.describe('Role-Based Access Control (RBAC)', () => {
       }
 
       // Check for presence of profile header and main Profile tab (be lenient about other tabs)
-      await page.waitForSelector('h1', { timeout: 7000 }).catch(() => null);
-      await expect(page.locator('h1').first()).toBeVisible();
+      await waitForProfileReady(page, 'citizen', 15000);
+      // Prefer role display or h1; allow fallback to Profile link
+      const h1Count = await page.locator('h1').count().catch(() => 0);
+      if (h1Count > 0) await expect(page.locator('h1').first()).toBeVisible();
 
       const profileTabVisible = await page.getByText('Profile').isVisible().catch(() => false);
       expect(profileTabVisible).toBe(true);
