@@ -37,6 +37,7 @@ export async function ensureTestUser(page: Page, role: string) {
 
   // Attempt 1: set cookie using url (preferred). Verify it was set.
   let cookieSet = false;
+  let serverFallbackTried = false;
   try {
     await page.context().addCookies([cookieWithUrl]);
     let cookies = await page.context().cookies();
@@ -187,23 +188,19 @@ export async function ensureTestUser(page: Page, role: string) {
             serverFallbackTried = true;
             const setUrl = `${BASE}/api/test/set-test-user?role=${encodeURIComponent(role)}`;
             console.info('ensureTestUser: attempting server-set-cookie fallback via', setUrl);
-      // Use a navigation so the server response sets the cookie on the browser context
-      await page.goto(setUrl, { waitUntil: 'networkidle', timeout: 7000 }).catch(() => null);
-
-      // Give the browser a moment to apply the cookie to the context
-      await page.waitForTimeout(500);
-      const postServerCookies = await page.context().cookies();
-      const serverFound = postServerCookies.find(c => c.name === 'test_user');
-      if (serverFound) {
-        console.info('ensureTestUser: server-set cookie succeeded');
-        cookieSet = true;
-      } else {
-        console.warn('ensureTestUser: server-set cookie did not appear in context cookies');
-      }
-    } catch (e) {
-      console.warn('ensureTestUser: server-set cookie fallback failed', e && e.message ? e.message : e);
-    }
-  }
+            await page.goto(setUrl, { waitUntil: 'networkidle', timeout: 7000 }).catch(() => null);
+            await page.waitForTimeout(500);
+            const postServerCookies = await page.context().cookies();
+            const serverFound = postServerCookies.find(c => c.name === 'test_user');
+            if (serverFound) {
+              console.info('ensureTestUser: server-set cookie succeeded');
+              cookieSet = true;
+            } else {
+              console.warn('ensureTestUser: server-set cookie did not appear in context cookies');
+            }
+          } catch (e) {
+            console.warn('ensureTestUser: server-set cookie fallback failed', e && e.message ? e.message : e);
+          }
 
   // Defensive SSR check (gated to CI or debug mode): navigate to root and verify the server-rendered
   // `data-testid="test-user-server"` marker exists and matches the expected role. This ensures
@@ -363,6 +360,7 @@ export async function ensureTestUser(page: Page, role: string) {
           // fall-through to throw below
           console.warn('ensureTestUser: server-set reprobe also failed');
         }
+      }
 
       // Intentionally throw so the test fails fast with a trace when SSR did not reflect the cookie.
       throw new Error(`ensureTestUser: SSR probe failed — server did not render test-user cookie for role "${role}". Last cookieSet=${cookieSet}, serverFallbackTried=${serverFallbackTried}.`);
