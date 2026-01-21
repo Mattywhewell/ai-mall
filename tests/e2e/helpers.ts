@@ -180,8 +180,8 @@ export async function ensureTestUser(page: Page, role: string) {
             console.info('ensureTestUser: server-side ssr-probe API response:', JSON.stringify(probeApiRes));
 
             const selector2 = '[data-testid="test-user-server"][data-role="' + role + '"]';
-            await page.waitForSelector(selector2, { timeout: 3000 });
-            console.info('ensureTestUser: SSR probe confirmed server role via server-set cookie:', role);
+            await page.waitForSelector(selector2, { state: 'attached', timeout: 3000 });
+            console.info('ensureTestUser: SSR probe confirmed server role via cookie (attached):', role);
             return;
           } catch (err2) {
             // Reprobe failed — will fall through to server-set fallback below
@@ -358,8 +358,8 @@ export async function ensureTestUser(page: Page, role: string) {
           }
 
           const selector2 = '[data-testid="test-user-server"][data-role="' + role + '"]';
-          await page.waitForSelector(selector2, { timeout: 3000 });
-          console.info('ensureTestUser: SSR probe confirmed server role via server-set cookie:', role);
+          await page.waitForSelector(selector2, { state: 'attached', timeout: 3000 });
+          console.info('ensureTestUser: SSR probe confirmed server role via server-set cookie (attached):', role);
           return;
         } catch (err2) {
           // fall-through to throw below
