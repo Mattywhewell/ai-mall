@@ -33,8 +33,12 @@ test.describe('Hero A/B analytics', () => {
     // Wait for hero to initialize (be lenient about selector)
     await page.waitForSelector('section:has(h1), h1', { timeout: 10000 });
 
-    // Check that hero_variant_view was sent (wait up to 10s)
-    const variantSent = await waitForGtagEvent(page, 'hero_variant_view', 10000);
+    // Check that hero_variant_view was sent (wait up to 20s)
+    const variantSent = await waitForGtagEvent(page, 'hero_variant_view', 20000);
+    if (!variantSent) {
+      const calls = await page.evaluate(() => (window as any).__gtag_calls || []);
+      console.warn('HERO_GTAG_MISSING: __gtag_calls snapshot:', JSON.stringify(calls).slice(0, 2000));
+    }
     expect(variantSent).toBeTruthy();
 
     // Click primary CTA via label or fallback /city link

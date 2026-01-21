@@ -16,6 +16,8 @@ test('ci smoke: app loads with injected test user and shows user menu', async ({
 });
 
 // Additional smoke: ensure SpatialEnvironment loads on /commons
+// Skip when 3D renderer is disabled (CI uses NEXT_PUBLIC_DISABLE_3D=true for headless runs)
+test.skip(process.env.NEXT_PUBLIC_DISABLE_3D === 'true', '3D disabled in CI -> skipping /commons smoke test');
 test('ci smoke: /commons environment loads', async ({ page }) => {
   await ensureTestUser(page, 'admin');
   await page.goto(`${BASE}/commons?test_user=true&role=admin`, { waitUntil: 'load' });

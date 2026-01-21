@@ -64,6 +64,8 @@ test.describe('Inventory Sync UI', () => {
     expect(noItemsVisible || channelErrorVisible).toBe(true);
   });
 
+  // If CI explicitly skips Supabase seeding, skip this seeded inventory sync test to avoid false failures
+  test.skip(process.env.SKIP_SUPABASE_SEED === 'true', 'SKIP_SUPABASE_SEED=true -> skipping inventory sync seeded test');
   test('can sync item and shows loading state', async ({ page }) => {
     let syncCalled = false;
     await page.route('**/api/seller/inventory/*/sync', async route => {
