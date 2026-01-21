@@ -1,0 +1,53 @@
+name: Validate parser output (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      findings_url:
+        description: 'Public URL (raw) to the parser output JSON (e.g., raw gist or release asset)'
+        required: true
+      issue_number:
+        description: 'Optional Issue number to post a comment with the validation result'
+        required: false
+
+jobs:
+  validate:
+    name: Validate parser output
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Download findings
+        run: |
+          echo "Downloading ${{ github.event.inputs.findings_url }}"
+          curl -sSfL "${{ github.event.inputs.findings_url }}" -o introspection-findings.json
+
+      - name: Validate parser output
+        run: |
+          python scripts/validate_parser_output.py introspection-findings.json
+
+      - name: Post comment to issue (optional)
+        if: ${{ github.event.inputs.issue_number != '' }}
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = parseInt(core.getInput('issue_number') || '${{ github.event.inputs.issue_number }}', 10);
+            await github.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue,
+              body: `✅ Parser output validated by workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}`
+            });

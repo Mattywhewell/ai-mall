@@ -1,0 +1,23 @@
+
+--- FUNCTIONS ---
+FUNCTIONS ERROR: Could not find the function public.exec_sql(sql) in the schema cache
+
+--- TRIGGERS ---
+TRIGGERS ERROR: Could not find the function public.exec_sql(sql) in the schema cache
+
+--- COLUMNS ---
+COLUMNS ERROR: Could not find the function public.exec_sql(sql) in the schema cache
+
+--- AUTH_USERS_TRIGGERS ---
+AUTH_USERS_TRIGGERS ERROR: Could not find the function public.exec_sql(sql) in the schema cache
+
+--- DEPENDENCIES ---
+DEPENDENCIES ERROR: Could not find the function public.exec_sql(sql) in the schema cache
+
+--- ATTRIBUTES ---
+ATTRIBUTES ERROR: Could not find the function public.exec_sql(sql) in the schema cache
+
+--- PROC_TYPES ---
+PROC_TYPES ERROR: Could not find the function public.exec_sql(sql) in the schema cache
+
+--- Done ---

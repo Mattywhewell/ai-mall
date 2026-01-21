@@ -1,0 +1,102 @@
+name: Auto-open CI PR for DX checks
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  open-ci-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine changed files
+        id: changes
+        run: |
+          echo "CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})" >> $GITHUB_ENV
+          echo "Changed files:"
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }}
+
+      - name: Check if DX files changed
+        id: check
+        run: |
+          changed=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          echo "Files: $changed"
+          echo "$changed" | grep -qE '(^|/)Makefile$|(^|/)scripts/README.md$|(^|/)package.json$' && echo "dx_changed=true" || echo "dx_changed=false"
+          echo "dx_changed=$( [ $? -eq 0 ] && echo true || echo false )" >> $GITHUB_OUTPUT
+
+      - name: Exit if no DX files changed
+        if: steps.check.outputs.dx_changed != 'true'
+        run: |
+          echo "No DX-related changes detected; nothing to do." && exit 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Check for existing PR
+        id: existing
+        run: |
+          owner_repo=${{ github.repository }}
+          owner=${{ github.repository_owner }}
+          # Query open PRs with head branch chore/ci-dx-checks
+          prs=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$owner_repo/pulls?state=open&head=$owner:chore/ci-dx-checks")
+          count=$(echo "$prs" | jq 'length')
+          echo "pr_count=$count" >> $GITHUB_OUTPUT
+
+      - name: Create branch and add workflow
+        if: steps.existing.outputs.pr_count == '0'
+        env:
+          REPO: ${{ github.repository }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          git fetch origin main
+          git checkout -b chore/ci-dx-checks origin/main
+
+          mkdir -p .github/workflows
+          cat > .github/workflows/dx-checks.yml <<'YAML'
+name: DX checks (make help + dev:lint)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  dx:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make help
+        run: make help
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
+      - name: Run lint
+        run: npm run dev:lint
+YAML
+
+          git add .github/workflows/dx-checks.yml
+          git commit -m "CI: add DX checks (make help + dev:lint)"
+          git push https://x-access-token:${TOKEN}@github.com/${REPO} HEAD:chore/ci-dx-checks
+
+      - name: Create PR
+        if: steps.existing.outputs.pr_count == '0'
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          owner=${{ github.repository_owner }}
+          repo=${{ github.event.repository.name }}
+          title="CI: add DX checks (make help + dev:lint)"
+          body="Adds a lightweight GitHub Actions job that runs 'make help' and 'npm run dev:lint' on PRs to catch regressions in developer tooling. No behavior changes; this enforces DX hygiene and keeps onboarding smooth."
+          curl -s -X POST -H "Authorization: token $TOKEN" -H "Content-Type: application/json" -d "{\"title\": \"$title\", \"head\": \"chore/ci-dx-checks\", \"base\": \"main\", \"body\": \"$body\"}" "https://api.github.com/repos/$owner/$repo/pulls" | jq -r '.html_url'
+
+      - name: Existing PR info
+        if: steps.existing.outputs.pr_count != '0'
+        run: echo "A PR for chore/ci-dx-checks already exists; nothing to do."

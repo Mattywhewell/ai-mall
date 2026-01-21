@@ -1,0 +1,79 @@
+name: Playwright E2E (single job)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  e2e-only:
+    runs-on: ubuntu-latest
+    env:
+      STRIPE_SECRET_KEY: sk_test_ci_placeholder
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_placeholder
+      STRIPE_WEBHOOK_SECRET: whsec_test_placeholder
+      NEXT_PUBLIC_DISABLE_3D: 'true'
+      NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
+      SKIP_SUPABASE_SEED: 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps --no-audit
+
+      - name: Build
+        run: |
+          echo "STEP ENV (build): SKIP_SUPABASE_SEED=$SKIP_SUPABASE_SEED NEXT_PUBLIC_TEST_USER=$NEXT_PUBLIC_TEST_USER NEXT_PUBLIC_TEST_USER_ROLE=$NEXT_PUBLIC_TEST_USER_ROLE"
+          if [ "$SKIP_SUPABASE_SEED" = "true" ]; then
+            echo "SKIP_SUPABASE_SEED=true -> exporting NEXT_PUBLIC_TEST_USER=true NEXT_PUBLIC_TEST_USER_ROLE=citizen for build"
+            export NEXT_PUBLIC_TEST_USER="true"
+            export NEXT_PUBLIC_TEST_USER_ROLE="citizen"
+          fi
+          npm run build
+
+      - name: Start production server
+        run: |
+          echo "STEP ENV: SKIP_SUPABASE_SEED=$SKIP_SUPABASE_SEED NEXT_PUBLIC_TEST_USER=$NEXT_PUBLIC_TEST_USER NEXT_PUBLIC_TEST_USER_ROLE=$NEXT_PUBLIC_TEST_USER_ROLE"
+          if [ "$SKIP_SUPABASE_SEED" = "true" ]; then
+            echo "SKIP_SUPABASE_SEED=true -> exporting NEXT_PUBLIC_TEST_USER=true NEXT_PUBLIC_TEST_USER_ROLE=citizen"
+            export NEXT_PUBLIC_TEST_USER="true"
+            export NEXT_PUBLIC_TEST_USER_ROLE="citizen"
+          fi
+          node -e "console.log('CI runtime NEXT_PUBLIC_INCLUDE_TEST_PAGES=', process.env.NEXT_PUBLIC_INCLUDE_TEST_PAGES, 'NEXT_PUBLIC_DISABLE_3D=', process.env.NEXT_PUBLIC_DISABLE_3D, 'NEXT_PUBLIC_TEST_USER=', process.env.NEXT_PUBLIC_TEST_USER, 'NEXT_PUBLIC_TEST_USER_ROLE=', process.env.NEXT_PUBLIC_TEST_USER_ROLE)"
+          NEXT_PUBLIC_TEST_USER="$NEXT_PUBLIC_TEST_USER" NEXT_PUBLIC_TEST_USER_ROLE="$NEXT_PUBLIC_TEST_USER_ROLE" npm run start &
+          echo "Waiting for server..."
+          npx wait-on http://localhost:3000 -t 60000
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
+          NEXT_PUBLIC_DISABLE_3D: 'true'
+          NEXT_PUBLIC_TEST_USER: ${{ env.SKIP_SUPABASE_SEED == 'true' && 'true' || '' }}
+          NEXT_PUBLIC_TEST_USER_ROLE: ${{ env.SKIP_SUPABASE_SEED == 'true' && 'citizen' || '' }}
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: npx playwright test --reporter=github --trace on
+        env:
+          BASE_URL: http://localhost:3000
+          CI: true
+          NEXT_PUBLIC_DISABLE_3D: 'true'
+          NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results

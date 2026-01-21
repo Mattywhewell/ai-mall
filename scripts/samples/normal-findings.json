@@ -1,0 +1,30 @@
+[
+  {
+    "id": "F-001",
+    "classification": "Additive",
+    "confidence": 95,
+    "impact": "low",
+    "object_type": "type",
+    "schema": "public",
+    "object_name": "user_role",
+    "dependencies": [],
+    "suggested_sql": "CREATE TYPE public.user_role AS ENUM ('admin','supplier','customer','ai_agent');",
+    "reason": "Missing user_role enum in public schema",
+    "test_plan": "Verify enum exists and operations using it succeed"
+  },
+  {
+    "id": "F-002",
+    "classification": "Corrective",
+    "confidence": 90,
+    "impact": "medium",
+    "object_type": "function",
+    "schema": "public",
+    "object_name": "create_user",
+    "dependencies": [
+      { "schema": "public", "name": "user_role", "kind": "type" }
+    ],
+    "suggested_sql": "CREATE OR REPLACE FUNCTION public.create_user(...) RETURNS ...",
+    "reason": "create_user expects user_role type to exist",
+    "test_plan": "Run create_user with sample payload"
+  }
+]

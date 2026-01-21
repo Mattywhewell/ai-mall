@@ -43,6 +43,8 @@ jobs:
       STRIPE_WEBHOOK_SECRET: whsec_test_placeholder
       NEXT_PUBLIC_DISABLE_3D: 'true'
       NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
+      # When true, skip creating auth users in `scripts/e2e-setup.js` to avoid upstream Supabase Auth instability
+      SKIP_SUPABASE_SEED: 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -56,7 +58,21 @@ jobs:
         run: npm ci --legacy-peer-deps --no-audit
 
       - name: Build
-        run: npm run build
+        run: |
+          echo "STEP ENV (build): SKIP_SUPABASE_SEED=$SKIP_SUPABASE_SEED NEXT_PUBLIC_TEST_USER=$NEXT_PUBLIC_TEST_USER NEXT_PUBLIC_TEST_USER_ROLE=$NEXT_PUBLIC_TEST_USER_ROLE"
+
+          # If seeding is skipped in CI, export deterministic test-user flags at *build* time
+          # so Next.js inlined NEXT_PUBLIC_* values and SSR will include them.
+          if [ "$SKIP_SUPABASE_SEED" = "true" ]; then
+            echo "SKIP_SUPABASE_SEED=true -> exporting NEXT_PUBLIC_TEST_USER=true NEXT_PUBLIC_TEST_USER_ROLE=citizen for build"
+            export NEXT_PUBLIC_TEST_USER="true"
+            export NEXT_PUBLIC_TEST_USER_ROLE="citizen"
+          fi
+
+          npm run build
+        env:
+          NEXT_PUBLIC_TEST_USER: ${{ env.SKIP_SUPABASE_SEED == 'true' && 'true' || '' }}
+          NEXT_PUBLIC_TEST_USER_ROLE: ${{ env.SKIP_SUPABASE_SEED == 'true' && 'citizen' || '' }}
 
       - name: "E2E: Supabase pre-check (fail fast)"
         run: node scripts/e2e-precheck.js
@@ -82,8 +98,22 @@ jobs:
 
       - name: Start production server
         run: |
-          node -e "console.log('CI runtime NEXT_PUBLIC_INCLUDE_TEST_PAGES=', process.env.NEXT_PUBLIC_INCLUDE_TEST_PAGES, 'NEXT_PUBLIC_DISABLE_3D=', process.env.NEXT_PUBLIC_DISABLE_3D)"
-          npm run start &
+          # Provide diagnostics and ensure test-user flags are visible to the child server process.
+          echo "STEP ENV: SKIP_SUPABASE_SEED=$SKIP_SUPABASE_SEED NEXT_PUBLIC_TEST_USER=$NEXT_PUBLIC_TEST_USER NEXT_PUBLIC_TEST_USER_ROLE=$NEXT_PUBLIC_TEST_USER_ROLE"
+
+          # When seeding is skipped, explicitly export deterministic test-user flags so the server
+          # process sees them at runtime (fallback; primary delivery is via step 'env:' mapping below)
+          if [ "$SKIP_SUPABASE_SEED" = "true" ]; then
+            echo "SKIP_SUPABASE_SEED=true -> exporting NEXT_PUBLIC_TEST_USER=true NEXT_PUBLIC_TEST_USER_ROLE=citizen"
+            export NEXT_PUBLIC_TEST_USER="true"
+            export NEXT_PUBLIC_TEST_USER_ROLE="citizen"
+          fi
+
+          # Quick verification printed from node runtime (will appear in job logs)
+          node -e "console.log('CI runtime NEXT_PUBLIC_INCLUDE_TEST_PAGES=', process.env.NEXT_PUBLIC_INCLUDE_TEST_PAGES, 'NEXT_PUBLIC_DISABLE_3D=', process.env.NEXT_PUBLIC_DISABLE_3D, 'NEXT_PUBLIC_TEST_USER=', process.env.NEXT_PUBLIC_TEST_USER, 'NEXT_PUBLIC_TEST_USER_ROLE=', process.env.NEXT_PUBLIC_TEST_USER_ROLE)"
+
+          # Start server with explicit inline envs to guarantee the child process receives them
+          NEXT_PUBLIC_TEST_USER="$NEXT_PUBLIC_TEST_USER" NEXT_PUBLIC_TEST_USER_ROLE="$NEXT_PUBLIC_TEST_USER_ROLE" npm run start &
           echo "Waiting for server..."
           npx wait-on http://localhost:3000 -t 60000
         env:
@@ -91,6 +121,9 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
           NEXT_PUBLIC_DISABLE_3D: 'true'
+          # Ensure the server process always inherits these in CI when SKIP_SUPABASE_SEED is set
+          NEXT_PUBLIC_TEST_USER: ${{ env.SKIP_SUPABASE_SEED == 'true' && 'true' || '' }}
+          NEXT_PUBLIC_TEST_USER_ROLE: ${{ env.SKIP_SUPABASE_SEED == 'true' && 'citizen' || '' }}
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps

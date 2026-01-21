@@ -22,6 +22,11 @@ async function main() {
 
   console.log('\nVerifying seeded test users & roles');
 
+  if (process.env.SKIP_SUPABASE_SEED === 'true') {
+    console.log('ℹ️  SKIP_SUPABASE_SEED=true -> skipping seeded user verification (CI flag)');
+    process.exit(0);
+  }
+
   const REQUIRED_TEST_USERS = [
     { email: 'e2e-admin+ci@example.com', role: 'admin' },
     { email: 'e2e-supplier+ci@example.com', role: 'supplier' },

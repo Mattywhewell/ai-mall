@@ -21,6 +21,48 @@
 			"label": "Test auto-listing API endpoint (PowerShell)",
 			"type": "shell",
 			"command": "Invoke-WebRequest -Uri 'http://localhost:3000/api/auto-listing/extract' -Method POST -Headers @{'Content-Type'='application/json'} -Body '{\"product_url\":\"https://example-cj-product.com/item/123\",\"supplier_id\":\"cj_supplier_id_1\"}'"
+		},
+		{
+			"label": "Run single RBAC SSR gated test with trace",
+			"type": "shell",
+			"command": "$env:NEXT_PUBLIC_E2E_DEBUG='true'; npx playwright test -g \"SSR cookie fallback makes root layout reflect test_user cookie (gated)\" --trace on -w 1",
+			"isBackground": false
+		},
+		{
+			"label": "Run single RBAC SSR gated test (safe grep)",
+			"type": "shell",
+			"command": "$env:NEXT_PUBLIC_E2E_DEBUG='true'; npx playwright test -g \"SSR cookie fallback makes root layout reflect test_user cookie\" --trace on -w 1",
+			"isBackground": false
+		},
+		{
+			"label": "Run single RBAC SSR gated test (cmd env)",
+			"type": "shell",
+			"command": "cmd /c \"set \\\"NEXT_PUBLIC_E2E_DEBUG=true\\\" && npx playwright test tests/e2e/rbac.spec.ts -g \\\"SSR cookie fallback makes root layout reflect test_user cookie\\\" --trace on -w 1\"",
+			"isBackground": false
+		},
+		{
+			"label": "Set env var and run RBAC SSR test",
+			"type": "shell",
+			"command": "setx NEXT_PUBLIC_E2E_DEBUG true; npx playwright test tests/e2e/rbac.spec.ts -g \"SSR cookie fallback makes root layout reflect test_user cookie\" --trace on -w 1",
+			"isBackground": false
+		},
+		{
+			"label": "Run RBAC SSR gated test (no -w)",
+			"type": "shell",
+			"command": "npx playwright test tests/e2e/rbac.spec.ts -g \"SSR cookie fallback makes root layout reflect test_user cookie\" --trace on",
+			"isBackground": false
+		},
+		{
+			"label": "Copy trace to artifacts (powershell child)",
+			"type": "shell",
+			"command": "powershell -NoProfile -Command \"Copy-Item -Path 'test-results\\rbac-Role-Based-Access-Con-9cb28-ect-test-user-cookie-gated--chromium\\trace.zip' -Destination 'artifacts\\ssr-gated-trace-admin.zip' -Force; if ($?) { Write-Output 'COPIED' } else { Write-Output 'FAILED' }\"",
+			"isBackground": false
+		},
+		{
+			"label": "Inspect copied trace for probe logs",
+			"type": "shell",
+			"command": "python .\\scripts\\find_in_trace.py \"artifacts\\ssr-gated-trace-admin.zip\" \"CI: SSR PROBE RECEIVED\"",
+			"isBackground": false
 		}
 	]
 }

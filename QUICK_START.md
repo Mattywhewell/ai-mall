@@ -124,6 +124,29 @@ Visit `/admin/dashboard` to see:
    npm run dev
    ```
 
+## Sequencer runner (developer tooling)
+A small reference sequencer is included for the SQL‑patch arc. It accepts parser-output JSON and validates sequencing, cycle detection, and phase grouping.
+
+Where this fits in the arc: the sequencer is part of the SQL‑patch pipeline — it activates when an introspection artifact is parsed and findings are produced by the parser.
+
+For details on the expected JSON format, see `docs/PARSER_OUTPUT_FORMAT.md`.
+
+Sample inputs are available under `scripts/samples/` (normal flow and cycle detection examples).
+
+```bash
+# Install Python deps
+python -m pip install -r requirements.txt
+
+# Run the demo sequencer
+python scripts/sequencer_runner.py
+
+# Run the sequencer with a parser-output JSON
+python scripts/sequencer_runner.py --input scripts/samples/normal-findings.json
+
+# Run the sequencer tests
+python -m pytest -q scripts/tests
+```
+
 ## New Dependencies
 - `openai` - AI features
 - `zustand` - Cart state management

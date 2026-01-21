@@ -1,0 +1,28 @@
+[
+  {
+    "id": "F-008",
+    "classification": "Corrective",
+    "confidence": 80,
+    "impact": "medium",
+    "object_type": "table",
+    "schema": "public",
+    "object_name": "obj8",
+    "dependencies": ["public.obj9"],
+    "suggested_sql": "-- manual triage required",
+    "reason": "obj8 references obj9",
+    "test_plan": "Manual review"
+  },
+  {
+    "id": "F-009",
+    "classification": "Corrective",
+    "confidence": 80,
+    "impact": "medium",
+    "object_type": "table",
+    "schema": "public",
+    "object_name": "obj9",
+    "dependencies": ["public.obj8"],
+    "suggested_sql": "-- manual triage required",
+    "reason": "obj9 references obj8",
+    "test_plan": "Manual review"
+  }
+]

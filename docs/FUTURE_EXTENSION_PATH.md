@@ -14,6 +14,9 @@ This file sketches a minimal, pragmatic roadmap for how the parser → validator
 - Add a small compatibility matrix documenting which sequencer versions support which schema versions.
 - Consider a migration guide and a deprecation policy for older schema versions.
 
+### Schema v2 migration notes (placeholder)
+- Reserved for migration notes and compatibility guidance when a schema v2 is introduced. Keep migration guidance minimal and actionable.
+
 ## 3. Auto-normalization layer (shock absorber) ⚖️
 - Centralize normalization of fields (e.g., `name` → `object_name`, `estimated_impact` → `impact`, `affected` → `affects`).
 - Add rules for bounding/normalizing: `confidence` (0–100), `impact` → canonical enum, `object_type` canonicalization.

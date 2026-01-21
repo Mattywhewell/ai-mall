@@ -1,0 +1,87 @@
+name: Validate parser output on release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  validate_on_release:
+    name: Validate parser output (release)
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Find release asset
+        id: find_asset
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const releaseId = context.payload.release.id;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const assets = await github.rest.repos.listReleaseAssets({ owner, repo, release_id: releaseId });
+            core.info(`Found ${assets.data.length} assets`) ;
+            const target = assets.data.find(a => a.name && a.name.startsWith('introspection-findings'));
+            if (!target) {
+              core.info('No introspection-findings asset found on this release. Exiting gracefully.');
+              return { found: false };
+            }
+            core.info(`Found asset: ${target.name} (id=${target.id})`);
+            return { found: true, id: target.id, name: target.name };
+
+      - name: Download findings asset
+        if: steps.find_asset.outputs.found == 'true'
+        run: |
+          ASSET_ID=${{ steps.find_asset.outputs.id }}
+          OWNER=${{ github.repository_owner }}
+          REPO=${{ github.event.repository.name }}
+          echo "Downloading asset id $ASSET_ID"
+          curl -sSfL -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/octet-stream" "https://api.github.com/repos/${OWNER}/${REPO}/releases/assets/${ASSET_ID}" -o introspection-findings.json
+          echo "Saved as introspection-findings.json"
+
+      - name: Validate parser output
+        if: steps.find_asset.outputs.found == 'true'
+        id: validate
+        run: |
+          python scripts/validate_parser_output.py introspection-findings.json
+
+      - name: Post validation success comment to release
+        if: steps.find_asset.outputs.found == 'true' && steps.validate.outcome == 'success'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const releaseId = context.payload.release.id;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const body = `✅ Parser output validation passed for release **${context.payload.release.tag_name}** (asset: ${steps.find_asset.outputs.name}).`;
+            await github.rest.issues.createComment({ owner, repo, issue_number: context.payload.release.id, body });
+
+      - name: Post validation failure comment to release
+        if: steps.find_asset.outputs.found == 'true' && steps.validate.outcome != 'success'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const releaseId = context.payload.release.id;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const body = `❌ Parser output validation failed for release **${context.payload.release.tag_name}** (asset: ${steps.find_asset.outputs.name}). See workflow run logs for details: ${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+            await github.rest.issues.createComment({ owner, repo, issue_number: context.payload.release.id, body });

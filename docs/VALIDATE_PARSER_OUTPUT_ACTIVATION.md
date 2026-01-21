@@ -1,5 +1,7 @@
 # Activation checklist — Parser-output validation workflow
 
+Purpose: a short checklist to enable automated validation of parser 'findings JSON' artifacts when an introspection artifact is available.
+
 This checklist helps you enable and run the ready-to-apply validation workflow when an introspection artifact is available.
 
 1. Review the workflow file: `.github/workflows/validate-parser-output.yml` (already present). ✅
@@ -21,6 +23,8 @@ This checklist helps you enable and run the ready-to-apply validation workflow w
 4. If you want automatic validation on every new release/artifact (optional):
    - Use the provided release-triggered workflow: `.github/workflows/validate-parser-output-on-release.yml` (it triggers on `release.published`, finds an asset named `introspection-findings*`, downloads it, and validates it automatically).
    - To activate: publish a release and include an asset named `introspection-findings.json` (or `introspection-findings-<suffix>.json`). The workflow will run automatically and post a short comment to the release with the result.
+
+See also: `docs/FUTURE_EXTENSION_PATH.md`.
 
 For the longer-term roadmap (schema versioning, multi-stream validation, and sequencer dry-run plans), see `docs/FUTURE_EXTENSION_PATH.md`.
 

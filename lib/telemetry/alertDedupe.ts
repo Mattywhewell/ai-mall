@@ -15,13 +15,13 @@ let redisEnabled = process.env.TELEMETRY_REDIS_ENABLED === 'true' && !!process.e
 
 if (redisEnabled) {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const IORedis = require('ioredis');
     redisClient = new IORedis(process.env.TELEMETRY_REDIS_URL);
   } catch (e) {
     // If ioredis is not available or connection fails, fall back to in-memory and log a warning.
     // Do not fail the application.
-    // eslint-disable-next-line no-console
+     
     console.warn('Redis telemetry dedupe unavailable, falling back to in-memory store:', e);
     redisClient = null;
     redisEnabled = false;

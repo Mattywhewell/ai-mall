@@ -59,11 +59,13 @@ Example Issue (copy into new issue using template)
 
 ## Triggering automated parsing via `/introspect` (optional)
 
-If you uploaded the introspection zip as a GitHub Release or hosted it at a reachable URL (gist/raw zip), you can trigger the automated parser by commenting on the issue:
+If you uploaded an introspection artifact (zip) or hosted the parser output (findings JSON) at a reachable URL (gist/raw zip), trigger the parser by commenting on the issue:
 
 `/introspect <url>`
 
-The repository's automation will download the zip, run `scripts/parse-introspection.js`, post a findings summary, upload parsed artifacts, and apply the `introspection` and `schema-review` labels. Do **not** include secrets in the URL or comment.
+The repository's automation will download the artifact or findings JSON, run `scripts/parse-introspection.js`, post a findings summary, upload parsed artifacts, and apply the `introspection` and `schema-review` labels. Do **not** include secrets in the URL or comment.
+
+See also: `docs/FUTURE_EXTENSION_PATH.md`.
 
 For a short roadmap of how this arc may evolve (multi-stream validation, schema versioning, and cross-artifact validation), see `docs/FUTURE_EXTENSION_PATH.md`.
 

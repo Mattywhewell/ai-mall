@@ -16,7 +16,7 @@ export default function ChannelConnectionsTestPage({ searchParams }: { searchPar
 
   // Diagnostic log to confirm server-side rendering and received search params in CI
   try {
-    // eslint-disable-next-line no-console
+     
     console.log('[TestPage] ChannelConnections server render', { searchParams, allowTestPages, includeFlag: process.env.NEXT_PUBLIC_INCLUDE_TEST_PAGES });
   } catch (e) {
     // ignore
