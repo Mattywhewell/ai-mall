@@ -612,8 +612,23 @@ test.describe('Role-Based Access Control (RBAC)', () => {
       // Start as citizen
       // Use lightweight quickSetUser to avoid addInitScript timing/page-closed flakiness in role-switching
       const quickSetUser = async (r: string) => {
-        try { await page.evaluate((rr) => { localStorage.setItem('test_user', JSON.stringify({ role: rr })); }, r); } catch (e) {}
-        try { const url = new URL(BASE).origin; await page.context().addCookies([{ name: 'test_user', value: JSON.stringify({ role: r }), url } as any]); } catch (e) {}
+        // Prefer cookie-first approach (SSR reads cookie) which is safe before navigation
+        try {
+          const url = new URL(BASE).origin;
+          await page.context().addCookies([{ name: 'test_user', value: JSON.stringify({ role: r }), url } as any]);
+        } catch (e) {
+          console.warn('quickSetUser: addCookies failed', e && e.message ? e.message : e);
+        }
+
+        // Attempt to set localStorage for client-side priming, but only when on same-origin; navigate to root if necessary
+        try {
+          if (!page.url().startsWith(new URL(BASE).origin)) {
+            await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' }).catch(() => null);
+          }
+          await page.evaluate((rr) => { try { localStorage.setItem('test_user', JSON.stringify({ role: rr })); } catch (e) {} }, r);
+        } catch (e) {
+          console.warn('quickSetUser: localStorage set failed; continuing with cookie-only fallback', e && e.message ? e.message : e);
+        }
       };
       await quickSetUser('citizen');
       await page.goto(`${BASE}/?test_user=true&role=citizen`, { waitUntil: 'load' });
@@ -641,8 +656,23 @@ test.describe('Role-Based Access Control (RBAC)', () => {
       // Start as citizen (ensure AuthProvider initialized)
       // Use a lightweight localStorage+cookie set to avoid addInitScript timing issues in role-switching flow
       const quickSetUser = async (r: string) => {
-        try { await activePage.evaluate((rr) => { localStorage.setItem('test_user', JSON.stringify({ role: rr })); }, r); } catch (e) {}
-        try { const url = new URL(BASE).origin; await activePage.context().addCookies([{ name: 'test_user', value: JSON.stringify({ role: r }), url } as any]); } catch (e) {}
+        // Set cookie first (SSR deterministic). Active page may not be same-origin yet so cookie-only is safer initially.
+        try {
+          const url = new URL(BASE).origin;
+          await activePage.context().addCookies([{ name: 'test_user', value: JSON.stringify({ role: r }), url } as any]);
+        } catch (e) {
+          console.warn('quickSetUser(active): addCookies failed', e && e.message ? e.message : e);
+        }
+
+        // Try to prime localStorage for client-side recognition, navigating to root first if needed
+        try {
+          if (!activePage.url().startsWith(new URL(BASE).origin)) {
+            await activePage.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' }).catch(() => null);
+          }
+          await activePage.evaluate((rr) => { try { localStorage.setItem('test_user', JSON.stringify({ role: rr })); } catch (e) {} }, r);
+        } catch (e) {
+          console.warn('quickSetUser(active): localStorage set failed; continuing with cookie-only fallback', e && e.message ? e.message : e);
+        }
       };
       await quickSetUser('citizen');
       try {
