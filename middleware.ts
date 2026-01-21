@@ -36,16 +36,31 @@ export function middleware(request: NextRequest) {
       }
     }
 
-    // NEW: For E2E tests we also want to bypass prerender cache when ?test_user is present
-    // so SSR can see the role and render deterministic user UI on the server. This avoids
-    // hydration mismatches where server returns a pre-rendered public page and the
-    // client immediately re-renders as a logged-in user (causing React hydration errors).
+    // NEW: For E2E tests we want to bypass prerender cache in a few cases:
+    // 1) When ?test_user is present (previous behavior): ensure SSR sees the role
+    // 2) When _test_user_force is present (tests may add it directly on target pages)
+    // Both cases should rewrite once to avoid serving stale prerendered HTML that
+    // doesn't reflect the test user's role.
     if (url.searchParams.has('test_user')) {
       if (!url.searchParams.has('_test_user_force')) {
         url.searchParams.set('_test_user_force', '1');
         console.log('[Middleware] Rewriting request with ?test_user to bypass prerender cache', url.toString());
         const rewritten = NextResponse.rewrite(url);
         rewritten.headers.set('x-test-user-rewritten', '1');
+        rewritten.headers.set('x-test-user-original', request.nextUrl.toString());
+        return rewritten;
+      }
+    }
+
+    // If tests directly add _test_user_force to a target page (e.g., /admin/dashboard),
+    // ensure we also rewrite such requests so the page is served dynamically rather than
+    // returning a potentially stale prerendered copy.
+    if (url.searchParams.has('_test_user_force')) {
+      if (!url.searchParams.has('_test_user_rewritten')) {
+        url.searchParams.set('_test_user_rewritten', '1');
+        console.log('[Middleware] Rewriting request with _test_user_force to ensure dynamic SSR', url.toString());
+        const rewritten = NextResponse.rewrite(url);
+        rewritten.headers.set('x-test-user-force-rewritten', '1');
         rewritten.headers.set('x-test-user-original', request.nextUrl.toString());
         return rewritten;
       }

@@ -1,0 +1,37 @@
+
+> ai-native-mall@1.0.0 dev
+> set NODE_OPTIONS=--max-old-space-size=8192 && next dev -p 3000
+
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.13:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.5s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 565ms (159 modules)
+[Middleware] Incoming request {
+  method: 'GET',
+  url: 'http://localhost:3000/',
+  auth: '[missing]',
+  contentType: null,
+  forwardedFor: '::1',
+  userAgent: 'Mozilla/5.0 (Windows NT; Windows NT 10.0; en-GB) WindowsPowerShell/5.1.26100.7462'
+}
+[Middleware] Set user-country cookie to US
+ ○ Compiling / ...
+ ✓ Compiled / in 17.9s (848 modules)
+ ✓ Compiled in 2.3s (332 modules)
+[Middleware] Incoming request {
+  method: 'GET',
+  url: 'http://localhost:3000/',
+  auth: '[missing]',
+  contentType: null,
+  forwardedFor: '::1',
+  userAgent: 'Mozilla/5.0 (Windows NT; Windows NT 10.0; en-GB) WindowsPowerShell/5.1.26100.7462'
+}
+[Middleware] Set user-country cookie to US
+ GET / 200 in 193ms
+Terminate batch job (Y/N)? [?25h
+Terminate batch job (Y/N)? Terminate batch job (Y/N)? Terminate batch job (Y/N)? Terminate batch job (Y/N)? 

@@ -32,7 +32,7 @@ export async function reportRendererImportFailure(errorMessage: string, extra: R
     }
   } catch (e) {
     // Do not throw — telemetry failure should not impact page
-    // eslint-disable-next-line no-console
+     
     console.warn('Telemetry report failed', e);
   }
 }

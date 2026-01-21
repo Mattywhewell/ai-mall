@@ -20,13 +20,13 @@ try {
   redisEnabled = process.env.TELEMETRY_REDIS_ENABLED === 'true' && !!process.env.TELEMETRY_REDIS_URL;
   if (redisEnabled) {
     // lazy require to avoid hard dep if not used
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const IORedis = require('ioredis');
     redisClient = new IORedis(process.env.TELEMETRY_REDIS_URL);
   }
 } catch (e) {
   // If redis not available, fallback to in-memory
-  // eslint-disable-next-line no-console
+   
   console.warn('Aggregation: Redis disabled/unavailable, falling back to in-memory aggregation', e);
   redisClient = null;
   redisEnabled = false;

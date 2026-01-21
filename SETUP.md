@@ -78,3 +78,5 @@ npm run dev
 ```
 
 Visit http://localhost:3000
+
+> CI note: To avoid flaky upstream Supabase Auth failures, the Playwright CI job sets `SKIP_SUPABASE_SEED=true` which skips creating Supabase auth users in CI and relies on deterministic `test_user` injection (localStorage/cookie). To run with full Supabase seeding locally or in CI, unset this env var and ensure Supabase credentials are available.

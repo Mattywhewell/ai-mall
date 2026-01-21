@@ -61,7 +61,7 @@ export function RoleGuard({
 
       // Debug: log role detection during tests
       try {
-        // eslint-disable-next-line no-console
+         
         console.log('ROLEGUARD: derivedRole=', testHtmlRoleNow, 'userPresent=', !!user, 'loading=', loading);
       } catch (e) {}
 

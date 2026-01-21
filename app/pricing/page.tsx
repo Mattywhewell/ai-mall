@@ -26,7 +26,7 @@ function PricingPage() {
 
   useEffect(() => {
     fetchPlans();
-    // eslint-disable-next-line
+     
   }, []);
 
   async function fetchPlans() {
