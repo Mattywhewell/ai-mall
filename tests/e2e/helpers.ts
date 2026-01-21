@@ -363,7 +363,6 @@ export async function ensureTestUser(page: Page, role: string) {
           // fall-through to throw below
           console.warn('ensureTestUser: server-set reprobe also failed');
         }
-      }
 
       // Intentionally throw so the test fails fast with a trace when SSR did not reflect the cookie.
       throw new Error(`ensureTestUser: SSR probe failed — server did not render test-user cookie for role "${role}". Last cookieSet=${cookieSet}, serverFallbackTried=${serverFallbackTried}.`);
