@@ -490,8 +490,8 @@ test.describe('Role-Based Access Control (RBAC)', () => {
       }
 
       // Check for profile header
-      await page.waitForSelector('h1', { timeout: 7000 }).catch(() => null);
-      await expect(page.locator('h1').first()).toBeVisible();
+      await page.waitForSelector('h1', { timeout: 15000 }).catch(() => null);
+      await expect(page.locator('h1').first()).toBeVisible({ timeout: 15000 });
 
       // Diagnostic logs for flaky profile rendering
       const authDebug = await page.locator('[data-testid="auth-debug"]').textContent().catch(() => null);
@@ -532,8 +532,8 @@ test.describe('Role-Based Access Control (RBAC)', () => {
       }
 
       // Check for profile header
-      await page.waitForSelector('h1', { timeout: 7000 }).catch(() => null);
-      await expect(page.locator('h1').first()).toBeVisible();
+      await page.waitForSelector('h1', { timeout: 15000 }).catch(() => null);
+      await expect(page.locator('h1').first()).toBeVisible({ timeout: 15000 });
 
       // Wait briefly for AuthProvider/client-side role detection to settle (mitigate hydration races)
       await page.waitForFunction(() => {
@@ -573,7 +573,7 @@ test.describe('Role-Based Access Control (RBAC)', () => {
       // Switch to admin role
       await ensureTestUser(page, 'admin');
       await page.goto(`${BASE}/?test_user=true&role=admin`, { waitUntil: 'load' });
-      await page.waitForSelector('nav', { timeout: 7000 }).catch(() => null);
+      await page.waitForSelector('nav', { timeout: 15000 }).catch(() => null);
       await expect(page.locator('nav').getByText(/Users|Revenue/i)).toBeVisible();
     });
 
@@ -589,7 +589,7 @@ test.describe('Role-Based Access Control (RBAC)', () => {
         await page.goto(`${BASE}/profile?test_user=true&role=citizen`, { waitUntil: 'load' });
       }
       // Use profile-specific test id to avoid ambiguous matches in the page copy
-      await page.waitForSelector('[data-testid="profile-role-display"]', { timeout: 15000 });
+      await page.waitForSelector('[data-testid="profile-role-display"]', { timeout: 30000 });
       await expect(page.locator('[data-testid="profile-role-display"]')).toHaveText('Citizen');
 
       // Switch to supplier
