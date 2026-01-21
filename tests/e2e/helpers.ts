@@ -409,7 +409,7 @@ export async function ensureNoTestUser(page: Page) {
 }
 
 // NEW: wait for profile to be ready (SSR marker + header or role display)
-export async function waitForProfileReady(page: Page, role: string, timeout = 15000) {
+export async function waitForProfileReady(page: Page, role: string, timeout = 20000) {
   // Wait for server-rendered marker first (fast path)
   try {
     await page.waitForSelector(`#__test_user[data-role="${role}"]`, { timeout: Math.min(4000, timeout) });

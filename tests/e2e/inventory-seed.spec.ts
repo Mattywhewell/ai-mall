@@ -7,6 +7,9 @@ test('CI-only: seeded inventory path renders deterministic row', async ({ page }
   // Skip when not running in CI (GitHub Actions sets CI=true)
   test.skip(!process.env.CI, 'CI-only assertion for seeded inventory path');
 
+  // Skip when seeding is intentionally disabled in CI via SKIP_SUPABASE_SEED
+  test.skip(process.env.SKIP_SUPABASE_SEED === 'true', 'SKIP_SUPABASE_SEED=true -> skipping seeded inventory test');
+
   await page.goto('/supplier/listing-manager?test_user=true&role=supplier&test_seed=inventory', { waitUntil: 'load' });
 
   // Dismiss onboarding overlays if present

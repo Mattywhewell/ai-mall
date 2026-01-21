@@ -77,7 +77,7 @@ test.describe('Inventory Sync UI', () => {
     await dismissOnboarding(page);
 
     // Wait for the main Sync UI to settle (Inventory Synchronization card should be visible)
-    await expect(page.getByText('Inventory Synchronization')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Inventory Synchronization')).toBeVisible({ timeout: 30000 });
 
     // The seeded item 'P1' should always be present; wait robustly
     const ok = await waitForSeededRow(page, 'P1', 20000);

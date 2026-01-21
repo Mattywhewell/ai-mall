@@ -23,6 +23,8 @@ test('ci smoke: /commons environment loads', async ({ page }) => {
   await dismissOnboarding(page);
 
   const env = page.locator('[data-testid="spatial-environment"]');
+  // Be more tolerant in CI; give the environment up to 20s to initialize
+  await env.waitFor({ state: 'visible', timeout: 20000 }).catch(() => null);
   const envVisible = await env.isVisible().catch(() => false);
   expect(envVisible).toBe(true);
 });
