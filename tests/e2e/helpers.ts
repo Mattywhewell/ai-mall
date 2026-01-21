@@ -165,29 +165,28 @@ export async function ensureTestUser(page: Page, role: string) {
             }
           }
 
-          // Additionally, call the deterministic probe API to verify server saw the cookie/header
+          // Additionally, call the deterministic probe API and verify SSR rendered the server-set cookie/header
           try {
             const probeApiRes = await page.evaluate(async (probeApi) => {
               const r = await fetch(probeApi, { method: 'GET', headers: { 'x-e2e-ssr-probe': '1', 'cache-control': 'no-cache', 'pragma': 'no-cache' } });
               try { return { status: r.status, body: await r.json() }; } catch (e) { return { status: r.status, text: await r.text() }; }
             }, `${BASE}/api/test/ssr-probe?cb=${Date.now()}`);
             console.info('ensureTestUser: server-side ssr-probe API response:', JSON.stringify(probeApiRes));
-          } catch (e) {
-            console.warn('ensureTestUser: failed to call ssr-probe API for diagnostics', e && e.message ? e.message : e);
+
+            const selector2 = '[data-testid="test-user-server"][data-role="' + role + '"]';
+            await page.waitForSelector(selector2, { timeout: 3000 });
+            console.info('ensureTestUser: SSR probe confirmed server role via server-set cookie:', role);
+            return;
+          } catch (err2) {
+            // Reprobe failed — will fall through to server-set fallback below
+            console.warn('ensureTestUser: server-set reprobe also failed', err2 && err2.message ? err2.message : err2);
           }
 
-          const selector2 = '[data-testid="test-user-server"][data-role="' + role + '"]';
-          await page.waitForSelector(selector2, { timeout: 3000 });
-          console.info('ensureTestUser: SSR probe confirmed server role via server-set cookie:', role);
-          return;
-        } catch (err2) {
-          // fall-through to throw below
-          console.warn('ensureTestUser: server-set reprobe also failed');
-        }
-    try {
-      serverFallbackTried = true;
-      const setUrl = `${BASE}/api/test/set-test-user?role=${encodeURIComponent(role)}`;
-      console.info('ensureTestUser: attempting server-set-cookie fallback via', setUrl);
+          // Server-side Set-Cookie fallback
+          try {
+            serverFallbackTried = true;
+            const setUrl = `${BASE}/api/test/set-test-user?role=${encodeURIComponent(role)}`;
+            console.info('ensureTestUser: attempting server-set-cookie fallback via', setUrl);
       // Use a navigation so the server response sets the cookie on the browser context
       await page.goto(setUrl, { waitUntil: 'networkidle', timeout: 7000 }).catch(() => null);
 
