@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { ensureTestUser } from './helpers';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 
@@ -7,8 +8,15 @@ test.describe('Account dropdown (logged-in)', () => {
     // Capture browser console
     page.on('console', (msg) => console.log('BROWSER_CONSOLE:', msg.text()));
 
+    // Ensure deterministic test user state (SSR + client) before navigation
+    await ensureTestUser(page, 'citizen');
+
     // Go to a page that includes the site header so the account menu is present
-    await page.goto(`${BASE}/profile?test_user=true`, { waitUntil: 'load' });
+    await page.goto(`${BASE}/profile`, { waitUntil: 'load' });
+
+    // Ensure server rendered marker and client username are present before interacting
+    await page.waitForSelector('#__test_user[data-role="citizen"]', { state: 'attached', timeout: 10000 }).catch(()=>{});
+    await page.waitForSelector('text=Test User', { timeout: 15000 }).catch(()=>{});
 
     // Dump a snippet of the content for debugging
     const html = await page.content();
