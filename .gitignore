@@ -57,3 +57,14 @@ supabase-migrations-logs-*.zip
 introspection-findings.*
 
 
+
+# Playwright artifacts
+artifacts/
+playwright-report/
+t-report/
+playwright-report-artifact/
+gh-artifacts-*/
+*.trace
+*.zip
+*.zip.b64
+
