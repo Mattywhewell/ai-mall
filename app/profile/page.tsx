@@ -92,6 +92,16 @@ export default function ProfilePage() {
     }
   }, [userRole, testRole, loading]);
 
+  // DIAG: log an effect whenever the visible role info changes (mount and subsequent changes)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        // eslint-disable-next-line no-console
+        console.info('DIAG: PROFILE effect userRoleChange', { userRole, testRole, loading, timestamp: Date.now(), readyState: document.readyState });
+      } catch (e) {}
+    }
+  }, [userRole, testRole, loading]);
+
   // Log when admin quicklinks should be visible
   useEffect(() => {
     if (userRole === 'admin' || testRole === 'admin') {
@@ -249,7 +259,7 @@ export default function ProfilePage() {
       {/* E2E test helper: tests should use `page.addInitScript` or the server-side marker (#__test_user) — avoid mutating <html> during SSR hydration */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
+        <div className="bg-white rounded-lg shadow-lg p-8 mb-6" data-current-role={userRole ?? testRole ?? 'none'}>
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-6">
               <div className="relative">
