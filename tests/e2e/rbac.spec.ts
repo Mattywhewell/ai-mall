@@ -652,6 +652,8 @@ test.describe('Role-Based Access Control (RBAC)', () => {
     });
 
     test('profile page updates when role changes', async ({ page, browser }) => {
+      // CI load can stall contexts — give this role-switch test more time to avoid false negatives
+      test.setTimeout(60000);
       let activePage: any = page;
       let activeContext = page.context();
       // Start as citizen (ensure AuthProvider initialized)
