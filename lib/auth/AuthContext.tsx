@@ -119,11 +119,7 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
               created_at: new Date().toISOString(),
             },
           } as any;
--          setSession(mock);
--          setUser(mock.user);
--          setUserRole(role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'citizen');
--          setLoading(false);
-+          commitRole('localStorage', role, mock);
+          commitRole('localStorage', role, mock);
            return;
          }
        } catch (e) {
@@ -146,13 +142,8 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
              created_at: new Date().toISOString(),
            },
          } as any;
--        setSession(mock);
--        setUser(mock.user);
--        // Derive a simple userRole for client-only checks
--        setUserRole(role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'citizen');
--        setLoading(false);
-+        commitRole('searchParams', role, mock);
-         return;
+        commitRole('searchParams', role, mock);
+        return;
        }
 
        // Also support cookie-based test_user for Playwright (cookie-first workflow)
@@ -175,12 +166,8 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
                  created_at: new Date().toISOString(),
                },
              } as any;
--            setSession(mock);
--            setUser(mock.user);
--            setUserRole(role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'citizen');
--            setLoading(false);
-+            commitRole('cookie', role, mock);
-             return;
+            commitRole('cookie', role, mock);
+            return;
            } catch (e) {
              // ignore parse errors
            }
@@ -214,14 +201,14 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
         // eslint-disable-next-line no-console
         console.info('DIAG: AuthContext supabase.getSession -> roleFromMeta', { roleFromMeta });
       } catch (e) {}
-+      // Commit the role so we have a single, timestamped DIAG at the point of state mutation
-+      try {
-+        commitRole('supabase', roleFromMeta || null);
-+      } catch (e) {
-+        // If commitRole isn't available for some reason, fall back to previous behavior
-+        setUserRole(roleFromMeta ? (roleFromMeta === 'admin' ? 'admin' : roleFromMeta === 'supplier' ? 'supplier' : 'citizen') : null);
-+        setLoading(false);
-+      }
+      // Commit the role so we have a single, timestamped DIAG at the point of state mutation
+      try {
+        commitRole('supabase', roleFromMeta || null);
+      } catch (e) {
+        // If commitRole isn't available for some reason, fall back to previous behavior
+        setUserRole(roleFromMeta ? (roleFromMeta === 'admin' ? 'admin' : roleFromMeta === 'supplier' ? 'supplier' : 'citizen') : null);
+        setLoading(false);
+      }
     });
 
     // Listen for auth changes
@@ -236,13 +223,13 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
         // eslint-disable-next-line no-console
         console.info('DIAG: AuthContext onAuthStateChange -> roleFromMeta', { roleFromMeta });
       } catch (e) {}
-+      try {
-+        commitRole('onAuthStateChange', roleFromMeta || null, session ? { user: session?.user } as any : undefined);
-+      } catch (e) {
-+        // fallback
-+        setUserRole(roleFromMeta ? (roleFromMeta === 'admin' ? 'admin' : roleFromMeta === 'supplier' ? 'supplier' : 'citizen') : null);
-+        setLoading(false);
-+      }
+      try {
+        commitRole('onAuthStateChange', roleFromMeta || null, session ? { user: session?.user } as any : undefined);
+      } catch (e) {
+        // fallback
+        setUserRole(roleFromMeta ? (roleFromMeta === 'admin' ? 'admin' : roleFromMeta === 'supplier' ? 'supplier' : 'citizen') : null);
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
