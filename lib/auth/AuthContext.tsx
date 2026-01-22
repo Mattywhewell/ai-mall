@@ -78,6 +78,12 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
   });
 
   useEffect(() => {
+    // DIAG: record that the init effect ran (timestamp + document readyState) so we can see if this effect fires in CI
+    try {
+      // eslint-disable-next-line no-console
+      console.info('DIAG: AuthContext initEffect fired', { timestamp: Date.now(), readyState: typeof window !== 'undefined' ? document.readyState : null });
+    } catch (e) {}
+
     // Allow dev-only test user via localStorage or ?test_user=true (run before Supabase config check so tests work in offline mode)
     // Add a single, surgical commit DIAG so we can see exactly when the role is committed to state in CI.
     const commitRole = (source: string, role: string | null, mock?: any) => {
