@@ -9,11 +9,20 @@ vi.mock('@/lib/auth/AuthContext', async () => {
   };
 });
 
+// Ensure next/router usage in ProfilePage doesn't throw during tests
+vi.mock('next/navigation', async () => {
+  return {
+    useRouter: () => ({ push: () => {} }),
+  };
+});
+
 // Render the ProfilePage and assert the profile-role-display shows "Citizen"
 import ProfilePage from '@/app/profile/page';
 
 describe('Profile role display', () => {
   it('shows Citizen when userRole is citizen', () => {
+    // Ensure test_user param bypasses initial loading spinner
+    window.history.pushState({}, '', '/profile?test_user=true');
     render(<ProfilePage />);
     const roleDisplay = screen.getByTestId('profile-role-display');
     expect(roleDisplay).toBeTruthy();

@@ -99,7 +99,8 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
       setLoading(false);
     };
 
-    if (process.env.NODE_ENV !== 'production' && typeof window !== 'undefined') {
+    const allowTestUserClient = (process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_INCLUDE_TEST_USER === 'true') && typeof window !== 'undefined';
+    if (allowTestUserClient) {
       // Check localStorage first (allows Playwright to inject test user before scripts run)
       try {
         const ls = localStorage.getItem('test_user');
