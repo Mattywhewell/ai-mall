@@ -77,6 +77,23 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
     return null;
   });
 
+  // Single commit helper available to all effects so we can centralize the DIAG at the point of state mutation
+  const commitRole = (source: string, role: string | null, mock?: any) => {
+    try {
+      // eslint-disable-next-line no-console
+      console.info('DIAG: AuthContext commitRole', { source, role, timestamp: Date.now() });
+    } catch (e) {}
+    if (mock) {
+      setSession(mock);
+      setUser(mock.user);
+    }
+    setUserRole(role ? (role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'citizen') : null);
+    setLoading(false);
+  };
+
+  // Allow test-only client behavior when explicitly enabled (or in development)
+  const allowTestUserClient = (process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_INCLUDE_TEST_USER === 'true') && typeof window !== 'undefined';
+
   useEffect(() => {
     // DIAG: record that the init effect ran (timestamp + document readyState) so we can see if this effect fires in CI
     try {
@@ -85,21 +102,8 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
     } catch (e) {}
 
     // Allow dev-only test user via localStorage or ?test_user=true (run before Supabase config check so tests work in offline mode)
-    // Add a single, surgical commit DIAG so we can see exactly when the role is committed to state in CI.
-    const commitRole = (source: string, role: string | null, mock?: any) => {
-      try {
-        // eslint-disable-next-line no-console
-        console.info('DIAG: AuthContext commitRole', { source, role, timestamp: Date.now() });
-      } catch (e) {}
-      if (mock) {
-        setSession(mock);
-        setUser(mock.user);
-      }
-      setUserRole(role ? (role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'citizen') : null);
-      setLoading(false);
-    };
 
-    const allowTestUserClient = (process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_INCLUDE_TEST_USER === 'true') && typeof window !== 'undefined';
+
     if (allowTestUserClient) {
       // Check localStorage first (allows Playwright to inject test user before scripts run)
       try {
@@ -235,6 +239,99 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // WATCHER: when running in test mode, poll and listen for cookie/localStorage changes so Playwright's cookie-based role switches are detected
+  useEffect(() => {
+    if (!allowTestUserClient || typeof window === 'undefined') return;
+
+    let intervalId: number | undefined;
+    let attempts = 0;
+    const maxAttempts = 20; // ~10s of polling at 500ms
+
+    const checkTestUser = () => {
+      try {
+        const ls = localStorage.getItem('test_user');
+        if (ls) {
+          const parsed = JSON.parse(ls);
+          const role = parsed?.role || null;
+          // DIAG: watcher detected localStorage-derived role
+          try { // eslint-disable-next-line no-console
+            console.info('DIAG: AuthContext watcher -> localStorage', { role, parsed, timestamp: Date.now() });
+          } catch (e) {}
+          if (role && role !== userRole) {
+            const mock = {
+              user: {
+                id: 'test-id',
+                email: 'test@example.com',
+                user_metadata: { full_name: 'Test User', roles: [role], is_admin: role === 'admin' },
+                created_at: new Date().toISOString(),
+              },
+            } as any;
+            try {
+              // DIAG: watcher committing new role
+              // eslint-disable-next-line no-console
+              console.info('DIAG: AuthContext watcher commitRole', { source: 'localStorage-watch', role, timestamp: Date.now() });
+            } catch (e) {}
+            commitRole('localStorage-watch', role, mock);
+          }
+        }
+      } catch (e) {}
+
+      try {
+        const cookieMatch = document.cookie && document.cookie.match(/(?:^|;)\s*test_user=([^;]+)/);
+        if (cookieMatch) {
+          try {
+            const parsed = JSON.parse(decodeURIComponent(cookieMatch[1]));
+            const role = parsed?.role || null;
+            try { // eslint-disable-next-line no-console
+              console.info('DIAG: AuthContext watcher -> cookie', { role, cookieRaw: cookieMatch[1], timestamp: Date.now() });
+            } catch (e) {}
+            if (role && role !== userRole) {
+              const mock = {
+                user: {
+                  id: 'test-id',
+                  email: 'test@example.com',
+                  user_metadata: { full_name: 'Test User', roles: [role], is_admin: role === 'admin' },
+                  created_at: new Date().toISOString(),
+                },
+              } as any;
+              try {
+                // eslint-disable-next-line no-console
+                console.info('DIAG: AuthContext watcher commitRole', { source: 'cookie-watch', role, timestamp: Date.now() });
+              } catch (e) {}
+              commitRole('cookie-watch', role, mock);
+            }
+          } catch (e) {}
+        }
+      } catch (e) {}
+    };
+
+    const onFocus = () => checkTestUser();
+    const onVisibility = () => { if (document.visibilityState === 'visible') checkTestUser(); };
+
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('pageshow', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+
+    // Poll for a short time to catch rapid cookie changes
+    intervalId = window.setInterval(() => {
+      attempts += 1;
+      checkTestUser();
+      if (attempts >= maxAttempts && intervalId) {
+        clearInterval(intervalId);
+      }
+    }, 500) as any;
+
+    // Initial immediate check
+    checkTestUser();
+
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('pageshow', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [allowTestUserClient, userRole]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
