@@ -653,7 +653,7 @@ test.describe('Role-Based Access Control (RBAC)', () => {
 
     test('profile page updates when role changes', async ({ page, browser }) => {
       // CI load can stall contexts — give this role-switch test more time to avoid false negatives
-      test.setTimeout(60000);
+      test.setTimeout(180000);
       let activePage: any = page;
       let activeContext = page.context();
       // Start as citizen (ensure AuthProvider initialized)
@@ -721,7 +721,7 @@ test.describe('Role-Based Access Control (RBAC)', () => {
       }
       // Use profile-specific test id to avoid ambiguous matches in the page copy
       // Tolerant check for profile role display (avoid test-level timeouts by using catch and conditional assertions)
-      await activePage.waitForSelector('[data-testid="profile-role-display"]', { timeout: 30000 }).catch(() => null);
+      await activePage.waitForSelector('[data-testid="profile-role-display"]', { timeout: 15000 }).catch(() => null);
       const roleDisplayText = await activePage.locator('[data-testid="profile-role-display"]').textContent().catch(() => null);
       if (roleDisplayText) {
         try {
@@ -730,7 +730,20 @@ test.describe('Role-Based Access Control (RBAC)', () => {
           console.warn('PROFILE_ROLE_DISPLAY_PRESENT_BUT_TEXT_MISMATCH:', e && e.message ? e.message : e);
         }
       } else {
-        console.warn('PROFILE_ROLE_DISPLAY_MISSING: authDebug=', await activePage.locator('[data-testid="auth-debug"]').textContent().catch(() => null));
+        const authDebugVal = await activePage.locator('[data-testid="auth-debug"]').textContent().catch(() => null);
+        console.warn('PROFILE_ROLE_DISPLAY_MISSING: authDebug=', authDebugVal);
+        // Attach diagnostics immediately to capture state before any recovery/timeout closes context
+        try {
+          const info = test.info();
+          if (!activePage.isClosed()) {
+            await info.attach(`profile-missing-citizen-screenshot-${Date.now()}.png`, { body: await activePage.screenshot(), contentType: 'image/png' });
+            await info.attach(`profile-missing-citizen-html-${Date.now()}.html`, { body: Buffer.from(await activePage.content(), 'utf8'), contentType: 'text/html' });
+            const clientErrors = await activePage.evaluate(() => (window as any).__clientErrors || []);
+            await info.attach(`profile-missing-citizen-client-errors-${Date.now()}.json`, { body: Buffer.from(JSON.stringify(clientErrors, null, 2), 'utf8'), contentType: 'application/json' });
+          } else {
+            console.warn('SKIPPING_DIAGNOSTIC_ATTACH: page already closed');
+          }
+        } catch (e) { console.warn('DIAGNOSTIC_ATTACH_FAILED for citizen:', e && e.message ? e.message : e); }
       }
 
       // Switch to supplier
@@ -766,30 +779,48 @@ test.describe('Role-Based Access Control (RBAC)', () => {
         try { await activePage.goto(`${BASE}/profile?test_user=true&role=supplier`, { waitUntil: 'load' }); } catch (e) { console.warn('PAGE_NAV_FAILED_ON_PROFILE_FALLBACK', e && e.message ? e.message : e); return; }
       }
       // Prefer checking the dedicated role display first to avoid ambiguous matches
-      await activePage.waitForSelector('[data-testid="profile-role-display"]', { timeout: 10000 }).catch(() => null);
+      await activePage.waitForSelector('[data-testid="profile-role-display"]', { timeout: 7000 }).catch(() => null);
       let supplierRoleText = await activePage.locator('[data-testid="profile-role-display"]').textContent().catch(() => null);
       if (!supplierRoleText) {
         console.warn('PROFILE_ROLE_DISPLAY_MISSING_ON_SUPPLIER: authDebug=', await activePage.locator('[data-testid="auth-debug"]').textContent().catch(() => null));
+        // Attach an immediate snapshot to capture the state before any recovery steps
+        try {
+          const info = test.info();
+          if (!activePage.isClosed()) {
+            await info.attach(`supplier-missing-initial-screenshot-${Date.now()}.png`, { body: await activePage.screenshot(), contentType: 'image/png' });
+            await info.attach(`supplier-missing-initial-html-${Date.now()}.html`, { body: Buffer.from(await activePage.content(), 'utf8'), contentType: 'text/html' });
+          } else {
+            console.warn('SKIPPING_DIAGNOSTIC_ATTACH_INITIAL: page closed');
+          }
+        } catch (e) { console.warn('DIAGNOSTIC_ATTACH_FAILED initial:', e && e.message ? e.message : e); }
+
         // Try a soft reload to prime client-side hydration and SSR probe
         try {
           await activePage.reload({ waitUntil: 'load' }).catch(() => null);
-          await activePage.waitForSelector('[data-testid="profile-role-display"]', { timeout: 15000 }).catch(() => null);
+          await activePage.waitForSelector('[data-testid="profile-role-display"]', { timeout: 5000 }).catch(() => null);
           supplierRoleText = await activePage.locator('[data-testid="profile-role-display"]').textContent().catch(() => null);
         } catch (e) {
           console.warn('PAGE_RELOAD_FAILED_ON_SUPPLIER', e && e.message ? e.message : e);
         }
-      }
-      if (!supplierRoleText) {
-        // Attach diagnostic artifacts for triage (screenshot + HTML) but continue to the stricter assertions which will fail the test with context.
-        try {
-          const info = test.info();
-          await info.attach('supplier-missing-screenshot', { body: await activePage.screenshot(), contentType: 'image/png' });
-          await info.attach('supplier-missing-html', { body: await activePage.content(), contentType: 'text/html' });
-        } catch (e) { console.warn('DIAGNOSTIC_ATTACH_FAILED', e && e.message ? e.message : e); }
+
+        // If still missing after reload, attach another snapshot for triage
+        if (!supplierRoleText) {
+          try {
+            const info = test.info();
+            if (!activePage.isClosed()) {
+              await info.attach(`supplier-missing-after-reload-screenshot-${Date.now()}.png`, { body: await activePage.screenshot(), contentType: 'image/png' });
+              await info.attach(`supplier-missing-after-reload-html-${Date.now()}.html`, { body: Buffer.from(await activePage.content(), 'utf8'), contentType: 'text/html' });
+              const clientErrors = await activePage.evaluate(() => (window as any).__clientErrors || []);
+              await info.attach(`supplier-client-errors-${Date.now()}.json`, { body: Buffer.from(JSON.stringify(clientErrors, null, 2), 'utf8'), contentType: 'application/json' });
+            } else {
+              console.warn('SKIPPING_DIAGNOSTIC_ATTACH_AFTER_RELOAD: page closed');
+            }
+          } catch (e) { console.warn('DIAGNOSTIC_ATTACH_FAILED after reload:', e && e.message ? e.message : e); }
+        }
       }
       try {
-        await expect(activePage.getByText('Supplier').first()).toBeVisible({ timeout: 10000 });
-        await expect(activePage.getByText('Supplier Dashboard')).toBeVisible({ timeout: 10000 });
+        await expect(activePage.getByText('Supplier').first()).toBeVisible({ timeout: 5000 });
+        await expect(activePage.getByText('Supplier Dashboard')).toBeVisible({ timeout: 5000 });
       } catch (e) {
         console.warn('SUPPLIER_TEXT_MISSING_AFTER_RECOVERY:', e && e.message ? e.message : e);
         throw e;
