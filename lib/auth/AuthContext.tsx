@@ -87,8 +87,24 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
       setSession(mock);
       setUser(mock.user);
     }
-    setUserRole(role ? (role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'citizen') : null);
+    const normalized = role ? (role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'citizen') : null;
+    setUserRole(normalized);
     setLoading(false);
+
+    // TEST-ONLY: update a small DOM marker so E2E traces show whether the client accepted test-user
+    try {
+      if (typeof window !== 'undefined') {
+        let marker = document.getElementById('__client_test_user_status');
+        if (!marker) {
+          marker = document.createElement('div');
+          marker.id = '__client_test_user_status';
+          marker.style.display = 'none';
+          document.body.appendChild(marker);
+        }
+        marker.setAttribute('data-allowed', allowTestUserClient ? 'true' : 'false');
+        marker.setAttribute('data-role', normalized ?? 'null');
+      }
+    } catch (e) {}
   };
 
   // Allow test-only client behavior when explicitly enabled (or in development)
@@ -101,10 +117,35 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
       console.info('DIAG: AuthContext initEffect fired', { timestamp: Date.now(), readyState: typeof window !== 'undefined' ? document.readyState : null });
     } catch (e) {}
 
-    // Allow dev-only test user via localStorage or ?test_user=true (run before Supabase config check so tests work in offline mode)
+    // Allow dev-only test user via server-injected marker, localStorage or ?test_user=true (run before Supabase config check so tests work in offline mode)
 
 
     if (allowTestUserClient) {
+      // Check for a server-injected DOM marker first (SSR marker) — this is the most deterministic
+      // indication of what the server rendered for this page and should take precedence so
+      // client-side polling/older cookies can't accidentally override SSR during navigation races.
+      try {
+        const serverMarkerRole = typeof document !== 'undefined' && document.getElementById('__test_user')
+          ? document.getElementById('__test_user')?.getAttribute('data-role')
+          : null;
+        if (serverMarkerRole) {
+          try {
+            // eslint-disable-next-line no-console
+            console.info('DIAG: AuthContext server-marker -> role', { role: serverMarkerRole });
+          } catch (e) {}
+          const mock = {
+            user: {
+              id: 'test-id',
+              email: 'test@example.com',
+              user_metadata: { full_name: 'Test User', roles: [serverMarkerRole], is_admin: serverMarkerRole === 'admin' },
+              created_at: new Date().toISOString(),
+            },
+          } as any;
+          // Commit but do not return — continue with normal flow so Supabase init still runs
+          commitRole('server-marker', serverMarkerRole, mock);
+        }
+      } catch (e) {}
+
       // Check localStorage first (allows Playwright to inject test user before scripts run)
       try {
         const ls = localStorage.getItem('test_user');
@@ -188,8 +229,15 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
       try {
         let roleToDispatch: string | null = null;
         try {
+          // Prefer the server-injected DOM marker if present
+          const serverMarkerRole = document.getElementById('__test_user')?.getAttribute('data-role') || null;
+          if (serverMarkerRole) {
+            roleToDispatch = serverMarkerRole;
+          }
+        } catch (e) {}
+        try {
           const ls = localStorage.getItem('test_user');
-          if (ls) {
+          if (!roleToDispatch && ls) {
             roleToDispatch = JSON.parse(ls)?.role || null;
           }
         } catch (e) {}
@@ -200,6 +248,18 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
               roleToDispatch = JSON.parse(decodeURIComponent(cookieMatch[1]))?.role || null;
             } catch (e) {}
           }
+        } catch (e) {}
+
+        // Provide a small API the test harness can call directly in-page (more deterministic
+        // than cross-context events during navigations). This is test-only and gated.
+        try {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore - attaching test helper
+          window.__e2e_notifyTestUser = (r: string | null) => {
+            try {
+              window.dispatchEvent(new CustomEvent('test_user_changed', { detail: { role: r } }));
+            } catch (e) {}
+          };
         } catch (e) {}
 
         // Dispatch on next tick so listeners are guaranteed to be attached
@@ -334,6 +394,29 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
               commitRole('cookie-watch', role, mock);
             }
           } catch (e) {}
+        }
+      } catch (e) {}
+
+      // Also check for server-injected DOM marker in case SSR produced it after mount
+      try {
+        const serverMarker = document.getElementById('__test_user')?.getAttribute('data-role') || null;
+        if (serverMarker && serverMarker !== userRole) {
+          try { // eslint-disable-next-line no-console
+            console.info('DIAG: AuthContext watcher -> server-marker', { role: serverMarker, timestamp: Date.now() });
+          } catch (e) {}
+          const mock = {
+            user: {
+              id: 'test-id',
+              email: 'test@example.com',
+              user_metadata: { full_name: 'Test User', roles: [serverMarker], is_admin: serverMarker === 'admin' },
+              created_at: new Date().toISOString(),
+            },
+          } as any;
+          try {
+            // eslint-disable-next-line no-console
+            console.info('DIAG: AuthContext watcher commitRole', { source: 'server-marker-watch', role: serverMarker, timestamp: Date.now() });
+          } catch (e) {}
+          commitRole('server-marker-watch', serverMarker, mock);
         }
       } catch (e) {}
     };

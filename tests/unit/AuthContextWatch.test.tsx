@@ -90,4 +90,46 @@ describe('AuthContext watcher picks up cookie/localStorage changes', () => {
     // The role should be committed (either via the localStorage branch or via the re-dispatch)
     await waitFor(() => expect(screen.getByTestId('auth-role-display').textContent).toMatch(/supplier/i), { timeout: 3000 });
   });
+
+  it('exposes __e2e_notifyTestUser hook and it triggers commit', async () => {
+    render(
+      <AuthProvider>
+        <Consumer />
+      </AuthProvider>
+    );
+
+    // The client should attach a test-only hook for deterministic notifications
+    await waitFor(() => expect((window as any).__e2e_notifyTestUser).toBeInstanceOf(Function), { timeout: 2000 });
+
+    // Call it and assert the role commits
+    (window as any).__e2e_notifyTestUser('supplier');
+
+    await waitFor(() => expect(screen.getByTestId('auth-role-display').textContent).toMatch(/supplier/i), { timeout: 3000 });
+  });
+
+  it('honors server-injected __test_user DOM marker and commits role', async () => {
+    // Simulate SSR-injected DOM marker present before client mounts
+    const marker = document.createElement('div');
+    marker.id = '__test_user';
+    marker.setAttribute('data-role', 'supplier');
+    document.body.appendChild(marker);
+
+    render(
+      <AuthProvider>
+        <Consumer />
+      </AuthProvider>
+    );
+
+    await waitFor(() => expect(screen.getByTestId('auth-role-display').textContent).toMatch(/supplier/i), { timeout: 3000 });
+
+    // Also assert the client-side status marker is created and updated
+    await waitFor(() => expect(document.getElementById('__client_test_user_status')).not.toBeNull(), { timeout: 2000 });
+    expect(document.getElementById('__client_test_user_status')?.getAttribute('data-allowed')).toBe('true');
+    expect(document.getElementById('__client_test_user_status')?.getAttribute('data-role')).toMatch(/supplier/);
+
+    // cleanup
+    document.body.removeChild(marker);
+    const clientMarker = document.getElementById('__client_test_user_status');
+    if (clientMarker) document.body.removeChild(clientMarker);
+  });
 });
