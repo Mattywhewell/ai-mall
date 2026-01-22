@@ -46,7 +46,10 @@ export default function ProfilePage() {
 
   useEffect(() => {
     // Wait for auth loading to settle to avoid redirect race when test users are injected
-    if (loading) return;
+    // Note: allow the effect to proceed if a user is already present even when this page's
+    // local loading flag is still true (this can happen in production when auth is injected
+    // after client mount). Guarding only on `loading` prevents processing the `user` change.
+    if (loading && !user) return;
     if (user) {
       fetchUserProfile();
       fetchUserOrders();
