@@ -295,6 +295,13 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Visible, deterministic role badge for E2E tests */}
+                {typeof window !== 'undefined' && (() => {
+                  try {
+                    // eslint-disable-next-line no-console
+                    console.info('DIAG: PROFILE render attempt', { userRole, testRole, loading, timestamp: Date.now(), readyState: document.readyState });
+                  } catch (e) {}
+                  return null;
+                })()}
                 <p data-testid="profile-role-badge" className="text-sm text-gray-500 mt-2">{(userRole ?? testRole ?? 'citizen').toString().toLowerCase()}</p>
 
                 {/* Human-readable role display (used by older tests that look for capitalized role text) */}
@@ -306,6 +313,13 @@ export default function ProfilePage() {
                       {userRole === 'supplier' ? 'Supplier' : userRole === 'admin' ? 'Admin' : 'Citizen'}
                     </div>
                   )}
+                {typeof window !== 'undefined' && (() => {
+                  try {
+                    // eslint-disable-next-line no-console
+                    console.info('DIAG: PROFILE render after roleBadge', { userRole, testRole, loading, timestamp: Date.now() });
+                  } catch (e) {}
+                  return null;
+                })()}
 
                   {/* Debug info (non-production only) */}
                   {process.env.NODE_ENV !== 'production' && (
