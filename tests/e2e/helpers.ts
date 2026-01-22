@@ -26,6 +26,20 @@ export async function ensureTestUser(page: Page, role: string) {
 
   // Try to set a cookie so that SSR (or middleware aware routes) can read the test user and render deterministically.
   const urlObj = new URL(BASE);
+
+  // Also proactively set localStorage and dispatch a deterministic event so a client already on the page
+  // can act immediately (this helps avoid watcher race conditions in CI where polling/visibility can miss updates)
+  try {
+    await page.evaluate((r) => {
+      try {
+        localStorage.setItem('test_user', JSON.stringify({ role: r }));
+        window.dispatchEvent(new CustomEvent('test_user_changed', { detail: { role: r } }));
+      } catch (e) {}
+    }, role);
+    console.info('ensureTestUser: dispatched test_user_changed event (initial) for role', role);
+  } catch (e) {
+    console.warn('ensureTestUser: failed to dispatch initial test_user_changed event', e && e.message ? e.message : e);
+  }
   // Playwright's addCookies prefers either `url` OR `domain`+`path` — not both. Use a url-only
   // cookie for origin-based set (works well for the common case) and a domain/path cookie as a
   // fallback for drivers that prefer domain-based cookies. Also attempt an alternate host (localhost
@@ -181,6 +195,18 @@ export async function ensureTestUser(page: Page, role: string) {
 
             const selector2 = '[data-testid="test-user-server"][data-role="' + role + '"]';
             await page.waitForSelector(selector2, { state: 'attached', timeout: 3000 });
+            try {
+              // Dispatch a deterministic client event so any page already loaded will notice the change immediately
+              await page.evaluate((r) => {
+                try {
+                  localStorage.setItem('test_user', JSON.stringify({ role: r }));
+                  window.dispatchEvent(new CustomEvent('test_user_changed', { detail: { role: r } }));
+                } catch (e) {}
+              }, role);
+              console.info('ensureTestUser: dispatched test_user_changed event (post-ssr-probe) for role', role);
+            } catch (e) {
+              console.warn('ensureTestUser: failed to dispatch post-ssr-probe test_user_changed event', e && e.message ? e.message : e);
+            }
             console.info('ensureTestUser: SSR probe confirmed server role via cookie (attached):', role);
             return;
           } catch (err2) {
@@ -372,6 +398,17 @@ export async function ensureTestUser(page: Page, role: string) {
     }
   } else if (cookieSet) {
     console.info('ensureTestUser: cookie set; SSR probe skipped (not CI/debug)');
+    try {
+      await page.evaluate((r) => {
+        try {
+          localStorage.setItem('test_user', JSON.stringify({ role: r }));
+          window.dispatchEvent(new CustomEvent('test_user_changed', { detail: { role: r } }));
+        } catch (e) {}
+      }, role);
+      console.info('ensureTestUser: dispatched test_user_changed event (cookieSet/no-probe) for role', role);
+    } catch (e) {
+      console.warn('ensureTestUser: failed to dispatch test_user_changed event (cookieSet/no-probe)', e && e.message ? e.message : e);
+    }
   } else {
     console.info('ensureTestUser: no cookie could be set; relying on localStorage/query params for test user');
   }

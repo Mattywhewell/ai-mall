@@ -59,4 +59,21 @@ describe('AuthContext watcher picks up cookie/localStorage changes', () => {
 
     await waitFor(() => expect(screen.getByTestId('auth-role-display').textContent).toMatch(/supplier/i), { timeout: 3000 });
   });
+
+  it('responds to `test_user_changed` event and commits supplier role immediately', async () => {
+    render(
+      <AuthProvider>
+        <Consumer />
+      </AuthProvider>
+    );
+
+    // Initially, no role
+    expect(screen.getByTestId('auth-loading').textContent).toBe('idle');
+    expect(screen.getByTestId('auth-role-display').textContent).toBe('none');
+
+    // Dispatch deterministic event as the test harness will
+    window.dispatchEvent(new CustomEvent('test_user_changed', { detail: { role: 'supplier' } }));
+
+    await waitFor(() => expect(screen.getByTestId('auth-role-display').textContent).toMatch(/supplier/i), { timeout: 3000 });
+  });
 });

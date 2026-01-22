@@ -309,9 +309,41 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
     const onFocus = () => checkTestUser();
     const onVisibility = () => { if (document.visibilityState === 'visible') checkTestUser(); };
 
+    // Test-only event listener to deterministically detect role changes performed by the E2E harness.
+    // Dispatch via: window.dispatchEvent(new CustomEvent('test_user_changed', { detail: { role: 'supplier' } }));
+    const onTestUserChanged = (ev: Event) => {
+      try {
+        const ce = ev as CustomEvent;
+        const roleFromDetail = ce?.detail?.role as string | undefined;
+        if (roleFromDetail) {
+          try { // eslint-disable-next-line no-console
+            console.info('DIAG: AuthContext event -> role', { role: roleFromDetail, timestamp: Date.now() });
+          } catch (e) {}
+          if (roleFromDetail && roleFromDetail !== userRole) {
+            const mock = {
+              user: {
+                id: 'test-id',
+                email: 'test@example.com',
+                user_metadata: { full_name: 'Test User', roles: [roleFromDetail], is_admin: roleFromDetail === 'admin' },
+                created_at: new Date().toISOString(),
+              },
+            } as any;
+            try { // eslint-disable-next-line no-console
+              console.info('DIAG: AuthContext event commitRole', { source: 'event', role: roleFromDetail, timestamp: Date.now() });
+            } catch (e) {}
+            commitRole('event', roleFromDetail, mock);
+            return;
+          }
+        }
+      } catch (e) {}
+      // Fallback: if no detail provided, run the existing check that reads cookie/localStorage
+      try { checkTestUser(); } catch (e) {}
+    };
+
     window.addEventListener('focus', onFocus);
     window.addEventListener('pageshow', onFocus);
     document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('test_user_changed', onTestUserChanged as EventListener);
 
     // Poll for a short time to catch rapid cookie changes
     intervalId = window.setInterval(() => {
