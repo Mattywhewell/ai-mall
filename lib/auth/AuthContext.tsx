@@ -86,6 +86,11 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
         if (ls) {
           const parsed = JSON.parse(ls);
           const role = parsed?.role || 'citizen';
+          // DIAG: log localStorage-derived role for CI traces
+          try {
+            // eslint-disable-next-line no-console
+            console.info('DIAG: AuthContext localStorage -> role', { role, parsed });
+          } catch (e) {}
           const mock = {
             user: {
               id: 'test-id',
@@ -107,6 +112,11 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
       const params = new URLSearchParams(window.location.search);
       if (params.get('test_user') === 'true') {
         const role = params.get('role') || 'citizen';
+        // DIAG: log query param-derived test user role
+        try {
+          // eslint-disable-next-line no-console
+          console.info('DIAG: AuthContext searchParams -> role', { role, searchParams: Object.fromEntries(params) });
+        } catch (e) {}
         const mock = {
           user: {
             id: 'test-id',
@@ -121,6 +131,39 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
         setUserRole(role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'citizen');
         setLoading(false);
         return;
+      }
+
+      // Also support cookie-based test_user for Playwright (cookie-first workflow)
+      try {
+        const cookieMatch = document.cookie && document.cookie.match(/(?:^|;)\s*test_user=([^;]+)/);
+        if (cookieMatch) {
+          try {
+            const parsed = JSON.parse(decodeURIComponent(cookieMatch[1]));
+            const role = parsed?.role || 'citizen';
+            // DIAG: log cookie-derived role for CI traces
+            try {
+              // eslint-disable-next-line no-console
+              console.info('DIAG: AuthContext cookie -> role', { role, cookieRaw: cookieMatch[1] });
+            } catch (e) {}
+            const mock = {
+              user: {
+                id: 'test-id',
+                email: 'test@example.com',
+                user_metadata: { full_name: 'Test User', roles: [role], is_admin: role === 'admin' },
+                created_at: new Date().toISOString(),
+              },
+            } as any;
+            setSession(mock);
+            setUser(mock.user);
+            setUserRole(role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'citizen');
+            setLoading(false);
+            return;
+          } catch (e) {
+            // ignore parse errors
+          }
+        }
+      } catch (e) {
+        // ignore cookie access errors (very rare)
       }
     }
 
@@ -143,6 +186,11 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
       setUser(session?.user ?? null);
       // Derive a role from session metadata if available
       const roleFromMeta = (session?.user?.user_metadata as any)?.roles?.[0] || (session?.user?.user_metadata as any)?.role;
+      // DIAG: log supabase-derived role
+      try {
+        // eslint-disable-next-line no-console
+        console.info('DIAG: AuthContext supabase.getSession -> roleFromMeta', { roleFromMeta });
+      } catch (e) {}
       setUserRole(roleFromMeta ? (roleFromMeta === 'admin' ? 'admin' : roleFromMeta === 'supplier' ? 'supplier' : 'citizen') : null);
       setLoading(false);
     });
@@ -154,6 +202,11 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
       setSession(session);
       setUser(session?.user ?? null);
       const roleFromMeta = (session?.user?.user_metadata as any)?.roles?.[0] || (session?.user?.user_metadata as any)?.role;
+      // DIAG: log onAuthStateChange role
+      try {
+        // eslint-disable-next-line no-console
+        console.info('DIAG: AuthContext onAuthStateChange -> roleFromMeta', { roleFromMeta });
+      } catch (e) {}
       setUserRole(roleFromMeta ? (roleFromMeta === 'admin' ? 'admin' : roleFromMeta === 'supplier' ? 'supplier' : 'citizen') : null);
       setLoading(false);
     });

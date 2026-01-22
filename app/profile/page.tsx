@@ -73,8 +73,24 @@ export default function ProfilePage() {
         console.log('PROFILE NAV TEXT:', nav?.innerText?.trim().slice(0, 500));
         console.log('PROFILE DEBUG: userRole=', userRole, 'testRole=', testRole);
       }
+      // DIAG: capture SSR marker if present on client DOM
+      try {
+        const serverMarkerRole = document.getElementById('__test_user')?.getAttribute('data-role') || null;
+        // eslint-disable-next-line no-console
+        console.info('DIAG: PROFILE init - serverMarkerRole, userRole, testRole', { serverMarkerRole, userRole, testRole });
+      } catch (e) {}
     }
   }, []);
+
+  // Log changes to role/loading state to make CI traces show transitions
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        // eslint-disable-next-line no-console
+        console.info('DIAG: PROFILE state change', { userRole, testRole, loading, timestamp: Date.now() });
+      } catch (e) {}
+    }
+  }, [userRole, testRole, loading]);
 
   // Log when admin quicklinks should be visible
   useEffect(() => {

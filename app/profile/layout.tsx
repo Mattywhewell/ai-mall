@@ -7,6 +7,12 @@ export default function ProfileLayout({ children, searchParams }: { children: Re
   const isTest = searchParams?.test_user === 'true';
   const role = (searchParams?.role ?? 'citizen').toString().toLowerCase();
 
+  // DIAG: server-side SSR marker for profile role (appears in server logs)
+  try {
+    // eslint-disable-next-line no-console
+    console.info('DIAG: ProfileLayout SSR', { role, isTest, searchParams });
+  } catch (e) {}
+
   return (
     <>
       {isTest ? (

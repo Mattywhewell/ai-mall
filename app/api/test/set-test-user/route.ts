@@ -19,6 +19,11 @@ export async function GET(request: Request) {
     try {
       // eslint-disable-next-line no-console
       console.info('test/set-test-user: incoming Cookie header:', request.headers.get('cookie'));
+      // DIAG: request details (safe subset)
+      try {
+        // eslint-disable-next-line no-console
+        console.info('DIAG: set-test-user request', { url: request.url, role, ts: Date.now(), userAgent: request.headers.get('user-agent') });
+      } catch (e) {}
     } catch (e) {
       // ignore logging errors
     }
