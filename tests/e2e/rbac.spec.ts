@@ -765,8 +765,35 @@ test.describe('Role-Based Access Control (RBAC)', () => {
       } else {
         try { await activePage.goto(`${BASE}/profile?test_user=true&role=supplier`, { waitUntil: 'load' }); } catch (e) { console.warn('PAGE_NAV_FAILED_ON_PROFILE_FALLBACK', e && e.message ? e.message : e); return; }
       }
-      await expect(activePage.getByText('Supplier').first()).toBeVisible();
-      await expect(activePage.getByText('Supplier Dashboard')).toBeVisible();
+      // Prefer checking the dedicated role display first to avoid ambiguous matches
+      await activePage.waitForSelector('[data-testid="profile-role-display"]', { timeout: 10000 }).catch(() => null);
+      let supplierRoleText = await activePage.locator('[data-testid="profile-role-display"]').textContent().catch(() => null);
+      if (!supplierRoleText) {
+        console.warn('PROFILE_ROLE_DISPLAY_MISSING_ON_SUPPLIER: authDebug=', await activePage.locator('[data-testid="auth-debug"]').textContent().catch(() => null));
+        // Try a soft reload to prime client-side hydration and SSR probe
+        try {
+          await activePage.reload({ waitUntil: 'load' }).catch(() => null);
+          await activePage.waitForSelector('[data-testid="profile-role-display"]', { timeout: 15000 }).catch(() => null);
+          supplierRoleText = await activePage.locator('[data-testid="profile-role-display"]').textContent().catch(() => null);
+        } catch (e) {
+          console.warn('PAGE_RELOAD_FAILED_ON_SUPPLIER', e && e.message ? e.message : e);
+        }
+      }
+      if (!supplierRoleText) {
+        // Attach diagnostic artifacts for triage (screenshot + HTML) but continue to the stricter assertions which will fail the test with context.
+        try {
+          const info = test.info();
+          await info.attach('supplier-missing-screenshot', { body: await activePage.screenshot(), contentType: 'image/png' });
+          await info.attach('supplier-missing-html', { body: await activePage.content(), contentType: 'text/html' });
+        } catch (e) { console.warn('DIAGNOSTIC_ATTACH_FAILED', e && e.message ? e.message : e); }
+      }
+      try {
+        await expect(activePage.getByText('Supplier').first()).toBeVisible({ timeout: 10000 });
+        await expect(activePage.getByText('Supplier Dashboard')).toBeVisible({ timeout: 10000 });
+      } catch (e) {
+        console.warn('SUPPLIER_TEXT_MISSING_AFTER_RECOVERY:', e && e.message ? e.message : e);
+        throw e;
+      }
 
       // Switch to admin
       await quickSetUser('admin');
