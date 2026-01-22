@@ -517,13 +517,33 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
     // If Supabase is not configured, just clear local state (useful for tests/dev)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const isTestApiEnabled = process.env.NEXT_PUBLIC_INCLUDE_TEST_PAGES === 'true' || process.env.CI === 'true';
     if (!supabaseUrl || !supabaseKey || supabaseKey === 'your-anon-key-here' || supabaseUrl.includes('placeholder')) {
       setSession(null);
       setUser(null);
+      // In dev/offline mode, also call test clear endpoint if available so server won't inject SSR marker
+      if (isTestApiEnabled && typeof window !== 'undefined') {
+        try {
+          await fetch('/api/test/clear-test-user', { method: 'GET', credentials: 'same-origin' });
+          try { console.info('DIAG: AuthContext signOut (offline): invoked /api/test/clear-test-user'); } catch (e) {}
+        } catch (e) {
+          try { console.warn('DIAG: AuthContext signOut (offline) failed to call /api/test/clear-test-user', e && e.message ? e.message : e); } catch (e) {}
+        }
+      }
       return;
     }
 
     await supabase.auth.signOut();
+
+    // Call server-side test clear endpoint so the server stops injecting the SSR test_user marker.
+    if (isTestApiEnabled && typeof window !== 'undefined') {
+      try {
+        await fetch('/api/test/clear-test-user', { method: 'GET', credentials: 'same-origin' });
+        try { console.info('DIAG: AuthContext signOut: invoked /api/test/clear-test-user'); } catch (e) {}
+      } catch (e) {
+        try { console.warn('DIAG: AuthContext signOut: failed to call /api/test/clear-test-user', e && e.message ? e.message : e); } catch (e) {}
+      }
+    }
   };
 
   const resetPassword = async (email: string) => {

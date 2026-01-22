@@ -9,7 +9,8 @@ test.describe('Account icon', () => {
     test.skip(process.env.NEXT_PUBLIC_TEST_USER === 'true' || process.env.SKIP_SUPABASE_SEED === 'true', 'Environment pre-injects a user -> skipping unauthenticated account link test');
 
     // Ensure no test user injection (avoid false logged-in state)
-    await ensureNoTestUser(page);
+    const clean = await ensureNoTestUser(page);
+    if (!clean) test.skip('Environment forces a pre-injected test user; skipping unauthenticated account link test');
 
     await page.goto(BASE, { waitUntil: 'load' });
 

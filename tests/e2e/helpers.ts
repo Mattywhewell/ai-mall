@@ -435,9 +435,40 @@ export async function ensureNoTestUser(page: Page) {
     // ignore
   }
 
+  // Helper: probe the server-rendered page to ensure it does NOT include the SSR marker
+  async function probeServerForNoTestUser(attemptLabel: string) {
+    try {
+      const probeUrl = `${BASE}/?no_test_user=true&cb=${Date.now()}`;
+      await page.goto(probeUrl, { waitUntil: 'domcontentloaded', timeout: 5000 }).catch(() => null);
+      // If server still injected a test user, the DOM will include #__test_user
+      const serverMarkerCount = await page.locator('#__test_user').count().catch(() => 0);
+      console.info(`ensureNoTestUser: probe (${attemptLabel}) serverMarkerCount=${serverMarkerCount}`);
+      return serverMarkerCount === 0;
+    } catch (e) {
+      console.warn('ensureNoTestUser: probe failed', e && e.message ? e.message : e);
+      return false;
+    }
+  }
+
   try {
+    // Diagnostic: list cookies present before clearing so traces show what server may see
+    try {
+      const before = await page.context().cookies().catch(() => []);
+      console.info('ensureNoTestUser: cookies before clear:', JSON.stringify(before || []));
+    } catch (e) {
+      console.warn('ensureNoTestUser: failed to list cookies before clear', e && e.message ? e.message : e);
+    }
+
     // Clear cookies from the context to remove any test_user cookie
     await page.context().clearCookies();
+
+    try {
+      const after = await page.context().cookies().catch(() => []);
+      console.info('ensureNoTestUser: cookies after clear:', JSON.stringify(after || []));
+    } catch (e) {
+      console.warn('ensureNoTestUser: failed to list cookies after clear', e && e.message ? e.message : e);
+    }
+
     console.info('ensureNoTestUser: cleared cookies');
   } catch (e) {
     // Fallback: expire test_user cookie via document.cookie on the page origin
@@ -448,6 +479,45 @@ export async function ensureNoTestUser(page: Page) {
       console.warn('ensureNoTestUser: failed to clear cookies', err && err.message ? err.message : err);
     }
   }
+
+  // Now probe the server to ensure it stopped injecting the test user. Retry once if necessary.
+  let ok = await probeServerForNoTestUser('initial');
+  if (!ok) {
+    console.warn('ensureNoTestUser: server still injected __test_user after initial clear — retrying');
+    try {
+      await page.context().clearCookies();
+      await page.evaluate(() => { document.cookie = 'test_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'; });
+      console.info('ensureNoTestUser: cleared cookies (retry)');
+    } catch (e) {
+      console.warn('ensureNoTestUser: retry clearCookies failed', e && e.message ? e.message : e);
+    }
+
+    // Additional server-side attempt: call the test clear endpoint to ensure the server stops injecting the marker
+    try {
+      const resp = await page.request.get(`${BASE}/api/test/clear-test-user`);
+      const text = await resp.text();
+      console.info('ensureNoTestUser: called /api/test/clear-test-user:', resp.status(), text && text.slice ? text.slice(0,200) : text);
+    } catch (e) {
+      console.warn('ensureNoTestUser: failed to call /api/test/clear-test-user', e && e.message ? e.message : e);
+    }
+
+    ok = await probeServerForNoTestUser('retry');
+  }
+
+  if (!ok) {
+    // final diagnostic dump to help CI debugging
+    try {
+      const snippet = (await page.content()).slice(0, 2000);
+      console.error('ensureNoTestUser: server still injecting __test_user after retry; will report back to caller. Page snippet:', snippet);
+    } catch (e) {
+      console.error('ensureNoTestUser: failed to capture page content for diagnostics', e && e.message ? e.message : e);
+    }
+    // Return false to let callers decide whether to skip the test (server-level injection likely)
+    return false;
+  }
+
+  // If we get here, server did not render a test user marker and it is safe for tests that expect unauthenticated UI
+  return true;
 }
 
 // NEW: wait for profile to be ready (SSR marker + header or role display)

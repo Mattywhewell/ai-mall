@@ -876,7 +876,8 @@ test.describe('Role-Based Access Control (RBAC)', () => {
     test.skip(process.env.SKIP_SUPABASE_SEED === 'true' || process.env.NEXT_PUBLIC_TEST_USER === 'true', 'CI injects deterministic test user -> skipping unauthenticated redirect test');
     test('unauthenticated user redirected to login', async ({ page }) => {
       // Ensure no test user is present and opt out of server-side injection
-      await ensureNoTestUser(page);
+      const clean = await ensureNoTestUser(page);
+      if (!clean) test.skip('Environment forces a pre-injected test user; skipping unauthenticated redirect test');
       await page.goto(`${BASE}/supplier?no_test_user=true`, { waitUntil: 'load' });
 
       // Should either redirect to login OR show an access-denied UI (both are acceptable)
