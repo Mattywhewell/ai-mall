@@ -651,20 +651,30 @@ test.describe('Role-Based Access Control (RBAC)', () => {
       await expect(page.locator('nav').getByText(/Users|Revenue/i)).toBeVisible();
     });
 
-    test('profile page updates when role changes', async ({ page }) => {
+    test('profile page updates when role changes', async ({ page, browser }) => {
       let activePage: any = page;
+      let activeContext = page.context();
       // Start as citizen (ensure AuthProvider initialized)
       // Use a lightweight localStorage+cookie set to avoid addInitScript timing issues in role-switching flow
       const quickSetUser = async (r: string) => {
-        // Set cookie first (SSR deterministic). Active page may not be same-origin yet so cookie-only is safer initially.
+        // Prefer cookie-first approach (SSR reads cookie) which is safe before navigation
         try {
           const url = new URL(BASE).origin;
-          await activePage.context().addCookies([{ name: 'test_user', value: JSON.stringify({ role: r }), url } as any]);
+          await activeContext.addCookies([{ name: 'test_user', value: JSON.stringify({ role: r }), url } as any]);
         } catch (e) {
           console.warn('quickSetUser(active): addCookies failed', e && e.message ? e.message : e);
+          // Try to recover by creating a fresh context & page
+          try {
+            activeContext = await browser.newContext();
+            activePage = await activeContext.newPage();
+            const url = new URL(BASE).origin;
+            await activeContext.addCookies([{ name: 'test_user', value: JSON.stringify({ role: r }), url } as any]);
+          } catch (err) {
+            console.warn('quickSetUser(active): recovery addCookies failed', err && err.message ? err.message : err);
+          }
         }
 
-        // Try to prime localStorage for client-side recognition, navigating to root first if needed
+        // Attempt to set localStorage for client-side priming, but only when on same-origin; navigate to root if necessary
         try {
           if (!activePage.url().startsWith(new URL(BASE).origin)) {
             await activePage.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' }).catch(() => null);
@@ -679,7 +689,26 @@ test.describe('Role-Based Access Control (RBAC)', () => {
         await activePage.goto(`${BASE}/?test_user=true&role=citizen`, { waitUntil: 'load' });
       } catch (e) {
         console.warn('PAGE_NAV_FAILED_ON_CITIZEN_INIT: attempting recovery', e && e.message ? e.message : e);
-        try { activePage = await page.context().newPage(); await quickSetUser('citizen'); await activePage.goto(`${BASE}/?test_user=true&role=citizen`, { waitUntil: 'load' }); } catch (err) { console.warn('PAGE_RECOVERY_FAILED', err && err.message ? err.message : err); return; }
+        try {
+        // try to open a new page in the existing context
+        try {
+          activePage = await activeContext.newPage();
+          await quickSetUser('citizen');
+          await activePage.goto(`${BASE}/?test_user=true&role=citizen`, { waitUntil: 'load' });
+        } catch (err) {
+          console.warn('PAGE_NAV_RECOVERY_WITH_CONTEXT_FAILED, attempting new context', err && err.message ? err.message : err);
+          // create a fresh context/page and retry
+          try {
+            activeContext = await browser.newContext();
+            activePage = await activeContext.newPage();
+            await quickSetUser('citizen');
+            await activePage.goto(`${BASE}/?test_user=true&role=citizen`, { waitUntil: 'load' });
+          } catch (err2) {
+            console.warn('PAGE_RECOVERY_FAILED', err2 && err2.message ? err2.message : err2);
+            return;
+          }
+        }
+      } catch (err) { console.warn('PAGE_RECOVERY_FINAL_FAILED', err && err.message ? err.message : err); return; }
       }
       await activePage.waitForSelector('a[aria-label="Account"], nav', { timeout: 7000 }).catch(() => null);
       const accountLink = activePage.getByRole('link', { name: /Account|Profile/i }).first();
@@ -708,7 +737,24 @@ test.describe('Role-Based Access Control (RBAC)', () => {
         await activePage.goto(`${BASE}/?test_user=true&role=supplier`, { waitUntil: 'load' });
       } catch (e) {
         console.warn('PAGE_NAV_FAILED_ON_SUPPLIER_SWITCH: attempting recovery', e && e.message ? e.message : e);
-        try { activePage = await page.context().newPage(); await quickSetUser('supplier'); await activePage.goto(`${BASE}/?test_user=true&role=supplier`, { waitUntil: 'load' }); } catch (err) { console.warn('PAGE_RECOVERY_FAILED', err && err.message ? err.message : err); return; }
+        try {
+        try {
+          activePage = await activeContext.newPage();
+          await quickSetUser('supplier');
+          await activePage.goto(`${BASE}/?test_user=true&role=supplier`, { waitUntil: 'load' });
+        } catch (err) {
+          console.warn('PAGE_NAV_RECOVERY_WITH_CONTEXT_FAILED_ON_SUPPLIER, attempting new context', err && err.message ? err.message : err);
+          try {
+            activeContext = await browser.newContext();
+            activePage = await activeContext.newPage();
+            await quickSetUser('supplier');
+            await activePage.goto(`${BASE}/?test_user=true&role=supplier`, { waitUntil: 'load' });
+          } catch (err2) {
+            console.warn('PAGE_RECOVERY_FAILED', err2 && err2.message ? err2.message : err2);
+            return;
+          }
+        }
+      } catch (err) { console.warn('PAGE_RECOVERY_FINAL_FAILED', err && err.message ? err.message : err); return; }
       }
       await activePage.waitForSelector('a[aria-label="Account"], nav', { timeout: 7000 }).catch(() => null);
       const accountLink2 = activePage.getByRole('link', { name: /Account|Profile/i }).first();
@@ -726,7 +772,24 @@ test.describe('Role-Based Access Control (RBAC)', () => {
         await activePage.goto(`${BASE}/?test_user=true&role=admin`, { waitUntil: 'load' });
       } catch (e) {
         console.warn('PAGE_NAV_FAILED_ON_ADMIN_SWITCH: attempting recovery', e && e.message ? e.message : e);
-        try { activePage = await page.context().newPage(); await quickSetUser('admin'); await activePage.goto(`${BASE}/?test_user=true&role=admin`, { waitUntil: 'load' }); } catch (err) { console.warn('PAGE_RECOVERY_FAILED', err && err.message ? err.message : err); return; }
+        try {
+          try {
+            activePage = await activeContext.newPage();
+            await quickSetUser('admin');
+            await activePage.goto(`${BASE}/?test_user=true&role=admin`, { waitUntil: 'load' });
+          } catch (err) {
+            console.warn('PAGE_NAV_RECOVERY_WITH_CONTEXT_FAILED_ON_ADMIN, attempting new context', err && err.message ? err.message : err);
+            try {
+              activeContext = await browser.newContext();
+              activePage = await activeContext.newPage();
+              await quickSetUser('admin');
+              await activePage.goto(`${BASE}/?test_user=true&role=admin`, { waitUntil: 'load' });
+            } catch (err2) {
+              console.warn('PAGE_RECOVERY_FAILED', err2 && err2.message ? err2.message : err2);
+              return;
+            }
+          }
+        } catch (err) { console.warn('PAGE_RECOVERY_FINAL_FAILED', err && err.message ? err.message : err); return; }
       }
       await activePage.waitForSelector('a[aria-label="Account"], nav', { timeout: 7000 }).catch(() => null);
       const accountLink3 = activePage.getByRole('link', { name: /Account|Profile/i }).first();
