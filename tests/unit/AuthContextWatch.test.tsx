@@ -76,4 +76,18 @@ describe('AuthContext watcher picks up cookie/localStorage changes', () => {
 
     await waitFor(() => expect(screen.getByTestId('auth-role-display').textContent).toMatch(/supplier/i), { timeout: 3000 });
   });
+
+  it('re-dispatches on init when localStorage had test_user set before mount', async () => {
+    // Simulate E2E harness having set localStorage prior to the page mounting
+    localStorage.setItem('test_user', JSON.stringify({ role: 'supplier' }));
+
+    render(
+      <AuthProvider>
+        <Consumer />
+      </AuthProvider>
+    );
+
+    // The role should be committed (either via the localStorage branch or via the re-dispatch)
+    await waitFor(() => expect(screen.getByTestId('auth-role-display').textContent).toMatch(/supplier/i), { timeout: 3000 });
+  });
 });

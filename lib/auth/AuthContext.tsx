@@ -182,6 +182,38 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
        }
      }
 
+    // Re-dispatch test_user_changed on init when a test user is present so clients
+    // that mounted after the E2E harness dispatched the event still get notified.
+    if (allowTestUserClient && typeof window !== 'undefined') {
+      try {
+        let roleToDispatch: string | null = null;
+        try {
+          const ls = localStorage.getItem('test_user');
+          if (ls) {
+            roleToDispatch = JSON.parse(ls)?.role || null;
+          }
+        } catch (e) {}
+        try {
+          const cookieMatch = document.cookie && document.cookie.match(/(?:^|;)\s*test_user=([^;]+)/);
+          if (!roleToDispatch && cookieMatch) {
+            try {
+              roleToDispatch = JSON.parse(decodeURIComponent(cookieMatch[1]))?.role || null;
+            } catch (e) {}
+          }
+        } catch (e) {}
+
+        // Dispatch on next tick so listeners are guaranteed to be attached
+        setTimeout(() => {
+          try {
+            window.dispatchEvent(new CustomEvent('test_user_changed', { detail: { role: roleToDispatch } }));
+            try { // eslint-disable-next-line no-console
+              console.info('DIAG: AuthContext re-dispatch init test_user_changed', { role: roleToDispatch, timestamp: Date.now() });
+            } catch (e) {}
+          } catch (e) {}
+        }, 0);
+      } catch (e) {}
+    }
+
     // Check if Supabase is properly configured
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
