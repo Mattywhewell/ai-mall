@@ -34,6 +34,8 @@ export async function ensureTestUser(page: Page, role: string) {
       try {
         localStorage.setItem('test_user', JSON.stringify({ role: r }));
         window.dispatchEvent(new CustomEvent('test_user_changed', { detail: { role: r } }));
+        // Try calling the in-page hook if present to guarantee in-page notification
+        try { (window as any).__e2e_notifyTestUser && (window as any).__e2e_notifyTestUser(r); } catch (e) {}
       } catch (e) {}
     }, role);
     console.info('ensureTestUser: dispatched test_user_changed event (initial) for role', role);
@@ -201,6 +203,8 @@ export async function ensureTestUser(page: Page, role: string) {
                 try {
                   localStorage.setItem('test_user', JSON.stringify({ role: r }));
                   window.dispatchEvent(new CustomEvent('test_user_changed', { detail: { role: r } }));
+                  // Also invoke the in-page hook if it exists (more deterministic in some navigation scenarios)
+                  try { (window as any).__e2e_notifyTestUser && (window as any).__e2e_notifyTestUser(r); } catch (e) {}
                 } catch (e) {}
               }, role);
               console.info('ensureTestUser: dispatched test_user_changed event (post-ssr-probe) for role', role);
@@ -403,6 +407,7 @@ export async function ensureTestUser(page: Page, role: string) {
         try {
           localStorage.setItem('test_user', JSON.stringify({ role: r }));
           window.dispatchEvent(new CustomEvent('test_user_changed', { detail: { role: r } }));
+          try { (window as any).__e2e_notifyTestUser && (window as any).__e2e_notifyTestUser(r); } catch (e) {}
         } catch (e) {}
       }, role);
       console.info('ensureTestUser: dispatched test_user_changed event (cookieSet/no-probe) for role', role);
