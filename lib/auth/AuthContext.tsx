@@ -79,6 +79,20 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
 
   useEffect(() => {
     // Allow dev-only test user via localStorage or ?test_user=true (run before Supabase config check so tests work in offline mode)
+    // Add a single, surgical commit DIAG so we can see exactly when the role is committed to state in CI.
+    const commitRole = (source: string, role: string | null, mock?: any) => {
+      try {
+        // eslint-disable-next-line no-console
+        console.info('DIAG: AuthContext commitRole', { source, role, timestamp: Date.now() });
+      } catch (e) {}
+      if (mock) {
+        setSession(mock);
+        setUser(mock.user);
+      }
+      setUserRole(role ? (role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'citizen') : null);
+      setLoading(false);
+    };
+
     if (process.env.NODE_ENV !== 'production' && typeof window !== 'undefined') {
       // Check localStorage first (allows Playwright to inject test user before scripts run)
       try {
@@ -99,73 +113,76 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
               created_at: new Date().toISOString(),
             },
           } as any;
-          setSession(mock);
-          setUser(mock.user);
-          setUserRole(role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'citizen');
-          setLoading(false);
-          return;
-        }
-      } catch (e) {
-        // ignore JSON errors
-      }
+-          setSession(mock);
+-          setUser(mock.user);
+-          setUserRole(role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'citizen');
+-          setLoading(false);
++          commitRole('localStorage', role, mock);
+           return;
+         }
+       } catch (e) {
+         // ignore JSON errors
+       }
 
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('test_user') === 'true') {
-        const role = params.get('role') || 'citizen';
-        // DIAG: log query param-derived test user role
-        try {
-          // eslint-disable-next-line no-console
-          console.info('DIAG: AuthContext searchParams -> role', { role, searchParams: Object.fromEntries(params) });
-        } catch (e) {}
-        const mock = {
-          user: {
-            id: 'test-id',
-            email: 'test@example.com',
-            user_metadata: { full_name: 'Test User', roles: [role], is_admin: role === 'admin' },
-            created_at: new Date().toISOString(),
-          },
-        } as any;
-        setSession(mock);
-        setUser(mock.user);
-        // Derive a simple userRole for client-only checks
-        setUserRole(role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'citizen');
-        setLoading(false);
-        return;
-      }
+       const params = new URLSearchParams(window.location.search);
+       if (params.get('test_user') === 'true') {
+         const role = params.get('role') || 'citizen';
+         // DIAG: log query param-derived test user role
+         try {
+           // eslint-disable-next-line no-console
+           console.info('DIAG: AuthContext searchParams -> role', { role, searchParams: Object.fromEntries(params) });
+         } catch (e) {}
+         const mock = {
+           user: {
+             id: 'test-id',
+             email: 'test@example.com',
+             user_metadata: { full_name: 'Test User', roles: [role], is_admin: role === 'admin' },
+             created_at: new Date().toISOString(),
+           },
+         } as any;
+-        setSession(mock);
+-        setUser(mock.user);
+-        // Derive a simple userRole for client-only checks
+-        setUserRole(role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'citizen');
+-        setLoading(false);
++        commitRole('searchParams', role, mock);
+         return;
+       }
 
-      // Also support cookie-based test_user for Playwright (cookie-first workflow)
-      try {
-        const cookieMatch = document.cookie && document.cookie.match(/(?:^|;)\s*test_user=([^;]+)/);
-        if (cookieMatch) {
-          try {
-            const parsed = JSON.parse(decodeURIComponent(cookieMatch[1]));
-            const role = parsed?.role || 'citizen';
-            // DIAG: log cookie-derived role for CI traces
-            try {
-              // eslint-disable-next-line no-console
-              console.info('DIAG: AuthContext cookie -> role', { role, cookieRaw: cookieMatch[1] });
-            } catch (e) {}
-            const mock = {
-              user: {
-                id: 'test-id',
-                email: 'test@example.com',
-                user_metadata: { full_name: 'Test User', roles: [role], is_admin: role === 'admin' },
-                created_at: new Date().toISOString(),
-              },
-            } as any;
-            setSession(mock);
-            setUser(mock.user);
-            setUserRole(role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'citizen');
-            setLoading(false);
-            return;
-          } catch (e) {
-            // ignore parse errors
-          }
-        }
-      } catch (e) {
-        // ignore cookie access errors (very rare)
-      }
-    }
+       // Also support cookie-based test_user for Playwright (cookie-first workflow)
+       try {
+         const cookieMatch = document.cookie && document.cookie.match(/(?:^|;)\s*test_user=([^;]+)/);
+         if (cookieMatch) {
+           try {
+             const parsed = JSON.parse(decodeURIComponent(cookieMatch[1]));
+             const role = parsed?.role || 'citizen';
+             // DIAG: log cookie-derived role for CI traces
+             try {
+               // eslint-disable-next-line no-console
+               console.info('DIAG: AuthContext cookie -> role', { role, cookieRaw: cookieMatch[1] });
+             } catch (e) {}
+             const mock = {
+               user: {
+                 id: 'test-id',
+                 email: 'test@example.com',
+                 user_metadata: { full_name: 'Test User', roles: [role], is_admin: role === 'admin' },
+                 created_at: new Date().toISOString(),
+               },
+             } as any;
+-            setSession(mock);
+-            setUser(mock.user);
+-            setUserRole(role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'citizen');
+-            setLoading(false);
++            commitRole('cookie', role, mock);
+             return;
+           } catch (e) {
+             // ignore parse errors
+           }
+         }
+       } catch (e) {
+         // ignore cookie access errors (very rare)
+       }
+     }
 
     // Check if Supabase is properly configured
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -191,8 +208,14 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
         // eslint-disable-next-line no-console
         console.info('DIAG: AuthContext supabase.getSession -> roleFromMeta', { roleFromMeta });
       } catch (e) {}
-      setUserRole(roleFromMeta ? (roleFromMeta === 'admin' ? 'admin' : roleFromMeta === 'supplier' ? 'supplier' : 'citizen') : null);
-      setLoading(false);
++      // Commit the role so we have a single, timestamped DIAG at the point of state mutation
++      try {
++        commitRole('supabase', roleFromMeta || null);
++      } catch (e) {
++        // If commitRole isn't available for some reason, fall back to previous behavior
++        setUserRole(roleFromMeta ? (roleFromMeta === 'admin' ? 'admin' : roleFromMeta === 'supplier' ? 'supplier' : 'citizen') : null);
++        setLoading(false);
++      }
     });
 
     // Listen for auth changes
@@ -207,8 +230,13 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
         // eslint-disable-next-line no-console
         console.info('DIAG: AuthContext onAuthStateChange -> roleFromMeta', { roleFromMeta });
       } catch (e) {}
-      setUserRole(roleFromMeta ? (roleFromMeta === 'admin' ? 'admin' : roleFromMeta === 'supplier' ? 'supplier' : 'citizen') : null);
-      setLoading(false);
++      try {
++        commitRole('onAuthStateChange', roleFromMeta || null, session ? { user: session?.user } as any : undefined);
++      } catch (e) {
++        // fallback
++        setUserRole(roleFromMeta ? (roleFromMeta === 'admin' ? 'admin' : roleFromMeta === 'supplier' ? 'supplier' : 'citizen') : null);
++        setLoading(false);
++      }
     });
 
     return () => subscription.unsubscribe();
