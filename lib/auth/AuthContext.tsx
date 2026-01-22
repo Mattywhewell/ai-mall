@@ -64,13 +64,13 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
   });
   const [loading, setLoading] = useState(!initialUser);
   const [userRole, setUserRole] = useState<string | null>(() => {
-    if (initialUser) return initialUser.role === 'admin' ? 'admin' : initialUser.role === 'supplier' ? 'supplier' : 'customer';
+    if (initialUser) return initialUser.role === 'admin' ? 'admin' : initialUser.role === 'supplier' ? 'supplier' : 'citizen';
     if (typeof window !== 'undefined') {
       try {
         const ls = localStorage.getItem('test_user');
         if (ls) {
           const role = JSON.parse(ls).role || 'citizen';
-          return role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'customer';
+          return role === 'admin' ? 'admin' : role === 'supplier' ? 'supplier' : 'citizen';
         }
       } catch (e) {}
     }
