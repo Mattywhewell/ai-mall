@@ -43,6 +43,7 @@ jobs:
       STRIPE_WEBHOOK_SECRET: whsec_test_placeholder
       NEXT_PUBLIC_DISABLE_3D: 'true'
       NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
+      NEXT_PUBLIC_INCLUDE_TEST_USER: 'true'
       # When true, skip creating auth users in `scripts/e2e-setup.js` to avoid upstream Supabase Auth instability
       SKIP_SUPABASE_SEED: 'true'
     steps:
@@ -120,6 +121,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
+          NEXT_PUBLIC_INCLUDE_TEST_USER: 'true'
           NEXT_PUBLIC_DISABLE_3D: 'true'
           # Ensure the server process always inherits these in CI when SKIP_SUPABASE_SEED is set
           NEXT_PUBLIC_TEST_USER: ${{ env.SKIP_SUPABASE_SEED == 'true' && 'true' || '' }}
@@ -135,6 +137,7 @@ jobs:
           CI: true
           NEXT_PUBLIC_DISABLE_3D: 'true'
           NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
+          NEXT_PUBLIC_INCLUDE_TEST_USER: 'true'
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
