@@ -18,4 +18,5 @@ Set `NEXT_PUBLIC_INCLUDE_TEST_PAGES=true` explicitly in any GitHub Actions job t
 Notes
 -----
 - This flag is intentionally gated and should never be set in production. Keep it confined to CI and local E2E debug runs only.
-- If you run E2E in multiple workflows, ensure the flag is set in all those workflows (e.g., `e2e-sigv4.yml` and any other Playwright job that starts the server)."}```
+- Do NOT export or inline `NEXT_PUBLIC_TEST_USER` at build time or during server start. Tests should use the runtime test endpoints (e.g., `/api/test/set-test-user`) or set `test_user` cookies at runtime so server-side clearing can take effect. If `SKIP_SUPABASE_SEED=true`, prefer leaving `NEXT_PUBLIC_TEST_USER` empty to avoid deterministic inlining.
+- If you run E2E in multiple workflows, ensure the flag is set in all those workflows (e.g., `e2e-sigv4.yml` and any other Playwright job that starts the server).```

@@ -29,9 +29,7 @@ jobs:
         run: |
           echo "STEP ENV (build): SKIP_SUPABASE_SEED=$SKIP_SUPABASE_SEED NEXT_PUBLIC_TEST_USER=$NEXT_PUBLIC_TEST_USER NEXT_PUBLIC_TEST_USER_ROLE=$NEXT_PUBLIC_TEST_USER_ROLE"
           if [ "$SKIP_SUPABASE_SEED" = "true" ]; then
-            echo "SKIP_SUPABASE_SEED=true -> exporting NEXT_PUBLIC_TEST_USER=true NEXT_PUBLIC_TEST_USER_ROLE=citizen for build"
-            export NEXT_PUBLIC_TEST_USER="true"
-            export NEXT_PUBLIC_TEST_USER_ROLE="citizen"
+            echo "SKIP_SUPABASE_SEED=true -> skipping NEXT_PUBLIC_TEST_USER build-time export (use runtime test endpoints)"
           fi
           npm run build
 
@@ -55,8 +53,8 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
           NEXT_PUBLIC_DISABLE_3D: 'true'
-          NEXT_PUBLIC_TEST_USER: ${{ env.SKIP_SUPABASE_SEED == 'true' && 'true' || '' }}
-          NEXT_PUBLIC_TEST_USER_ROLE: ${{ env.SKIP_SUPABASE_SEED == 'true' && 'citizen' || '' }}
+          NEXT_PUBLIC_TEST_USER: ''
+          NEXT_PUBLIC_TEST_USER_ROLE: ''
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps

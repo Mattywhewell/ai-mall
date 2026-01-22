@@ -28,8 +28,18 @@ export default async function RootLayout({
   // Per-request opt-out: tests that require an *unauthenticated* baseline can pass
   // ?no_test_user=true to avoid server-side test-user injection (keeps harness and tests
   // deterministic while allowing explicit unauthenticated scenarios).
-  const envTestUser = process.env.NEXT_PUBLIC_TEST_USER === 'true';
+  const envTestUserRaw = process.env.NEXT_PUBLIC_TEST_USER === 'true';
   const envTestRole = process.env.NEXT_PUBLIC_TEST_USER_ROLE;
+  const envSkipSeed = process.env.SKIP_SUPABASE_SEED === 'true';
+  // If CI is configured to skip Supabase seeding, do NOT honor a build-time
+  // NEXT_PUBLIC_TEST_USER. This prevents a deterministic test user from being
+  // inlined at build/start time and allows the runtime clear endpoint (and
+  // per-request cookies/query params) to fully control SSR behavior.
+  const envTestUser = envSkipSeed ? false : envTestUserRaw;
+  if (envSkipSeed && envTestUserRaw) {
+    // eslint-disable-next-line no-console
+    console.info('CI: SKIP_SUPABASE_SEED=true -> ignoring NEXT_PUBLIC_TEST_USER build-time flag to avoid inlined SSR test user');
+  }
   const queryTestUser = typeof searchParams !== 'undefined' && searchParams?.test_user === 'true';
   const queryRole = typeof searchParams !== 'undefined' ? searchParams?.role : undefined;
   const noTestUser = typeof searchParams !== 'undefined' && searchParams?.no_test_user === 'true';

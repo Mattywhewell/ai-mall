@@ -5,7 +5,7 @@ const BASE = process.env.BASE_URL || 'http://localhost:3000';
 // This test verifies that when the test harness exposes NEXT_PUBLIC_TEST_USER (set by
 // scripts/e2e-setup.js when SKIP_SUPABASE_SEED=true) the server sets an initial test user
 // so the client AuthProvider hydrates synchronously and the account UI is present.
-test('server-provided test user via NEXT_PUBLIC_TEST_USER results in visible account UI', async ({ page }) => {
+test.skip(process.env.SKIP_SUPABASE_SEED === 'true', 'Build-time NEXT_PUBLIC_TEST_USER ignored when SKIP_SUPABASE_SEED=true')('server-provided test user via NEXT_PUBLIC_TEST_USER results in visible account UI', async ({ page }) => {
   page.on('console', (msg) => console.log('BROWSER_CONSOLE:', msg.text()));
 
   // Navigate to root WITHOUT query params; the server-side initialUser injection should apply
