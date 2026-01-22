@@ -100,13 +100,7 @@ jobs:
           # Provide diagnostics and ensure test-user flags are visible to the child server process.
           echo "STEP ENV: SKIP_SUPABASE_SEED=$SKIP_SUPABASE_SEED NEXT_PUBLIC_TEST_USER=$NEXT_PUBLIC_TEST_USER NEXT_PUBLIC_TEST_USER_ROLE=$NEXT_PUBLIC_TEST_USER_ROLE"
 
-          # Temporary one-off CI debug: print a concise runtime diagnostic to confirm the
-          # server process does NOT receive NEXT_PUBLIC_TEST_USER from any other source.
-          # This line is intentionally temporary and will be removed once we validate a single CI run.
-          echo "DEBUG: NEXT_PUBLIC_TEST_USER=$NEXT_PUBLIC_TEST_USER NEXT_PUBLIC_TEST_USER_ROLE=$NEXT_PUBLIC_TEST_USER_ROLE SKIP_SUPABASE_SEED=$SKIP_SUPABASE_SEED GITHUB_RUN_ID=$GITHUB_RUN_ID"
-          node -e "console.log('NODE runtime:', {NEXT_PUBLIC_TEST_USER: process.env.NEXT_PUBLIC_TEST_USER, NEXT_PUBLIC_TEST_USER_ROLE: process.env.NEXT_PUBLIC_TEST_USER_ROLE, SKIP_SUPABASE_SEED: process.env.SKIP_SUPABASE_SEED, GITHUB_RUN_ID: process.env.GITHUB_RUN_ID})"
-
-          # Do NOT export NEXT_PUBLIC_TEST_USER at runtime. Tests should use runtime test endpoints
+          # (one-off debug removed)
           # (e.g., /api/test/set-test-user) or cookies to establish a test user. Exporting here
           # inlined the test user into SSR and prevented runtime clearing from taking effect.
           echo "SKIP_SUPABASE_SEED=true -> skipping NEXT_PUBLIC_TEST_USER runtime export (use runtime test endpoints)"
