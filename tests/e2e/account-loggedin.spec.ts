@@ -387,11 +387,39 @@ test.describe('Account dropdown (logged-in)', () => {
             console.log('Server still injecting __test_user after sign-out attempts; skipping test as server-side behavior persists');
             return;
           }
+
+          // After server confirms cleared state, wait briefly for the UI to reflect sign-out
+          try {
+            // Prefer explicit Sign In link (fast signal)
+            await page.waitForSelector('a:has-text("Sign In")', { timeout: 5000 });
+            console.log('Sign In link appeared after ensureNoTestUser');
+            signedOut = true;
+            break;
+          } catch (e) {
+            // Fallback: poll for disappearance of the user menu button
+            try {
+              const deadline = Date.now() + 5000;
+              while (Date.now() < deadline) {
+                const userMenuCount = await page.locator('header, nav').getByRole('button', { name: /user menu|account menu|account|test user/i }).count();
+                if (userMenuCount === 0) {
+                  console.log('User menu disappeared after ensureNoTestUser');
+                  signedOut = true;
+                  break;
+                }
+                await page.waitForTimeout(250);
+              }
+            } catch (inner) {
+              console.warn('Error while polling for UI sign-out after ensureNoTestUser:', inner && inner.message ? inner.message : inner);
+            }
+          }
+
         } catch (e) {
           console.warn('ensureNoTestUser check failed:', e && e.message ? e.message : e);
         }
 
-        throw new Error('Sign out did not complete: Sign In link not visible and User menu still present');
+        if (!signedOut) {
+          throw new Error('Sign out did not complete: Sign In link not visible and User menu still present');
+        }
       }
     }
 
