@@ -18,6 +18,10 @@ export async function GET(request: Request) {
 
     // Clear the cookie by setting it with maxAge: 0 (expires immediately)
     const cookieStore = await cookies();
+
+    // Read the owner cookie so we can clear owner-specific server state
+    const owner = cookieStore.get('test_user_owner')?.value;
+
     cookieStore.set({
       name: 'test_user',
       value: '',
@@ -27,18 +31,28 @@ export async function GET(request: Request) {
       maxAge: 0,
     });
 
-    // Also clear the server-side runtime flag so SSR will stop injecting __test_user going forward
+    // Also clear the owner cookie
+    cookieStore.set({
+      name: 'test_user_owner',
+      value: '',
+      path: '/',
+      httpOnly: false,
+      sameSite: 'lax',
+      maxAge: 0,
+    });
+
+    // Also clear the server-side runtime flag for this owner so SSR will stop injecting __test_user going forward for that owner
     try {
-      clearServerTestUser();
+      clearServerTestUser(owner);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.warn('test/clear-test-user: failed to clear server runtime test-user flag', e && (e.message || e));
     }
 
     // eslint-disable-next-line no-console
-    console.info('test/clear-test-user: cleared test_user cookie');
+    console.info('test/clear-test-user: cleared test_user cookie owner:', owner);
 
-    return NextResponse.json({ ok: true, cleared: true });
+    return NextResponse.json({ ok: true, cleared: true, owner });
   } catch (err) {
     return NextResponse.json({ ok: false, error: String(err) }, { status: 500 });
   }

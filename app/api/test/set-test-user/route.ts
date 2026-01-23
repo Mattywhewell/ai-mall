@@ -31,6 +31,11 @@ export async function GET(request: Request) {
 
     // Set a cookie on the response so subsequent SSR requests will carry it.
     const cookieStore = await cookies();
+
+    // If the incoming request already had a test_user_owner cookie, preserve it; otherwise generate one.
+    const incomingOwner = cookieStore.get('test_user_owner')?.value;
+    const owner = incomingOwner || `${Date.now()}-${Math.random().toString(36).slice(2,10)}`;
+
     cookieStore.set({
       name: 'test_user',
       value: cookieVal,
@@ -40,9 +45,19 @@ export async function GET(request: Request) {
       maxAge: 60 * 60, // 1 hour
     });
 
-    // Also set the server-side runtime flag so SSR respects explicit test-user set/clear operations
+    // Also set a companion owner cookie so parallel workers won't clobber global runtime state
+    cookieStore.set({
+      name: 'test_user_owner',
+      value: owner,
+      path: '/',
+      httpOnly: false,
+      sameSite: 'lax',
+      maxAge: 60 * 60,
+    });
+
+    // Also set the server-side runtime flag for this owner so SSR respects explicit test-user set/clear operations
     try {
-      setServerTestUser(role);
+      setServerTestUser(role, owner);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.warn('test/set-test-user: failed to set server runtime test-user flag', e && (e.message || e));
@@ -50,9 +65,9 @@ export async function GET(request: Request) {
 
     // Log the value being set so we can later correlate server logs and probe logs
     // eslint-disable-next-line no-console
-    console.info('test/set-test-user: set test_user cookie value:', cookieVal, 'role:', role);
+    console.info('test/set-test-user: set test_user cookie value:', cookieVal, 'role:', role, 'owner:', owner);
 
-    return NextResponse.json({ ok: true, role });
+    return NextResponse.json({ ok: true, role, owner });
   } catch (err) {
     return NextResponse.json({ ok: false, error: String(err) }, { status: 500 });
   }

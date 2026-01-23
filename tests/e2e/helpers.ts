@@ -46,18 +46,27 @@ export async function ensureTestUser(page: Page, role: string) {
   // cookie for origin-based set (works well for the common case) and a domain/path cookie as a
   // fallback for drivers that prefer domain-based cookies. Also attempt an alternate host (localhost
   // vs 127.0.0.1) when possible, since CI environments can vary in hostname resolution.
+  // Use an owner token per-call so parallel workers don't clobber each other's runtime state
+  const owner = `${Date.now()}-${Math.random().toString(36).slice(2,10)}`;
   const cookieWithUrl = { name: 'test_user', value: JSON.stringify({ role }), url: urlObj.origin } as any;
+  const ownerWithUrl = { name: 'test_user_owner', value: owner, url: urlObj.origin } as any;
   const cookieWithDomain = { name: 'test_user', value: JSON.stringify({ role }), domain: urlObj.hostname, path: '/' } as any;
+  const ownerWithDomain = { name: 'test_user_owner', value: owner, domain: urlObj.hostname, path: '/' } as any;
   const alternateHost = urlObj.hostname === 'localhost' ? '127.0.0.1' : urlObj.hostname === '127.0.0.1' ? 'localhost' : null;
   const cookieWithDomainAlt = alternateHost ? { name: 'test_user', value: JSON.stringify({ role }), domain: alternateHost, path: '/' } as any : null;
+  const ownerWithDomainAlt = alternateHost ? { name: 'test_user_owner', value: owner, domain: alternateHost, path: '/' } as any : null;
 
   // Attempt 1: set cookie using url (preferred). Verify it was set.
   let cookieSet = false;
   let serverFallbackTried = false;
   try {
-    await page.context().addCookies([cookieWithUrl]);
+    await page.context().addCookies([cookieWithUrl, ownerWithUrl]);
     let cookies = await page.context().cookies();
     let found = cookies.find(c => c.name === 'test_user');
+    let ownerFound = cookies.find(c => c.name === 'test_user_owner');
+    if (ownerFound) {
+      console.info('ensureTestUser: owner cookie set:', ownerFound.value);
+    }
     if (found) {
       console.info('ensureTestUser: addCookies(url) succeeded');
       cookieSet = true;
@@ -71,7 +80,7 @@ export async function ensureTestUser(page: Page, role: string) {
   // Attempt 2: set cookie using domain/path (some drivers prefer this). Verify it was set.
   if (!cookieSet) {
     try {
-      await page.context().addCookies([cookieWithDomain]);
+      await page.context().addCookies([cookieWithDomain, ownerWithDomain]);
       let cookies = await page.context().cookies();
       let found = cookies.find(c => c.name === 'test_user');
       if (found) {
@@ -88,7 +97,7 @@ export async function ensureTestUser(page: Page, role: string) {
   // Attempt 2b: try alternate host domain (localhost <-> 127.0.0.1) if applicable
   if (!cookieSet && cookieWithDomainAlt) {
     try {
-      await page.context().addCookies([cookieWithDomainAlt]);
+      await page.context().addCookies([cookieWithDomainAlt, ownerWithDomainAlt]);
       let cookies = await page.context().cookies();
       let found = cookies.find(c => c.name === 'test_user');
       if (found) {
@@ -109,12 +118,21 @@ export async function ensureTestUser(page: Page, role: string) {
       await page.goto(`${BASE}/?__test_cookie_warmup=1`, { waitUntil: 'domcontentloaded', timeout: 5000 }).catch(() => null);
 
           // Set raw JSON value (no encode) to avoid double-encoding ambiguity
-          await page.evaluate((r) => {
+          await page.evaluate((r, o) => {
             document.cookie = `test_user=${JSON.stringify({ role: r })}; path=/;`;
-          }, role);
+            document.cookie = `test_user_owner=${o}; path=/;`;
+          }, role, owner);
 
           // Give the browser a moment to apply the cookie to the context
           await page.waitForTimeout(500);
+
+          // Log the owner for traceability
+          try {
+            const finalCookies = await page.context().cookies();
+            const ownerFound = finalCookies.find(c => c.name === 'test_user_owner');
+            if (ownerFound) console.info('ensureTestUser: document.cookie set owner:', ownerFound.value);
+          } catch (e) {}
+
 
           const finalCookies = await page.context().cookies();
           const finalFound = finalCookies.find(c => c.name === 'test_user');

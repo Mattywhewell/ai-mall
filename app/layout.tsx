@@ -49,16 +49,19 @@ export default async function RootLayout({
     : undefined;
 
   // Runtime server-side guard (module-level): if tests used the runtime API to set/clear
-  // a test user, respect that explicit decision rather than env or cookie. This allows
-  // /api/test/clear-test-user to be authoritative and stop the SSR injection immediately.
+  // a test user, respect that explicit decision rather than env or cookie. We use an
+  // optional owner cookie to support parallel E2E workers so runtime decisions are
+  // scoped and do not clobber unrelated tests.
   try {
-    const runtimeServerUser = getServerTestUser();
+    const cookieStoreTop = await cookies();
+    const owner = cookieStoreTop.get('test_user_owner')?.value;
+    const runtimeServerUser = getServerTestUser(owner);
     if (typeof runtimeServerUser !== 'undefined') {
       if (runtimeServerUser === null) {
-        // Explicitly cleared on the server
+        // Explicitly cleared on the server for this owner
         initialUser = undefined;
       } else {
-        // Server is explicitly setting a role at runtime
+        // Server is explicitly setting a role at runtime for this owner
         initialUser = { role: runtimeServerUser };
       }
     }
@@ -87,16 +90,17 @@ export default async function RootLayout({
     try {
       const cookieStore = await cookies();
       const cookieVal = cookieStore.get('test_user')?.value;
+      const ownerCookie = cookieStore.get('test_user_owner')?.value;
 
       // If a trace-probe header or probe query is present, log it with cookie value so traces and server logs are unambiguous
       try {
         const probeHeaderVal = probeHeaderPresent;
         if (probeHeaderVal) {
           // eslint-disable-next-line no-console
-          console.info('CI: SSR PROBE RECEIVED header:', probeHeaderVal, 'cookieVal:', cookieVal || '<none>', 'searchParams:', JSON.stringify(searchParams || {}));
+          console.info('CI: SSR PROBE RECEIVED header:', probeHeaderVal, 'cookieVal:', cookieVal || '<none>', 'owner:', ownerCookie || '<none>', 'searchParams:', JSON.stringify(searchParams || {}));
         } else if (isProbeQuery) {
           // eslint-disable-next-line no-console
-          console.info('CI: SSR PROBE QUERY present:', JSON.stringify(searchParams || {}), 'cookieVal:', cookieVal || '<none>');
+          console.info('CI: SSR PROBE QUERY present:', JSON.stringify(searchParams || {}), 'cookieVal:', cookieVal || '<none>', 'owner:', ownerCookie || '<none>');
         }
       } catch (e) {
         // ignore
