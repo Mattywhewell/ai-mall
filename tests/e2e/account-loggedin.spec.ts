@@ -394,7 +394,6 @@ test.describe('Account dropdown (logged-in)', () => {
             await page.waitForSelector('a:has-text("Sign In")', { timeout: 5000 });
             console.log('Sign In link appeared after ensureNoTestUser');
             signedOut = true;
-            break;
           } catch (e) {
             // Fallback: poll for disappearance of the user menu button
             try {
