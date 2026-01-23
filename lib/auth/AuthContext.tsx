@@ -530,8 +530,39 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
       // In dev/offline mode, also call test clear endpoint if available so server won't inject SSR marker
       if (isTestApiEnabled && typeof window !== 'undefined') {
         try {
-          await fetch('/api/test/clear-test-user', { method: 'GET', credentials: 'same-origin' });
-          try { console.info('DIAG: AuthContext signOut (offline): invoked /api/test/clear-test-user'); } catch (e) {}
+          const res = await fetch('/api/test/clear-test-user', { method: 'GET', credentials: 'same-origin' });
+          try { console.info('DIAG: AuthContext signOut (offline): invoked /api/test/clear-test-user', { status: res.status }); } catch (e) {}
+
+          // After clearing server-side test user, poll the ssr-probe until it reports role === null
+          // to avoid watcher reapply races seen in CI (same logic as online signOut path).
+          try {
+            const probeApi = '/api/test/ssr-probe?cb=' + Date.now();
+            const deadline = Date.now() + 500; // 500ms max
+            while (Date.now() < deadline) {
+              try {
+                const pr = await fetch(probeApi, {
+                  method: 'GET',
+                  headers: {
+                    'x-e2e-ssr-probe': '1',
+                    'cache-control': 'no-cache',
+                    'pragma': 'no-cache',
+                  },
+                  credentials: 'same-origin',
+                });
+                if (pr.ok) {
+                  const body = await pr.json();
+                  if (!body || body.role == null) {
+                    try { console.info('DIAG: AuthContext signOut (offline): ssr-probe shows role null'); } catch (e) {}
+                    break;
+                  }
+                }
+              } catch (e) {}
+              await new Promise((r) => setTimeout(r, 50));
+            }
+          } catch (e) {
+            try { console.warn('DIAG: AuthContext signOut (offline): ssr-probe polling failed', e && e.message ? e.message : e); } catch (e) {}
+          }
+
         } catch (e) {
           try { console.warn('DIAG: AuthContext signOut (offline) failed to call /api/test/clear-test-user', e && e.message ? e.message : e); } catch (e) {}
         }
