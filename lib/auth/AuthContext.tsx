@@ -521,6 +521,12 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
     if (!supabaseUrl || !supabaseKey || supabaseKey === 'your-anon-key-here' || supabaseUrl.includes('placeholder')) {
       setSession(null);
       setUser(null);
+      // Clear any client-side test user artifacts so UI updates deterministically
+      try { if (typeof window !== 'undefined') localStorage.removeItem('test_user'); } catch (e) {}
+      try { if (typeof window !== 'undefined') { window.dispatchEvent(new CustomEvent('test_user_changed', { detail: { role: null } })); } } catch (e) {}
+      // Ensure client role state is cleared
+      try { commitRole('signOut', null); } catch (e) {}
+
       // In dev/offline mode, also call test clear endpoint if available so server won't inject SSR marker
       if (isTestApiEnabled && typeof window !== 'undefined') {
         try {
@@ -544,6 +550,22 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
         try { console.warn('DIAG: AuthContext signOut: failed to call /api/test/clear-test-user', e && e.message ? e.message : e); } catch (e) {}
       }
     }
+
+    // Clear client-side test user artifacts and ensure role cleared
+    try { if (typeof window !== 'undefined') localStorage.removeItem('test_user'); } catch (e) {}
+    try { if (typeof window !== 'undefined') { document.cookie = 'test_user=; Max-Age=0; path=/'; } } catch (e) {}
+    // Remove any server-injected SSR marker so the watcher doesn't re-apply the role
+    try {
+      if (typeof window !== 'undefined') {
+        const marker = document.getElementById('__test_user');
+        if (marker) {
+          marker.remove();
+          try { console.info('DIAG: AuthContext signOut: removed __test_user marker'); } catch (e) {}
+        }
+      }
+    } catch (e) {}
+    try { if (typeof window !== 'undefined') { window.dispatchEvent(new CustomEvent('test_user_changed', { detail: { role: null } })); } } catch (e) {}
+    try { commitRole('signOut', null); } catch (e) {}
   };
 
   const resetPassword = async (email: string) => {

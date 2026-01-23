@@ -263,9 +263,6 @@ test.describe('Account dropdown (logged-in)', () => {
     // Give the UI a moment to update after sign out
     await page.waitForTimeout(1000);
 
-    // Root-level invariant: ensure the client cleared its test-user marker
-    await expect(page.locator('#__client_test_user_status')).toHaveAttribute('data-role', 'null');
-
     // Debug: log current aria-labeled elements and header HTML
     const postAria = await page.evaluate(() => Array.from(document.querySelectorAll('[aria-label]')).map(el => ({tag: el.tagName, label: el.getAttribute('aria-label'), outer: (el as HTMLElement).outerHTML.slice(0,120)})));
     console.log('POST_SIGNOUT_ARIA_LABELS:', JSON.stringify(postAria, null, 2));

@@ -132,4 +132,46 @@ describe('AuthContext watcher picks up cookie/localStorage changes', () => {
     const clientMarker = document.getElementById('__client_test_user_status');
     if (clientMarker) document.body.removeChild(clientMarker);
   });
+
+  it('signOut clears client role, localStorage, cookie and notifies listeners', async () => {
+    // Start with a test_user in localStorage so initial role is present
+    localStorage.setItem('test_user', JSON.stringify({ role: 'citizen' }));
+
+    // Render and verify initial state
+    render(
+      <AuthProvider>
+        <Consumer />
+      </AuthProvider>
+    );
+
+    await waitFor(() => expect(screen.getByTestId('auth-role-display').textContent).toMatch(/citizen/i), { timeout: 3000 });
+
+    // Ensure client marker is set
+    await waitFor(() => expect(document.getElementById('__client_test_user_status')?.getAttribute('data-role')).toMatch(/citizen/), { timeout: 2000 });
+
+    // Call signOut from the provider by rendering a button that invokes it
+    function SignOutInvoker() {
+      const { signOut } = useAuth();
+      return <button data-testid="invoker" onClick={() => signOut()}>signout</button>;
+    }
+
+    render(
+      <AuthProvider>
+        <SignOutInvoker />
+        <Consumer />
+      </AuthProvider>
+    );
+
+    // Click the invoker
+    (document.querySelector('[data-testid="invoker"]') as HTMLElement).click();
+
+    // After signOut, role should clear
+    await waitFor(() => expect(screen.getByTestId('auth-role-display').textContent).toBe('none'), { timeout: 3000 });
+
+    // localStorage should be cleared
+    expect(localStorage.getItem('test_user')).toBeNull();
+
+    // client marker should reflect null
+    expect(document.getElementById('__client_test_user_status')?.getAttribute('data-role')).toBe('null');
+  });
 });
