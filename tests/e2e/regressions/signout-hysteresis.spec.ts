@@ -32,9 +32,9 @@ test.describe('regression: sign-out hysteresis', () => {
       // @ts-ignore
       window.__e2e_reinsertTestUser = () => {
         try {
+          // Reinsert cookie + localStorage only — do NOT dispatch the 'test_user_changed' event so the watcher path is exercised (and hysteresis applies)
           document.cookie = `test_user=${JSON.stringify({ role: 'citizen' })}; path=/`;
           localStorage.setItem('test_user', JSON.stringify({ role: 'citizen' }));
-          window.dispatchEvent(new CustomEvent('test_user_changed', { detail: { role: 'citizen' } }));
         } catch (e) {
           // ignore
         }
@@ -48,33 +48,56 @@ test.describe('regression: sign-out hysteresis', () => {
       // Click sign out
       await inlineSignOut.click();
     } else {
-      // Fallback: open account UI then click sign out menu item
-      const userText = page.getByText(/Test User/i).first();
-      if (await userText.count() > 0) {
-        await userText.click();
+      // Fallback: open account UI then click sign out menu item — be robust across variants (User menu, Account, display name)
+      const userMenu = page.getByRole('button', { name: /User menu|Account|Test User|devUser/i }).first();
+      if (await userMenu.count() > 0) {
+        await userMenu.click();
         const menuSignOut = page.getByRole('menuitem', { name: /sign out/i }).first();
+        await menuSignOut.waitFor({ state: 'visible', timeout: 7000 });
         await menuSignOut.click();
       } else {
-        throw new Error('Could not locate Sign Out for regression test');
+        // Last-resort: try inline Sign Out once more
+        const inlineAgain = page.getByRole('button', { name: /sign out/i }).first();
+        if (await inlineAgain.count() > 0) {
+          await inlineAgain.click();
+        } else {
+          throw new Error('Could not locate Sign Out for regression test');
+        }
       }
     }
 
-    // Wait for the client to commit sign-out (the client marker should become null)
-    await expect(page.locator('#__client_test_user_status')).toHaveAttribute('data-role', 'null', { timeout: 7000 });
+    // Wait for the DIAG signOut commit, then immediately reinsert cookie (ensures we exercise watcher hysteresis deterministically)
+    const waitForSignOutCommit = async (timeout = 7000) => {
+      const start = Date.now();
+      while (Date.now() - start < timeout) {
+        if (consoleMessages.some(m => m.includes('DIAG: AuthContext commitRole') && m.includes('source: signOut') && m.includes('role: null'))) return;
+        await new Promise(r => setTimeout(r, 50));
+      }
+      throw new Error('Timed out waiting for signOut commit DIAG');
+    };
+    await waitForSignOutCommit(7000);
 
-    // Immediately reinsert cookie and dispatch event (simulate concurrent reapply)
+    // Immediately reinsert cookie + localStorage (simulate concurrent reapply)
     await page.evaluate(() => {
       // @ts-ignore
       (window.__e2e_reinsertTestUser || (() => {}))();
     });
 
-    // Give a short moment for the watcher/event handlers to run (but within hysteresis)
-    await page.waitForTimeout(200);
+    // Wait up to 1500ms for watcher skip commit DIAG (should be emitted while within hysteresis)
+    const waitForSkip = async (timeout = 1500) => {
+      const start = Date.now();
+      while (Date.now() - start < timeout) {
+        if (consoleMessages.some(m => m.includes('DIAG: AuthContext watcher skip commit'))) return;
+        await new Promise(r => setTimeout(r, 50));
+      }
+      throw new Error('Timed out waiting for watcher skip DIAG');
+    };
+    await waitForSkip(1500);
 
     // Invariant: the client should still report null (hysteresis prevented immediate reapply)
     await expect(page.locator('#__client_test_user_status')).toHaveAttribute('data-role', 'null');
 
-    // Ensure DIAG skip message emitted by the watcher (makes the regression high-signal)
+    // Ensure DIAG skip message emitted by the watcher (redundant check)
     const skipFound = consoleMessages.some(m => m.includes('DIAG: AuthContext watcher skip commit'));
     expect(skipFound).toBeTruthy();
 
