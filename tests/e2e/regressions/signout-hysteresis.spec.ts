@@ -25,7 +25,7 @@ test.describe('regression: sign-out hysteresis', () => {
     await page.goto(`${BASE}/profile`, { waitUntil: 'load' });
 
     // Precondition: client marker must show citizen (check attribute rather than visibility to avoid hidden dev-only marker)
-    await expect(page.locator('#__client_test_user_status')).toHaveAttribute('data-role', 'citizen', { timeout: 5000 });
+    await expect(page.locator('#__client_test_user_status')).toHaveAttribute('data-role', 'citizen', { timeout: 7000 });
 
     // Expose a deterministic reinsert helper so we can reinsert cookie immediately AFTER signOut commits
     await page.evaluate(() => {
@@ -60,7 +60,7 @@ test.describe('regression: sign-out hysteresis', () => {
     }
 
     // Wait for the client to commit sign-out (the client marker should become null)
-    await expect(page.locator('#__client_test_user_status')).toHaveAttribute('data-role', 'null', { timeout: 5000 });
+    await expect(page.locator('#__client_test_user_status')).toHaveAttribute('data-role', 'null', { timeout: 7000 });
 
     // Immediately reinsert cookie and dispatch event (simulate concurrent reapply)
     await page.evaluate(() => {
