@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -78,11 +78,18 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
   });
 
   // Single commit helper available to all effects so we can centralize the DIAG at the point of state mutation
+  // Track when a sign-out was committed so the watcher can briefly ignore re-applies
+  const lastSignOutAtRef = useRef<number | null>(null);
+
   const commitRole = (source: string, role: string | null, mock?: any) => {
     try {
       // eslint-disable-next-line no-console
       console.info('DIAG: AuthContext commitRole', { source, role, timestamp: Date.now() });
     } catch (e) {}
+    if (source === 'signOut') {
+      // record sign-out time for watcher hysteresis (test-only behavior)
+      try { lastSignOutAtRef.current = Date.now(); } catch (e) {}
+    }
     if (mock) {
       setSession(mock);
       setUser(mock.user);
@@ -351,20 +358,26 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
             console.info('DIAG: AuthContext watcher -> localStorage', { role, parsed, timestamp: Date.now() });
           } catch (e) {}
           if (role && role !== userRole) {
-            const mock = {
-              user: {
-                id: 'test-id',
-                email: 'test@example.com',
-                user_metadata: { full_name: 'Test User', roles: [role], is_admin: role === 'admin' },
-                created_at: new Date().toISOString(),
-              },
-            } as any;
-            try {
-              // DIAG: watcher committing new role
-              // eslint-disable-next-line no-console
-              console.info('DIAG: AuthContext watcher commitRole', { source: 'localStorage-watch', role, timestamp: Date.now() });
-            } catch (e) {}
-            commitRole('localStorage-watch', role, mock);
+            // Hysteresis: if we recently signed out, briefly ignore any new role re-applies (test-only)
+            const HYSTERESIS_MS = 300;
+            if (lastSignOutAtRef.current && Date.now() - lastSignOutAtRef.current < HYSTERESIS_MS) {
+              try { console.info('DIAG: AuthContext watcher skip commit (recent signOut)', { source: 'localStorage-watch', role, since: Date.now() - lastSignOutAtRef.current }); } catch (e) {}
+            } else {
+              const mock = {
+                user: {
+                  id: 'test-id',
+                  email: 'test@example.com',
+                  user_metadata: { full_name: 'Test User', roles: [role], is_admin: role === 'admin' },
+                  created_at: new Date().toISOString(),
+                },
+              } as any;
+              try {
+                // DIAG: watcher committing new role
+                // eslint-disable-next-line no-console
+                console.info('DIAG: AuthContext watcher commitRole', { source: 'localStorage-watch', role, timestamp: Date.now() });
+              } catch (e) {}
+              commitRole('localStorage-watch', role, mock);
+            }
           }
         }
       } catch (e) {}
@@ -379,19 +392,25 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
               console.info('DIAG: AuthContext watcher -> cookie', { role, cookieRaw: cookieMatch[1], timestamp: Date.now() });
             } catch (e) {}
             if (role && role !== userRole) {
-              const mock = {
-                user: {
-                  id: 'test-id',
-                  email: 'test@example.com',
-                  user_metadata: { full_name: 'Test User', roles: [role], is_admin: role === 'admin' },
-                  created_at: new Date().toISOString(),
-                },
-              } as any;
-              try {
-                // eslint-disable-next-line no-console
-                console.info('DIAG: AuthContext watcher commitRole', { source: 'cookie-watch', role, timestamp: Date.now() });
-              } catch (e) {}
-              commitRole('cookie-watch', role, mock);
+              // Hysteresis: if we recently signed out, briefly ignore cookie re-applies (test-only)
+              const HYSTERESIS_MS = 300;
+              if (lastSignOutAtRef.current && Date.now() - lastSignOutAtRef.current < HYSTERESIS_MS) {
+                try { console.info('DIAG: AuthContext watcher skip commit (recent signOut)', { source: 'cookie-watch', role, since: Date.now() - lastSignOutAtRef.current }); } catch (e) {}
+              } else {
+                const mock = {
+                  user: {
+                    id: 'test-id',
+                    email: 'test@example.com',
+                    user_metadata: { full_name: 'Test User', roles: [role], is_admin: role === 'admin' },
+                    created_at: new Date().toISOString(),
+                  },
+                } as any;
+                try {
+                  // eslint-disable-next-line no-console
+                  console.info('DIAG: AuthContext watcher commitRole', { source: 'cookie-watch', role, timestamp: Date.now() });
+                } catch (e) {}
+                commitRole('cookie-watch', role, mock);
+              }
             }
           } catch (e) {}
         }
@@ -404,19 +423,25 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
           try { // eslint-disable-next-line no-console
             console.info('DIAG: AuthContext watcher -> server-marker', { role: serverMarker, timestamp: Date.now() });
           } catch (e) {}
-          const mock = {
-            user: {
-              id: 'test-id',
-              email: 'test@example.com',
-              user_metadata: { full_name: 'Test User', roles: [serverMarker], is_admin: serverMarker === 'admin' },
-              created_at: new Date().toISOString(),
-            },
-          } as any;
-          try {
-            // eslint-disable-next-line no-console
-            console.info('DIAG: AuthContext watcher commitRole', { source: 'server-marker-watch', role: serverMarker, timestamp: Date.now() });
-          } catch (e) {}
-          commitRole('server-marker-watch', serverMarker, mock);
+          // Hysteresis: ignore immediate server-marker re-applies shortly after a sign-out (test-only)
+          const HYSTERESIS_MS = 300;
+          if (lastSignOutAtRef.current && Date.now() - lastSignOutAtRef.current < HYSTERESIS_MS) {
+            try { console.info('DIAG: AuthContext watcher skip commit (recent signOut)', { source: 'server-marker-watch', role: serverMarker, since: Date.now() - lastSignOutAtRef.current }); } catch (e) {}
+          } else {
+            const mock = {
+              user: {
+                id: 'test-id',
+                email: 'test@example.com',
+                user_metadata: { full_name: 'Test User', roles: [serverMarker], is_admin: serverMarker === 'admin' },
+                created_at: new Date().toISOString(),
+              },
+            } as any;
+            try {
+              // eslint-disable-next-line no-console
+              console.info('DIAG: AuthContext watcher commitRole', { source: 'server-marker-watch', role: serverMarker, timestamp: Date.now() });
+            } catch (e) {}
+            commitRole('server-marker-watch', serverMarker, mock);
+          }
         }
       } catch (e) {}
     };
@@ -537,7 +562,7 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
           // to avoid watcher reapply races seen in CI (same logic as online signOut path).
           try {
             const probeApi = '/api/test/ssr-probe?cb=' + Date.now();
-            const deadline = Date.now() + 500; // 500ms max
+            const deadline = Date.now() + 1000; // 1s max (increase to avoid CI flake)
             while (Date.now() < deadline) {
               try {
                 const pr = await fetch(probeApi, {
@@ -557,7 +582,7 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
                   }
                 }
               } catch (e) {}
-              await new Promise((r) => setTimeout(r, 50));
+              await new Promise((r) => setTimeout(r, 75));
             }
           } catch (e) {
             try { console.warn('DIAG: AuthContext signOut (offline): ssr-probe polling failed', e && e.message ? e.message : e); } catch (e) {}
@@ -584,7 +609,7 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
         if (isTestApiEnabled && typeof window !== 'undefined') {
           try {
             const probeApi = '/api/test/ssr-probe?cb=' + Date.now();
-            const deadline = Date.now() + 500; // 500ms max
+            const deadline = Date.now() + 1000; // 1s max (increase to avoid CI flake)
             while (Date.now() < deadline) {
               try {
                 const pr = await fetch(probeApi, {
@@ -605,7 +630,7 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
                 }
               } catch (e) {}
               // small backoff to yield to browser cookie application
-              await new Promise((r) => setTimeout(r, 50));
+              await new Promise((r) => setTimeout(r, 75));
             }
           } catch (e) {
             try { console.warn('DIAG: AuthContext signOut: ssr-probe polling failed', e && e.message ? e.message : e); } catch (e) {}
