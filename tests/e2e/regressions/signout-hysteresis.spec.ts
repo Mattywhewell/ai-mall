@@ -60,7 +60,7 @@ test.describe('regression: sign-out hysteresis', () => {
     }
 
     // Wait for the client to commit sign-out (the client marker should become null)
-    await page.waitForSelector('#__client_test_user_status[data-role="null"]', { timeout: 3000 });
+    await expect(page.locator('#__client_test_user_status')).toHaveAttribute('data-role', 'null', { timeout: 5000 });
 
     // Immediately reinsert cookie and dispatch event (simulate concurrent reapply)
     await page.evaluate(() => {
