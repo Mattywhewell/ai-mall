@@ -359,7 +359,7 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
           } catch (e) {}
           if (role && role !== userRole) {
             // Hysteresis: if we recently signed out, briefly ignore any new role re-applies (test-only)
-            const HYSTERESIS_MS = 300;
+            const HYSTERESIS_MS = 1000;
             if (lastSignOutAtRef.current && Date.now() - lastSignOutAtRef.current < HYSTERESIS_MS) {
               try { console.info('DIAG: AuthContext watcher skip commit (recent signOut)', { source: 'localStorage-watch', role, since: Date.now() - lastSignOutAtRef.current }); } catch (e) {}
             } else {
@@ -393,7 +393,7 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
             } catch (e) {}
             if (role && role !== userRole) {
               // Hysteresis: if we recently signed out, briefly ignore cookie re-applies (test-only)
-              const HYSTERESIS_MS = 300;
+              const HYSTERESIS_MS = 1000;
               if (lastSignOutAtRef.current && Date.now() - lastSignOutAtRef.current < HYSTERESIS_MS) {
                 try { console.info('DIAG: AuthContext watcher skip commit (recent signOut)', { source: 'cookie-watch', role, since: Date.now() - lastSignOutAtRef.current }); } catch (e) {}
               } else {
@@ -424,7 +424,7 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
             console.info('DIAG: AuthContext watcher -> server-marker', { role: serverMarker, timestamp: Date.now() });
           } catch (e) {}
           // Hysteresis: ignore immediate server-marker re-applies shortly after a sign-out (test-only)
-          const HYSTERESIS_MS = 300;
+          const HYSTERESIS_MS = 1000;
           if (lastSignOutAtRef.current && Date.now() - lastSignOutAtRef.current < HYSTERESIS_MS) {
             try { console.info('DIAG: AuthContext watcher skip commit (recent signOut)', { source: 'server-marker-watch', role: serverMarker, since: Date.now() - lastSignOutAtRef.current }); } catch (e) {}
           } else {
