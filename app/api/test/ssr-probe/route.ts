@@ -30,11 +30,19 @@ export async function GET(request: Request) {
     }
 
     const role = parsed?.role || null;
-    const res = NextResponse.json({ cookieVal: cookieVal || null, owner: owner || null, parsed: parsed || null, sawProbeHeader: !!request.headers.get('x-e2e-ssr-probe'), role }, {
-      headers: { 'x-e2e-saw-role': role || '' }
+    const timestamp = Date.now();
+    const res = NextResponse.json({
+      cookieVal: cookieVal || null,
+      owner: owner || null,
+      parsed: parsed || null,
+      sawProbeHeader: !!request.headers.get('x-e2e-ssr-probe'),
+      role,
+      timestamp
+    }, {
+      headers: { 'x-e2e-saw-role': role || '', 'x-e2e-owner': owner || '' }
     });
 
-    return res;
+    return res; 
   } catch (err) {
     return NextResponse.json({ ok: false, error: String(err) }, { status: 500 });
   }

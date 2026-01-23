@@ -49,11 +49,16 @@ export async function GET(request: Request) {
       console.warn('test/clear-test-user: failed to clear server runtime test-user flag', e && (e.message || e));
     }
 
+    const clearedAt = Date.now();
     // eslint-disable-next-line no-console
-    console.info('test/clear-test-user: cleared test_user cookie owner:', owner);
+    console.info('test/clear-test-user: cleared test_user cookie owner:', owner, 'clearedAt:', clearedAt);
 
-    return NextResponse.json({ ok: true, cleared: true, owner });
+    const res = NextResponse.json({ ok: true, cleared: true, owner: owner || null, clearedAt }, {
+      headers: { 'x-e2e-cleared-owner': owner || '' }
+    });
+
+    return res;
   } catch (err) {
     return NextResponse.json({ ok: false, error: String(err) }, { status: 500 });
   }
-}
+} 

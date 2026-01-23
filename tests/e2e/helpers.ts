@@ -515,11 +515,40 @@ export async function ensureNoTestUser(page: Page) {
       const resp = await page.request.get(`${BASE}/api/test/clear-test-user`);
       const text = await resp.text();
       console.info('ensureNoTestUser: called /api/test/clear-test-user:', resp.status(), text && text.slice ? text.slice(0,200) : text);
+
+      // Parse returned JSON to get owner/clearedAt for diagnostics
+      let clearJson: any = null;
+      try { clearJson = JSON.parse(text || '{}'); } catch (e) { clearJson = null; }
+      const ownerCleared = clearJson?.owner || null;
+      const clearedAt = clearJson?.clearedAt || null;
+
+      // Poll /api/test/ssr-probe until server reports role === null (timeout ~5s, backoff 200-250ms)
+      const deadline = Date.now() + 5000;
+      let probeOk = false;
+      while (Date.now() < deadline) {
+        try {
+          const p = await page.request.get(`${BASE}/api/test/ssr-probe?cb=${Date.now()}`);
+          const j = await p.json().catch(() => null);
+          const sawRole = typeof j === 'object' ? j?.role : undefined;
+          console.info('ensureNoTestUser: ssr-probe poll:', { ownerCleared, clearedAt, sawRole, probeJson: j, status: p.status() });
+          if (sawRole === null) { probeOk = true; break; }
+        } catch (e) {
+          // ignore transient errors
+        }
+        await page.waitForTimeout(250);
+      }
+
+      if (probeOk) {
+        console.info('ensureNoTestUser: ssr-probe confirmed cleared state');
+        ok = true;
+      } else {
+        console.warn('ensureNoTestUser: ssr-probe did not report cleared role within timeout; falling back to page probe');
+        ok = await probeServerForNoTestUser('retry');
+      }
     } catch (e) {
       console.warn('ensureNoTestUser: failed to call /api/test/clear-test-user', e && e.message ? e.message : e);
+      ok = await probeServerForNoTestUser('retry');
     }
-
-    ok = await probeServerForNoTestUser('retry');
   }
 
   if (!ok) {
