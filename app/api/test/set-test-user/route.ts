@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { setServerTestUser } from '@/lib/testUserServerState';
 
 // Test-only endpoint to set a per-request `test_user` cookie.
 // Gated: only enabled when NEXT_PUBLIC_INCLUDE_TEST_PAGES or CI is set to avoid exposing this in prod.
@@ -29,7 +30,8 @@ export async function GET(request: Request) {
     }
 
     // Set a cookie on the response so subsequent SSR requests will carry it.
-    cookies().set({
+    const cookieStore = await cookies();
+    cookieStore.set({
       name: 'test_user',
       value: cookieVal,
       path: '/',
@@ -37,6 +39,14 @@ export async function GET(request: Request) {
       sameSite: 'lax',
       maxAge: 60 * 60, // 1 hour
     });
+
+    // Also set the server-side runtime flag so SSR respects explicit test-user set/clear operations
+    try {
+      setServerTestUser(role);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn('test/set-test-user: failed to set server runtime test-user flag', e && (e.message || e));
+    }
 
     // Log the value being set so we can later correlate server logs and probe logs
     // eslint-disable-next-line no-console

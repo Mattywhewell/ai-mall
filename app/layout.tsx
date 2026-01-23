@@ -4,6 +4,7 @@ import '@/styles/globals.css';
 import { AuthProvider } from '@/lib/auth/AuthContext';
 import { cookies, headers } from 'next/headers';
 import { MainNavigation } from '@/components/MainNavigation';
+import { getServerTestUser } from '@/lib/testUserServerState';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -46,6 +47,24 @@ export default async function RootLayout({
   let initialUser = !noTestUser && (queryTestUser || envTestUser)
     ? { role: (queryRole || envTestRole || 'citizen') }
     : undefined;
+
+  // Runtime server-side guard (module-level): if tests used the runtime API to set/clear
+  // a test user, respect that explicit decision rather than env or cookie. This allows
+  // /api/test/clear-test-user to be authoritative and stop the SSR injection immediately.
+  try {
+    const runtimeServerUser = getServerTestUser();
+    if (typeof runtimeServerUser !== 'undefined') {
+      if (runtimeServerUser === null) {
+        // Explicitly cleared on the server
+        initialUser = undefined;
+      } else {
+        // Server is explicitly setting a role at runtime
+        initialUser = { role: runtimeServerUser };
+      }
+    }
+  } catch (e) {
+    // ignore errors reading runtime flag
+  }
 
   // Gated SSR cookie fallback (test-only): when CI or debug flag is set, OR when an E2E
   // probe header (`x-e2e-ssr-probe`) or probe query param is present, read the `test_user`

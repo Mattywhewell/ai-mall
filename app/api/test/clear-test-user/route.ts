@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { clearServerTestUser } from '@/lib/testUserServerState';
 
 // Test-only endpoint to clear the per-request `test_user` cookie.
 // Gated: only enabled when NEXT_PUBLIC_INCLUDE_TEST_PAGES or CI is set to avoid exposing this in prod.
@@ -16,7 +17,8 @@ export async function GET(request: Request) {
     } catch (e) {}
 
     // Clear the cookie by setting it with maxAge: 0 (expires immediately)
-    cookies().set({
+    const cookieStore = await cookies();
+    cookieStore.set({
       name: 'test_user',
       value: '',
       path: '/',
@@ -24,6 +26,14 @@ export async function GET(request: Request) {
       sameSite: 'lax',
       maxAge: 0,
     });
+
+    // Also clear the server-side runtime flag so SSR will stop injecting __test_user going forward
+    try {
+      clearServerTestUser();
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn('test/clear-test-user: failed to clear server runtime test-user flag', e && (e.message || e));
+    }
 
     // eslint-disable-next-line no-console
     console.info('test/clear-test-user: cleared test_user cookie');
