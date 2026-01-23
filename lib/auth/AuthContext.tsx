@@ -544,8 +544,43 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
     // Call server-side test clear endpoint so the server stops injecting the SSR test_user marker.
     if (isTestApiEnabled && typeof window !== 'undefined') {
       try {
-        await fetch('/api/test/clear-test-user', { method: 'GET', credentials: 'same-origin' });
-        try { console.info('DIAG: AuthContext signOut: invoked /api/test/clear-test-user'); } catch (e) {}
+        const res = await fetch('/api/test/clear-test-user', { method: 'GET', credentials: 'same-origin' });
+        try { console.info('DIAG: AuthContext signOut: invoked /api/test/clear-test-user', { status: res.status }); } catch (e) {}
+
+        // After clearing server-side test user, poll the ssr-probe until it reports role === null
+        // This avoids a small race where the client commits null but a cookie/server-marker re-appearance
+        // can immediately re-apply the previous test role (seen in CI). Poll only in test-enabled runs.
+        if (isTestApiEnabled && typeof window !== 'undefined') {
+          try {
+            const probeApi = '/api/test/ssr-probe?cb=' + Date.now();
+            const deadline = Date.now() + 500; // 500ms max
+            while (Date.now() < deadline) {
+              try {
+                const pr = await fetch(probeApi, {
+                  method: 'GET',
+                  headers: {
+                    'x-e2e-ssr-probe': '1',
+                    'cache-control': 'no-cache',
+                    'pragma': 'no-cache',
+                  },
+                  credentials: 'same-origin',
+                });
+                if (pr.ok) {
+                  const body = await pr.json();
+                  if (!body || body.role == null) {
+                    try { console.info('DIAG: AuthContext signOut: ssr-probe shows role null'); } catch (e) {}
+                    break;
+                  }
+                }
+              } catch (e) {}
+              // small backoff to yield to browser cookie application
+              await new Promise((r) => setTimeout(r, 50));
+            }
+          } catch (e) {
+            try { console.warn('DIAG: AuthContext signOut: ssr-probe polling failed', e && e.message ? e.message : e); } catch (e) {}
+          }
+        }
+
       } catch (e) {
         try { console.warn('DIAG: AuthContext signOut: failed to call /api/test/clear-test-user', e && e.message ? e.message : e); } catch (e) {}
       }
