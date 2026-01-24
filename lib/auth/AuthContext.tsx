@@ -341,6 +341,11 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
 
   // WATCHER: when running in test mode, poll and listen for cookie/localStorage changes so Playwright's cookie-based role switches are detected
   useEffect(() => {
+    // If we're running under Vitest, avoid polling and focus listeners but
+    // still support deterministic event-driven notification used by unit tests
+    // (e.g., window.__e2e_notifyTestUser or dispatching 'test_user_changed').
+    const isVitest = process.env.VITEST === 'true';
+
     if (!allowTestUserClient || typeof window === 'undefined') return;
 
     let intervalId: number | undefined;
@@ -418,15 +423,38 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
 
       // Also check for server-injected DOM marker in case SSR produced it after mount
       try {
-        const serverMarker = document.getElementById('__test_user')?.getAttribute('data-role') || null;
+        const serverMarkerEl = document.getElementById('__test_user') as HTMLElement | null;
+        const serverMarker = serverMarkerEl?.getAttribute('data-role') || null;
+        const serverMarkerTsRaw = serverMarkerEl?.getAttribute('data-ts') || null;
+        const serverMarkerTimestamp = serverMarkerTsRaw ? parseInt(serverMarkerTsRaw, 10) : null;
         if (serverMarker && serverMarker !== userRole) {
           try { // eslint-disable-next-line no-console
-            console.info('DIAG: AuthContext watcher -> server-marker', { role: serverMarker, timestamp: Date.now() });
+            console.info('DIAG: AuthContext watcher -> server-marker', { role: serverMarker, serverMarkerTimestamp, timestamp: Date.now() });
           } catch (e) {}
           // Hysteresis: ignore immediate server-marker re-applies shortly after a sign-out (test-only)
           const HYSTERESIS_MS = 3000;
-          if (lastSignOutAtRef.current && Date.now() - lastSignOutAtRef.current < HYSTERESIS_MS) {
-            try { console.info('DIAG: AuthContext watcher skip commit (recent signOut)', { source: 'server-marker-watch', role: serverMarker, since: Date.now() - lastSignOutAtRef.current }); } catch (e) {}
+          if (lastSignOutAtRef.current) {
+            const since = Date.now() - lastSignOutAtRef.current;
+            // Guard: if the server-injected marker's timestamp is older or equal to our last sign-out, ignore it (definitive)
+            if (serverMarkerTimestamp && serverMarkerTimestamp <= lastSignOutAtRef.current) {
+              try { console.info('DIAG: AuthContext watcher skip commit (server-marker older than signOut)', { source: 'server-marker-watch', role: serverMarker, serverMarkerTimestamp, lastSignOutAt: lastSignOutAtRef.current }); } catch (e) {}
+            } else if (since < HYSTERESIS_MS) {
+              try { console.info('DIAG: AuthContext watcher skip commit (recent signOut)', { source: 'server-marker-watch', role: serverMarker, since }); } catch (e) {}
+            } else {
+              const mock = {
+                user: {
+                  id: 'test-id',
+                  email: 'test@example.com',
+                  user_metadata: { full_name: 'Test User', roles: [serverMarker], is_admin: serverMarker === 'admin' },
+                  created_at: new Date().toISOString(),
+                },
+              } as any;
+              try {
+                // eslint-disable-next-line no-console
+                console.info('DIAG: AuthContext watcher commitRole', { source: 'server-marker-watch', role: serverMarker, serverMarkerTimestamp, timestamp: Date.now() });
+              } catch (e) {}
+              commitRole('server-marker-watch', serverMarker, mock);
+            }
           } else {
             const mock = {
               user: {
@@ -436,9 +464,8 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
                 created_at: new Date().toISOString(),
               },
             } as any;
-            try {
-              // eslint-disable-next-line no-console
-              console.info('DIAG: AuthContext watcher commitRole', { source: 'server-marker-watch', role: serverMarker, timestamp: Date.now() });
+            try { // eslint-disable-next-line no-console
+              console.info('DIAG: AuthContext watcher commitRole', { source: 'server-marker-watch', role: serverMarker, serverMarkerTimestamp, timestamp: Date.now() });
             } catch (e) {}
             commitRole('server-marker-watch', serverMarker, mock);
           }
@@ -480,28 +507,41 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
       try { checkTestUser(); } catch (e) {}
     };
 
-    window.addEventListener('focus', onFocus);
-    window.addEventListener('pageshow', onFocus);
-    document.addEventListener('visibilitychange', onVisibility);
+    // Attach only the event-driven listener under Vitest to keep unit tests deterministic
+    // while avoiding background polling and focus-based checks that can interfere with worker runs.
     window.addEventListener('test_user_changed', onTestUserChanged as EventListener);
 
-    // Poll for a short time to catch rapid cookie changes
-    intervalId = window.setInterval(() => {
-      attempts += 1;
-      checkTestUser();
-      if (attempts >= maxAttempts && intervalId) {
-        clearInterval(intervalId);
-      }
-    }, 500) as any;
+    if (!isVitest) {
+      window.addEventListener('focus', onFocus);
+      window.addEventListener('pageshow', onFocus);
+      document.addEventListener('visibilitychange', onVisibility);
 
-    // Initial immediate check
-    checkTestUser();
+      // Poll for a short time to catch rapid cookie changes
+      intervalId = window.setInterval(() => {
+        attempts += 1;
+        checkTestUser();
+        if (attempts >= maxAttempts && intervalId) {
+          clearInterval(intervalId);
+        }
+      }, 500) as any;
+
+      // Initial immediate check
+      checkTestUser();
+    } else {
+      // In Vitest, do a single immediate check so tests that pre-populate cookie/localStorage
+      // are handled without needing continuous polling.
+      try { checkTestUser(); } catch (e) {}
+    }
 
     return () => {
-      window.removeEventListener('focus', onFocus);
-      window.removeEventListener('pageshow', onFocus);
-      document.removeEventListener('visibilitychange', onVisibility);
-      if (intervalId) clearInterval(intervalId);
+      // Always remove the event listener
+      window.removeEventListener('test_user_changed', onTestUserChanged as EventListener);
+      if (!isVitest) {
+        window.removeEventListener('focus', onFocus);
+        window.removeEventListener('pageshow', onFocus);
+        document.removeEventListener('visibilitychange', onVisibility);
+        if (intervalId) clearInterval(intervalId);
+      }
     };
   }, [allowTestUserClient, userRole]);
 

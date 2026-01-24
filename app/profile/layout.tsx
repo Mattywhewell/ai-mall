@@ -18,7 +18,7 @@ export default function ProfileLayout({ children, searchParams }: { children: Re
       {isTest ? (
         // Server-rendered, hidden marker for tests (readable synchronously by client-side code)
         <>
-          <div id="__test_user" data-role={role} data-testid="test-user-server" style={{ display: 'none' }} />
+          <div id="__test_user" data-role={role} data-ts={String(Date.now())} data-testid="test-user-server" style={{ display: 'none' }} />
           {/* Server-rendered, visible test-only role display (minimal, unobtrusive) */}
           <div data-testid="profile-role-display" style={{ position: 'fixed', right: 8, bottom: 8, background: 'rgba(0,0,0,0.05)', padding: '4px 6px', fontSize: 12, borderRadius: 4, zIndex: 9999, pointerEvents: 'none' }}>
             {role.charAt(0).toUpperCase() + role.slice(1)}

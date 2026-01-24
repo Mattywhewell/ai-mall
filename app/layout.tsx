@@ -195,7 +195,7 @@ export default async function RootLayout({
       <body className={`${inter.className} flex flex-col min-h-screen`}>
         {/* E2E test helper: if tests pass ?test_user and ?role, render a hidden server-side marker so both SSR and client can read the same role synchronously */}
         {initialUser ? (
-          <div id="__test_user" data-role={initialUser.role} data-testid="test-user-server" style={{ display: 'none' }} />
+          <div id="__test_user" data-role={initialUser.role} data-ts={String(Date.now())} data-testid="test-user-server" style={{ display: 'none' }} />
         ) : null}
 
         <AuthProvider initialUser={initialUser}>
