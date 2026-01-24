@@ -1,0 +1,75 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "Aiverse" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e6]
+        - generic [ref=e8]: Aiverse
+      - generic [ref=e9]:
+        - link "Home" [ref=e10] [cursor=pointer]:
+          - /url: /
+          - img [ref=e11]
+          - generic [ref=e14]: Home
+        - link "Explore" [ref=e15] [cursor=pointer]:
+          - /url: /city
+          - img [ref=e16]
+          - generic [ref=e19]: Explore
+        - link "Commons" [ref=e20] [cursor=pointer]:
+          - /url: /commons
+          - img [ref=e21]
+          - generic [ref=e24]: Commons
+        - link "Collections" [ref=e25] [cursor=pointer]:
+          - /url: /collections
+          - img [ref=e26]
+          - generic [ref=e30]: Collections
+        - link "Gifts" [ref=e31] [cursor=pointer]:
+          - /url: /gifts
+          - img [ref=e32]
+          - generic [ref=e36]: Gifts
+        - link "Loyalty" [ref=e37] [cursor=pointer]:
+          - /url: /loyalty
+          - img [ref=e38]
+          - generic [ref=e40]: Loyalty
+        - link "Profile" [active] [ref=e41] [cursor=pointer]:
+          - /url: /profile
+          - img [ref=e42]
+          - generic [ref=e45]: Profile
+        - link "AI Products" [ref=e46] [cursor=pointer]:
+          - /url: /agents
+          - img [ref=e47]
+          - generic [ref=e49]: AI Products
+        - link "Events" [ref=e50] [cursor=pointer]:
+          - /url: /events
+          - img [ref=e51]
+          - generic [ref=e54]: Events
+        - link "Subscriptions" [ref=e55] [cursor=pointer]:
+          - /url: /subscriptions
+          - img [ref=e56]
+          - generic [ref=e59]: Subscriptions
+        - link "Become a Creator" [ref=e60] [cursor=pointer]:
+          - /url: /digital-products
+          - img [ref=e61]
+          - generic [ref=e63]: Become a Creator
+        - link "About" [ref=e64] [cursor=pointer]:
+          - /url: /about
+          - generic [ref=e65]: About
+      - generic [ref=e66]:
+        - button "Search" [ref=e67] [cursor=pointer]:
+          - img [ref=e68]
+        - button "Change currency" [ref=e72] [cursor=pointer]:
+          - img [ref=e73]
+          - generic [ref=e76]: $ USD
+        - link "Wishlist" [ref=e77] [cursor=pointer]:
+          - /url: /wishlist
+          - img [ref=e78]
+        - link "Shopping cart" [ref=e80] [cursor=pointer]:
+          - /url: /cart
+          - img [ref=e81]
+        - button "User menu" [ref=e86] [cursor=pointer]:
+          - img [ref=e88]
+          - img [ref=e90]
+  - alert [ref=e92]
+```

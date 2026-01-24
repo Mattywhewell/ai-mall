@@ -4,6 +4,7 @@ import '@/styles/globals.css';
 import { AuthProvider } from '@/lib/auth/AuthContext';
 import { cookies, headers } from 'next/headers';
 import { MainNavigation } from '@/components/MainNavigation';
+import { getServerTestUser } from '@/lib/testUserServerState';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -28,14 +29,45 @@ export default async function RootLayout({
   // Per-request opt-out: tests that require an *unauthenticated* baseline can pass
   // ?no_test_user=true to avoid server-side test-user injection (keeps harness and tests
   // deterministic while allowing explicit unauthenticated scenarios).
-  const envTestUser = process.env.NEXT_PUBLIC_TEST_USER === 'true';
+  const envTestUserRaw = process.env.NEXT_PUBLIC_TEST_USER === 'true';
   const envTestRole = process.env.NEXT_PUBLIC_TEST_USER_ROLE;
+  const envSkipSeed = process.env.SKIP_SUPABASE_SEED === 'true';
+  // If CI is configured to skip Supabase seeding, do NOT honor a build-time
+  // NEXT_PUBLIC_TEST_USER. This prevents a deterministic test user from being
+  // inlined at build/start time and allows the runtime clear endpoint (and
+  // per-request cookies/query params) to fully control SSR behavior.
+  const envTestUser = envSkipSeed ? false : envTestUserRaw;
+  if (envSkipSeed && envTestUserRaw) {
+    // eslint-disable-next-line no-console
+    console.info('CI: SKIP_SUPABASE_SEED=true -> ignoring NEXT_PUBLIC_TEST_USER build-time flag to avoid inlined SSR test user');
+  }
   const queryTestUser = typeof searchParams !== 'undefined' && searchParams?.test_user === 'true';
   const queryRole = typeof searchParams !== 'undefined' ? searchParams?.role : undefined;
   const noTestUser = typeof searchParams !== 'undefined' && searchParams?.no_test_user === 'true';
   let initialUser = !noTestUser && (queryTestUser || envTestUser)
     ? { role: (queryRole || envTestRole || 'citizen') }
     : undefined;
+
+  // Runtime server-side guard (module-level): if tests used the runtime API to set/clear
+  // a test user, respect that explicit decision rather than env or cookie. We use an
+  // optional owner cookie to support parallel E2E workers so runtime decisions are
+  // scoped and do not clobber unrelated tests.
+  try {
+    const cookieStoreTop = await cookies();
+    const owner = cookieStoreTop.get('test_user_owner')?.value;
+    const runtimeServerUser = getServerTestUser(owner);
+    if (typeof runtimeServerUser !== 'undefined') {
+      if (runtimeServerUser === null) {
+        // Explicitly cleared on the server for this owner
+        initialUser = undefined;
+      } else {
+        // Server is explicitly setting a role at runtime for this owner
+        initialUser = { role: runtimeServerUser };
+      }
+    }
+  } catch (e) {
+    // ignore errors reading runtime flag
+  }
 
   // Gated SSR cookie fallback (test-only): when CI or debug flag is set, OR when an E2E
   // probe header (`x-e2e-ssr-probe`) or probe query param is present, read the `test_user`
@@ -58,16 +90,17 @@ export default async function RootLayout({
     try {
       const cookieStore = await cookies();
       const cookieVal = cookieStore.get('test_user')?.value;
+      const ownerCookie = cookieStore.get('test_user_owner')?.value;
 
       // If a trace-probe header or probe query is present, log it with cookie value so traces and server logs are unambiguous
       try {
         const probeHeaderVal = probeHeaderPresent;
         if (probeHeaderVal) {
           // eslint-disable-next-line no-console
-          console.info('CI: SSR PROBE RECEIVED header:', probeHeaderVal, 'cookieVal:', cookieVal || '<none>', 'searchParams:', JSON.stringify(searchParams || {}));
+          console.info('CI: SSR PROBE RECEIVED header:', probeHeaderVal, 'cookieVal:', cookieVal || '<none>', 'owner:', ownerCookie || '<none>', 'searchParams:', JSON.stringify(searchParams || {}));
         } else if (isProbeQuery) {
           // eslint-disable-next-line no-console
-          console.info('CI: SSR PROBE QUERY present:', JSON.stringify(searchParams || {}), 'cookieVal:', cookieVal || '<none>');
+          console.info('CI: SSR PROBE QUERY present:', JSON.stringify(searchParams || {}), 'cookieVal:', cookieVal || '<none>', 'owner:', ownerCookie || '<none>');
         }
       } catch (e) {
         // ignore
@@ -162,7 +195,7 @@ export default async function RootLayout({
       <body className={`${inter.className} flex flex-col min-h-screen`}>
         {/* E2E test helper: if tests pass ?test_user and ?role, render a hidden server-side marker so both SSR and client can read the same role synchronously */}
         {initialUser ? (
-          <div id="__test_user" data-role={initialUser.role} data-testid="test-user-server" style={{ display: 'none' }} />
+          <div id="__test_user" data-role={initialUser.role} data-ts={String(Date.now())} data-testid="test-user-server" style={{ display: 'none' }} />
         ) : null}
 
         <AuthProvider initialUser={initialUser}>

@@ -7,7 +7,14 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/unit/**', 'tests/lib/**'],
-    exclude: ['tests/e2e/**', 'tests/integration/**', '**/__snapshots__/**', '**/*.snap']
+    exclude: ['tests/e2e/**', 'tests/integration/**', '**/__snapshots__/**', '**/*.snap'],
+    // TEMP DEBUG: collect bootstrap import info and avoid worker isolation while diagnosing freezes
+    logHeapUsage: true,
+    onConsoleLog(log) {
+      console.log('[VITEST LOG]', log)
+    },
+    fileParallelism: false,
+    isolate: false
   },
   resolve: {
     alias: {

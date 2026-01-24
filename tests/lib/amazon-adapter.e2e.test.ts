@@ -1,4 +1,5 @@
 import http from 'http';
+import fetch from 'node-fetch';
 import { AmazonAdapter } from '@/lib/channel-adapters/amazon';
 
 // Note: this is an e2e-style test that starts a local mock server and verifies
@@ -9,6 +10,10 @@ describe('AmazonAdapter e2e (mock SP-API)', () => {
   let port: number;
 
   beforeAll(async () => {
+    // Ensure this test uses a real fetch implementation so the local mock server is hit
+    (globalThis as any)._orig_fetch = (globalThis as any).fetch;
+    (globalThis as any).fetch = fetch as any;
+
     server = http.createServer((req, res) => {
       const headers = Object.fromEntries(Object.entries(req.headers || {}).map(([k, v]) => [k.toLowerCase(), v]));
       const hasAuth = !!headers['authorization'];
@@ -43,6 +48,11 @@ describe('AmazonAdapter e2e (mock SP-API)', () => {
     const addr = server.address();
     if (!addr || typeof addr === 'string') throw new Error('failed to start mock server');
     port = addr.port;
+  });
+
+  afterAll(async () => {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    (globalThis as any).fetch = (globalThis as any)._orig_fetch;
   });
 
   afterAll(async () => {

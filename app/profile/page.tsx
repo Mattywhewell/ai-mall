@@ -46,7 +46,10 @@ export default function ProfilePage() {
 
   useEffect(() => {
     // Wait for auth loading to settle to avoid redirect race when test users are injected
-    if (loading) return;
+    // Note: allow the effect to proceed if a user is already present even when this page's
+    // local loading flag is still true (this can happen in production when auth is injected
+    // after client mount). Guarding only on `loading` prevents processing the `user` change.
+    if (loading && !user) return;
     if (user) {
       fetchUserProfile();
       fetchUserOrders();
@@ -73,8 +76,34 @@ export default function ProfilePage() {
         console.log('PROFILE NAV TEXT:', nav?.innerText?.trim().slice(0, 500));
         console.log('PROFILE DEBUG: userRole=', userRole, 'testRole=', testRole);
       }
+      // DIAG: capture SSR marker if present on client DOM
+      try {
+        const serverMarkerRole = document.getElementById('__test_user')?.getAttribute('data-role') || null;
+        // eslint-disable-next-line no-console
+        console.info('DIAG: PROFILE init - serverMarkerRole, userRole, testRole', { serverMarkerRole, userRole, testRole });
+      } catch (e) {}
     }
   }, []);
+
+  // Log changes to role/loading state to make CI traces show transitions
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        // eslint-disable-next-line no-console
+        console.info('DIAG: PROFILE state change', { userRole, testRole, loading, timestamp: Date.now() });
+      } catch (e) {}
+    }
+  }, [userRole, testRole, loading]);
+
+  // DIAG: log an effect whenever the visible role info changes (mount and subsequent changes)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        // eslint-disable-next-line no-console
+        console.info('DIAG: PROFILE effect userRoleChange', { userRole, testRole, loading, timestamp: Date.now(), readyState: document.readyState });
+      } catch (e) {}
+    }
+  }, [userRole, testRole, loading]);
 
   // Log when admin quicklinks should be visible
   useEffect(() => {
@@ -233,7 +262,7 @@ export default function ProfilePage() {
       {/* E2E test helper: tests should use `page.addInitScript` or the server-side marker (#__test_user) — avoid mutating <html> during SSR hydration */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
+        <div className="bg-white rounded-lg shadow-lg p-8 mb-6" data-current-role={userRole ?? testRole ?? 'none'}>
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-6">
               <div className="relative">
@@ -279,6 +308,13 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Visible, deterministic role badge for E2E tests */}
+                {typeof window !== 'undefined' && (() => {
+                  try {
+                    // eslint-disable-next-line no-console
+                    console.info('DIAG: PROFILE render attempt', { userRole, testRole, loading, timestamp: Date.now(), readyState: document.readyState });
+                  } catch (e) {}
+                  return null;
+                })()}
                 <p data-testid="profile-role-badge" className="text-sm text-gray-500 mt-2">{(userRole ?? testRole ?? 'citizen').toString().toLowerCase()}</p>
 
                 {/* Human-readable role display (used by older tests that look for capitalized role text) */}
@@ -290,6 +326,13 @@ export default function ProfilePage() {
                       {userRole === 'supplier' ? 'Supplier' : userRole === 'admin' ? 'Admin' : 'Citizen'}
                     </div>
                   )}
+                {typeof window !== 'undefined' && (() => {
+                  try {
+                    // eslint-disable-next-line no-console
+                    console.info('DIAG: PROFILE render after roleBadge', { userRole, testRole, loading, timestamp: Date.now() });
+                  } catch (e) {}
+                  return null;
+                })()}
 
                   {/* Debug info (non-production only) */}
                   {process.env.NODE_ENV !== 'production' && (

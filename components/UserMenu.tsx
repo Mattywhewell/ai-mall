@@ -35,6 +35,20 @@ export default function UserMenu() {
   // devUser is now initialized synchronously based on URL params to make E2E deterministic
   useEffect(() => {
     console.log('UserMenu: devUser (synchronous init) ->', devUser);
+
+    // Listen for test user change events so other sign-out entry points can clear devUser
+    const onTestUserChanged = (ev: Event) => {
+      try {
+        const ce = ev as CustomEvent;
+        const roleFromDetail = ce?.detail?.role as string | null | undefined;
+        if (!roleFromDetail) {
+          setDevUser(null as any);
+          setIsOpen(false);
+        }
+      } catch (e) {}
+    };
+    window.addEventListener('test_user_changed', onTestUserChanged as EventListener);
+    return () => window.removeEventListener('test_user_changed', onTestUserChanged as EventListener);
   }, []);
 
   // Close dropdown when clicking outside

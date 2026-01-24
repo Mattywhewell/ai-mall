@@ -1,0 +1,1 @@
+const fs=require('fs');const s=fs.readFileSync('tests/e2e/helpers.ts','utf8');let stack=[];for(let i=0;i<s.length;i++){const ch=s[i];if(ch=='{')stack.push(i);if(ch=='}'){if(stack.length)stack.pop();else{console.log('Unmatched } at index',i);process.exit(0);}}}if(stack.length)console.log('Unclosed { count',stack.length,'first at',stack[0]);else console.log('Braces balanced');

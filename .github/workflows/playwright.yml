@@ -43,6 +43,7 @@ jobs:
       STRIPE_WEBHOOK_SECRET: whsec_test_placeholder
       NEXT_PUBLIC_DISABLE_3D: 'true'
       NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
+      NEXT_PUBLIC_INCLUDE_TEST_USER: 'true'
       # When true, skip creating auth users in `scripts/e2e-setup.js` to avoid upstream Supabase Auth instability
       SKIP_SUPABASE_SEED: 'true'
     steps:
@@ -64,16 +65,14 @@ jobs:
           # If seeding is skipped in CI, export deterministic test-user flags at *build* time
           # so Next.js inlined NEXT_PUBLIC_* values and SSR will include them.
           if [ "$SKIP_SUPABASE_SEED" = "true" ]; then
-            echo "SKIP_SUPABASE_SEED=true -> exporting NEXT_PUBLIC_TEST_USER=true NEXT_PUBLIC_TEST_USER_ROLE=citizen for build"
-            export NEXT_PUBLIC_TEST_USER="true"
-            export NEXT_PUBLIC_TEST_USER_ROLE="citizen"
+            # NOTE: Do NOT export NEXT_PUBLIC_TEST_USER at build time anymore. Tests should use the
+            # test-only endpoints (e.g., /api/test/set-test-user) or set cookies at runtime to
+            # establish a test user. Exporting a build-time NEXT_PUBLIC_TEST_USER inlined the
+            # test user into SSR and prevented runtime clearing from taking effect.
+            echo "SKIP_SUPABASE_SEED=true -> skipping NEXT_PUBLIC_TEST_USER build-time export (use runtime test endpoints)"
           fi
 
           npm run build
-        env:
-          NEXT_PUBLIC_TEST_USER: ${{ env.SKIP_SUPABASE_SEED == 'true' && 'true' || '' }}
-          NEXT_PUBLIC_TEST_USER_ROLE: ${{ env.SKIP_SUPABASE_SEED == 'true' && 'citizen' || '' }}
-
       - name: "E2E: Supabase pre-check (fail fast)"
         run: node scripts/e2e-precheck.js
         env:
@@ -101,13 +100,10 @@ jobs:
           # Provide diagnostics and ensure test-user flags are visible to the child server process.
           echo "STEP ENV: SKIP_SUPABASE_SEED=$SKIP_SUPABASE_SEED NEXT_PUBLIC_TEST_USER=$NEXT_PUBLIC_TEST_USER NEXT_PUBLIC_TEST_USER_ROLE=$NEXT_PUBLIC_TEST_USER_ROLE"
 
-          # When seeding is skipped, explicitly export deterministic test-user flags so the server
-          # process sees them at runtime (fallback; primary delivery is via step 'env:' mapping below)
-          if [ "$SKIP_SUPABASE_SEED" = "true" ]; then
-            echo "SKIP_SUPABASE_SEED=true -> exporting NEXT_PUBLIC_TEST_USER=true NEXT_PUBLIC_TEST_USER_ROLE=citizen"
-            export NEXT_PUBLIC_TEST_USER="true"
-            export NEXT_PUBLIC_TEST_USER_ROLE="citizen"
-          fi
+          # (one-off debug removed)
+          # (e.g., /api/test/set-test-user) or cookies to establish a test user. Exporting here
+          # inlined the test user into SSR and prevented runtime clearing from taking effect.
+          echo "SKIP_SUPABASE_SEED=true -> skipping NEXT_PUBLIC_TEST_USER runtime export (use runtime test endpoints)"
 
           # Quick verification printed from node runtime (will appear in job logs)
           node -e "console.log('CI runtime NEXT_PUBLIC_INCLUDE_TEST_PAGES=', process.env.NEXT_PUBLIC_INCLUDE_TEST_PAGES, 'NEXT_PUBLIC_DISABLE_3D=', process.env.NEXT_PUBLIC_DISABLE_3D, 'NEXT_PUBLIC_TEST_USER=', process.env.NEXT_PUBLIC_TEST_USER, 'NEXT_PUBLIC_TEST_USER_ROLE=', process.env.NEXT_PUBLIC_TEST_USER_ROLE)"
@@ -120,10 +116,12 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
+          NEXT_PUBLIC_INCLUDE_TEST_USER: 'true'
           NEXT_PUBLIC_DISABLE_3D: 'true'
           # Ensure the server process always inherits these in CI when SKIP_SUPABASE_SEED is set
-          NEXT_PUBLIC_TEST_USER: ${{ env.SKIP_SUPABASE_SEED == 'true' && 'true' || '' }}
-          NEXT_PUBLIC_TEST_USER_ROLE: ${{ env.SKIP_SUPABASE_SEED == 'true' && 'citizen' || '' }}
+          # Do not force NEXT_PUBLIC_TEST_USER at runtime; test harness will set test users as needed
+          NEXT_PUBLIC_TEST_USER: ''
+          NEXT_PUBLIC_TEST_USER_ROLE: ''
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
@@ -135,6 +133,7 @@ jobs:
           CI: true
           NEXT_PUBLIC_DISABLE_3D: 'true'
           NEXT_PUBLIC_INCLUDE_TEST_PAGES: 'true'
+          NEXT_PUBLIC_INCLUDE_TEST_USER: 'true'
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

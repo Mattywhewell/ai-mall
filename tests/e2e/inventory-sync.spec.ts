@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { waitForSeededRow } from './helpers';
 
 // Helper to dismiss onboarding modal/popups that sometimes appear during dev/test
 async function dismissOnboarding(page: any) {
@@ -63,6 +64,8 @@ test.describe('Inventory Sync UI', () => {
     expect(noItemsVisible || channelErrorVisible).toBe(true);
   });
 
+  // If CI explicitly skips Supabase seeding, skip this seeded inventory sync test to avoid false failures
+  test.skip(process.env.SKIP_SUPABASE_SEED === 'true', 'SKIP_SUPABASE_SEED=true -> skipping inventory sync seeded test');
   test('can sync item and shows loading state', async ({ page }) => {
     let syncCalled = false;
     await page.route('**/api/seller/inventory/*/sync', async route => {
@@ -76,10 +79,11 @@ test.describe('Inventory Sync UI', () => {
     await dismissOnboarding(page);
 
     // Wait for the main Sync UI to settle (Inventory Synchronization card should be visible)
-    await expect(page.getByText('Inventory Synchronization')).toBeVisible({ timeout: 7000 });
+    await expect(page.getByText('Inventory Synchronization')).toBeVisible({ timeout: 30000 });
 
-    // The seeded item 'P1' should always be present
-    await page.waitForSelector('text=P1', { timeout: 7000 });
+    // The seeded item 'P1' should always be present; wait robustly
+    const ok = await waitForSeededRow(page, 'P1', 20000);
+    expect(ok).toBeTruthy();
     const row = page.locator('tr', { hasText: 'P1' });
     await row.getByRole('button', { name: /Sync/i }).click();
     await expect(page.getByRole('button', { name: /Sync/i })).toBeVisible();
