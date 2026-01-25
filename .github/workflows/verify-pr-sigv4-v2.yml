@@ -1,0 +1,57 @@
+name: Verify SigV4 check on PRs (v2)
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  check-sigv4:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR for SigV4 status
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prNumber = context.payload.pull_request.number;
+            const headSha = context.payload.pull_request.head.sha;
+
+            // Name of the workflow / check we expect. Adjust if your workflow has a different name.
+            // The check-run is named `sigv4-e2e` (job name) in the E2E workflow.
+            const requiredCheckName = 'sigv4-e2e';
+
+            core.info(`Verifying PR #${prNumber} (sha ${headSha}) for required check: ${requiredCheckName}`);
+
+            // Get check runs for this commit (with retry/polling to avoid race conditions where the verifier may run slightly before the E2E job completes)
+            const maxAttempts = 6;
+            const delayMs = 5000; // 5s
+            let attempts = 0;
+            let matching = [];
+
+            while (attempts < maxAttempts) {
+              core.info(`Attempt ${attempts + 1}/${maxAttempts}: checking for required check: ${requiredCheckName}`);
+              const { data: checkRuns } = await github.rest.checks.listForRef({ owner, repo, ref: headSha });
+
+              const available = (checkRuns.check_runs || []).map(c => c.name).join(', ');
+              core.info(`Available checks: ${available || '(none)'}`);
+
+              matching = (checkRuns.check_runs || []).filter(c => c.name === requiredCheckName && c.conclusion === 'success');
+
+              if (matching && matching.length > 0) {
+                break;
+              }
+
+              attempts++;
+              if (attempts < maxAttempts) {
+                core.info(`Required check not found; sleeping ${delayMs}ms before retrying...`);
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+              }
+            }
+
+            if (!matching || matching.length === 0) {
+              core.setFailed(`Required check "${requiredCheckName}" has not succeeded for commit ${headSha} after ${maxAttempts} attempts. Please ensure the workflow runs and completes.`);
+            } else {
+              core.info(`Found successful check run: ${matching.map(m => m.name).join(', ')}`);
+            }
