@@ -24,7 +24,7 @@ jobs:
             core.info(`Verifying PR #${prNumber} (sha ${headSha}) for required check: ${requiredCheckName}`);
 
             // Get check runs for this commit
-            const { data: checkRuns } = await github.checks.listForRef({ owner, repo, ref: headSha });
+            const { data: checkRuns } = await github.rest.checks.listForRef({ owner, repo, ref: headSha });
 
             const matching = (checkRuns.check_runs || []).filter(c => c.name === requiredCheckName && c.conclusion === 'success');
 
