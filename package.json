@@ -16,12 +16,14 @@
     "test:duplicate": "tsx scripts/test-duplicate.ts",
     "test:all": "tsx scripts/test-email-verification.ts && tsx scripts/test-moderation.ts",
     "test:e2e": "playwright test",
+    "test:e2e:artifacts": "playwright test --reporter=list,html",
     "e2e:setup": "node scripts/e2e-setup.js",
     "setup:check": "tsx scripts/setup-check.ts",
     "demo:mock-flow": "tsx scripts/demo/mock_flow.ts",
     "test:e2e:sigv4": "tsx scripts/e2e/amazon_sigv4_e2e.ts",
     "test:e2e:ci": "tsx scripts/e2e/aws_sigv4_debug.ts",
     "test:unit": "vitest run --reporter dot",
+    "test:unit:stable": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest run --reporter dot --maxWorkers=50% --vmMemoryLimit=3072",
     "test:enhanced-security": "tsx scripts/test-enhanced-security.ts",
     "setup:supabase-bucket": "node scripts/supabase-create-bucket.js",
     "verify:supabase-bucket": "node scripts/supabase-verify-permissions.js",
@@ -31,7 +33,12 @@
     "test:cost-optimization": "tsx scripts/test-cost-optimization.ts",
     "sweep:watch": "node scripts/ci/watch-and-sweep.js",
     "watch:pr": "node scripts/watch-pr-ci.js --pr=16",
-    "monitor:e2e": "tsx scripts/ci/monitor-e2e-runs.ts"
+    "monitor:e2e": "tsx scripts/ci/monitor-e2e-runs.ts",
+    "repro": "node scripts/repro-harness.js --cmd \"node scripts/sample-bundle-run.js --input scripts/samples/repro-input.json\" --input scripts/samples/repro-input.json",
+    "repro:sample": "node scripts/repro-harness.js --cmd \"node scripts/sample-bundle-run.js --input scripts/samples/repro-input.json\" --input scripts/samples/repro-input.json --out repro",
+    "repro:evolution": "node scripts/repro-harness.js --cmd \"npx tsx scripts/run-world-evolution.ts\" --out repro --workdir .",
+    "ci:summarize-ndjson": "node scripts/ci-summarize-ndjson.js",
+    "ci:targeted-repro": "node scripts/targeted-repro.js playwright-results.json 1"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.17.2",
@@ -92,8 +99,9 @@
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.18",
     "tsx": "^4.19.2",
+    "cross-env": "^7.0.3",
     "typescript": "5.9.3",
-    "vitest": "^1.1.6"
+    "vitest": "^4.0.18"
   },
   "overrides": {
     "react": "18.2.0",

@@ -6,8 +6,20 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
-    include: ['tests/unit/**', 'tests/lib/**'],
-    exclude: ['tests/e2e/**', 'tests/integration/**', '**/__snapshots__/**', '**/*.snap'],
+    include: ['tests/unit/**/*.test.tsx'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/coverage/**',
+      '**/.next/**',
+      '**/public/**',
+      '**/*.sql',
+      'tests/e2e/**',
+      'tests/integration/**',
+      '**/__snapshots__/**',
+      '**/*.snap'
+    ],
     // TEMP DEBUG: collect bootstrap import info and avoid worker isolation while diagnosing freezes
     logHeapUsage: true,
     onConsoleLog(log) {
