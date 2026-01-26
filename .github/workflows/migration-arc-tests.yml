@@ -1,0 +1,17 @@
+name: Migration Arc - Idempotence Tests
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/migration-arc/**'
+      - 'docs/migration-arc.md'
+
+jobs:
+  idempotence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install OpenSSH (ensure ssh-keygen present)
+        run: sudo apt-get update && sudo apt-get install -y openssh-client
+      - name: Run migration-arc idempotence smoke test
+        run: bash ./scripts/migration-arc/tests/test_idempotence.sh
