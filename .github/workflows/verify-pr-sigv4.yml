@@ -7,6 +7,9 @@ on:
 jobs:
   check-sigv4:
     runs-on: ubuntu-latest
+    concurrency:
+      group: verify-sigv4-${{ github.head_ref || github.ref }}
+      cancel-in-progress: false
     steps:
       - name: Check PR for SigV4 status
         uses: actions/github-script@v6
@@ -25,33 +28,114 @@ jobs:
             core.info(`Verifying PR #${prNumber} (sha ${headSha}) for required check: ${requiredCheckName}`);
 
             // Get check runs for this commit (with retry/polling to avoid race conditions where the verifier may run slightly before the E2E job completes)
-            const maxAttempts = 6;
+            const maxAttempts = 12;
             const delayMs = 5000; // 5s
             let attempts = 0;
+            // Use a global singleton to avoid "Identifier 'fs' has already been declared" when the
+            // script is executed multiple times or merged variants run in the same VM context.
+            const fs = globalThis._verifier_fs || (globalThis._verifier_fs = require('fs'));
+            const ndfile = 'verifier-log.ndjson';
             let matching = [];
+            const workflowStart = Date.now();
+            let prevAttemptTime = workflowStart;
 
             while (attempts < maxAttempts) {
-              core.info(`Attempt ${attempts + 1}/${maxAttempts}: checking for required check: ${requiredCheckName}`);
+              const attemptStart = Date.now();
+              const sinceWorkflowStartMs = attemptStart - workflowStart;
+              const sincePrevAttemptMs = attemptStart - prevAttemptTime;
+              core.info(`Attempt ${attempts + 1}/${maxAttempts}: checking for required check: ${requiredCheckName} (sinceWorkflowStartMs=${sinceWorkflowStartMs}ms, sincePrevAttemptMs=${sincePrevAttemptMs}ms)`);
               const { data: checkRuns } = await github.rest.checks.listForRef({ owner, repo, ref: headSha });
 
               const available = (checkRuns.check_runs || []).map(c => c.name).join(', ');
               core.info(`Available checks: ${available || '(none)'}`);
 
+              const observedChecks = (checkRuns.check_runs || []).map(c => ({
+                id: c.id,
+                name: c.name,
+                status: c.status,
+                conclusion: c.conclusion,
+                started_at: c.started_at,
+                completed_at: c.completed_at,
+                timeSinceStartedMs: c.started_at ? (attemptStart - Date.parse(c.started_at)) : null
+              }));
+
+              // Append NDJSON per-attempt log
+              const logEntry = {
+                attempt: attempts + 1,
+                timestamp: new Date().toISOString(),
+                sinceWorkflowStartMs,
+                sincePrevAttemptMs,
+                observedChecks,
+                status: (matching && matching.length > 0) ? 'success' : 'pending'
+              };
+              fs.appendFileSync(ndfile, JSON.stringify(logEntry) + '\n');
+
               matching = (checkRuns.check_runs || []).filter(c => c.name === requiredCheckName && c.conclusion === 'success');
 
               if (matching && matching.length > 0) {
+                const endTime = Date.now();
+                const finalEntry = {
+                  attempt: attempts + 1,
+                  timestamp: new Date().toISOString(),
+                  sinceWorkflowStartMs: endTime - workflowStart,
+                  timeToSuccessMs: endTime - workflowStart,
+                  status: 'success',
+                  foundRuns: matching.map(c => ({ id: c.id, name: c.name, started_at: c.started_at, completed_at: c.completed_at }))
+                };
+                fs.appendFileSync(ndfile, JSON.stringify(finalEntry) + '\n');
                 break;
               }
 
               attempts++;
+              prevAttemptTime = attemptStart;
               if (attempts < maxAttempts) {
                 core.info(`Required check not found; sleeping ${delayMs}ms before retrying...`);
                 await new Promise(resolve => setTimeout(resolve, delayMs));
               }
             }
 
+            // Write a small structured summary JSON file so the run produces an artifact we can examine programmatically
+            const attemptsUsed = attempts;
             if (!matching || matching.length === 0) {
+              const outcome = 'failure';
+              const summary = {
+                timestamp: new Date().toISOString(),
+                headSha,
+                requiredCheckName,
+                outcome,
+                attemptsUsed,
+                delayMs,
+                maxAttempts,
+                found: false,
+                foundRuns: (checkRuns.check_runs || []).filter(c => c.name === requiredCheckName).map(c => ({ id: c.id, name: c.name, status: c.status, conclusion: c.conclusion, started_at: c.started_at, completed_at: c.completed_at }))
+              };
+
+              const filename = `sigv4-summary-${headSha}.json`;
+              fs.writeFileSync(filename, JSON.stringify(summary, null, 2));
+              core.info(`Summary written to ${filename}`);
+
               core.setFailed(`Required check "${requiredCheckName}" has not succeeded for commit ${headSha} after ${maxAttempts} attempts. Please ensure the workflow runs and completes.`);
             } else {
+              const outcome = 'success';
+              const summary = {
+                timestamp: new Date().toISOString(),
+                headSha,
+                requiredCheckName,
+                outcome,
+                attemptsUsed,
+                delayMs,
+                maxAttempts,
+                found: true,
+                foundRuns: matching.map(c => ({ id: c.id, name: c.name, status: c.status, conclusion: c.conclusion, started_at: c.started_at, completed_at: c.completed_at }))
+              };
+
+              const filename = `sigv4-summary-${headSha}.json`;
+              fs.writeFileSync(filename, JSON.stringify(summary, null, 2));
               core.info(`Found successful check run: ${matching.map(m => m.name).join(', ')}`);
+              core.info(`Summary written to ${filename}`);
             }
+      - name: Upload SigV4 verifier summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: sigv4-summary-${{ github.sha }}
+          path: sigv4-summary-*.json
