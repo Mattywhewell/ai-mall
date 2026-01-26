@@ -25,9 +25,11 @@ jobs:
             core.info(`Verifying PR #${prNumber} (sha ${headSha}) for required check: ${requiredCheckName}`);
 
             // Get check runs for this commit (with retry/polling to avoid race conditions where the verifier may run slightly before the E2E job completes)
-            const maxAttempts = 6;
+            // Bumped retry window to reduce rare race failures where the verifier finishes before the E2E check completes.
+            const maxAttempts = 12;
             const delayMs = 5000; // 5s
             let attempts = 0;
+            core.info(`Verifier retry policy: maxAttempts=${maxAttempts}, delayMs=${delayMs}ms`);
             let matching = [];
 
             while (attempts < maxAttempts) {
