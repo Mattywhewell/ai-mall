@@ -33,7 +33,9 @@ jobs:
             const delayMs = 5000; // 5s
             let attempts = 0;
             core.info(`Verifier retry policy: maxAttempts=${maxAttempts}, delayMs=${delayMs}ms`);
-            const fs = require('fs');
+            // Use a global singleton to avoid "Identifier 'fs' has already been declared" when the
+            // script is executed multiple times or merged variants run in the same VM context.
+            const fs = globalThis._verifier_fs || (globalThis._verifier_fs = require('fs'));
             const ndfile = 'verifier-log.ndjson';
             let matching = [];
             const workflowStart = Date.now();
