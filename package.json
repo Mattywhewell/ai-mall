@@ -23,7 +23,7 @@
     "test:e2e:sigv4": "tsx scripts/e2e/amazon_sigv4_e2e.ts",
     "test:e2e:ci": "tsx scripts/e2e/aws_sigv4_debug.ts",
     "test:unit": "vitest run --reporter dot",
-    "test:unit:stable": "node --max-old-space-size=8192 node_modules/vitest/bin/vitest.js run --reporter dot --maxWorkers=50% --vmMemoryLimit=3072",
+    "test:unit:stable": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest run --reporter dot --maxWorkers=50% --vmMemoryLimit=3072",
     "test:enhanced-security": "tsx scripts/test-enhanced-security.ts",
     "setup:supabase-bucket": "node scripts/supabase-create-bucket.js",
     "verify:supabase-bucket": "node scripts/supabase-verify-permissions.js",
