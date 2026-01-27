@@ -24,6 +24,7 @@ Scene 4 established a deterministic cert lifecycle and a revocation oracle. Scen
 - Unit-level parsing tests (run in CI)
 - Simulated hardware tests (run in CI by default; these simulate hardware via stubs)
 - Real hardware tests (opt-in via `CI_RUN_SCENE5=true` and runner with attached hardware; these are gated and must be enabled explicitly)
+- Local testing note: `jq` is required to run Scene 5 attestation tests locally (used for parsing attestation JSON and NDJSON checks).
 
 ## Security & operational notes
 - Never accept plaintext private keys in tests. Use simulated / stubbed hardware in CI.
