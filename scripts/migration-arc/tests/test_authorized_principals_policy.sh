@@ -41,14 +41,28 @@ fi
 
 ARGS=$(cat "$MOCK_LOG")
 
-# Expect args: device attest pubkey tpm policy_file permissive
-EXPECTED="$DEVICE $ATTEST_FILE $PUBKEY_FILE tpm $POLICY_FILE permissive"
-
-if [ "$ARGS" != "$EXPECTED" ]; then
+# Expect args: device attest pubkey tpm <merged-policy-file> permissive
+# Split ARGS into fields and validate
+set -o noglob
+read -r arg_device arg_attest arg_pubkey arg_type arg_policy arg_mode <<< "$ARGS"
+if [ "$arg_device" != "$DEVICE" ] || [ "$arg_attest" != "$ATTEST_FILE" ] || [ "$arg_pubkey" != "$PUBKEY_FILE" ] || [ "$arg_type" != "tpm" ]; then
   echo "Unexpected args from verifier mock: $ARGS" >&2
-  echo "Expected: $EXPECTED" >&2
   exit 4
 fi
+if [ ! -f "$arg_policy" ]; then
+  echo "Verifier received non-existent policy file: $arg_policy" >&2
+  exit 5
+fi
+# Verify merged policy mode is permissive
+if ! jq -e '.mode == "permissive"' "$arg_policy" >/dev/null 2>&1; then
+  echo "Merged policy does not indicate permissive mode (got: $(jq -c '.' "$arg_policy"))" >&2
+  exit 6
+fi
+if [ "$arg_mode" != "permissive" ]; then
+  echo "Verifier invoked with wrong mode: $arg_mode" >&2
+  exit 7
+fi
+set +o noglob
 
 echo "test_authorized_principals_policy.sh: OK"
 exit 0

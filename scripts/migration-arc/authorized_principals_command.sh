@@ -85,16 +85,13 @@ fi
 if [ ${#candidates[@]} -gt 0 ]; then
   TMPDIR=$(mktemp -d)
   MERGED="$TMPDIR/merged_policy.json"
-  # Build a jq array expression with the files in candidates order
-  jq -n '[]' > "$MERGED"
-  for f in "${candidates[@]}"; do
-    # Append file content to array
-    if jq -e '.' "$f" >/dev/null 2>&1; then
-      jq --argfile add "$f" '. + [$add]' "$MERGED" > "$MERGED".tmp && mv "$MERGED".tmp "$MERGED"
-    fi
-  done
-  # Reduce array to a single merged object with later entries overriding earlier
-  jq 'reduce .[] as $item ({}; . * $item)' "$MERGED" > "$MERGED".final && mv "$MERGED".final "$MERGED"
+  # Use jq -s to slurp all candidate files into an array and reduce them (later files override earlier)
+  # This avoids jq features that may not be available on all distributions.
+  if ! jq -s 'reduce .[] as $item ({}; . * $item)' "${candidates[@]}" > "$MERGED" 2>/dev/null; then
+    migration_log "step=authorized_principals" "action=failed" "device=$DEVICE" "reason=policy_merge_failed"
+    echo "Failed to merge policy files: ${candidates[*]}" >&2
+    exit 1
+  fi
   # Validate and extract mode
   if jq -e '.mode' "$MERGED" >/dev/null 2>&1; then
     PCR_MODE=$(jq -r '.mode' "$MERGED" 2>/dev/null || echo "strict")
