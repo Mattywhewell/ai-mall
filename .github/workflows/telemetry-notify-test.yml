@@ -28,31 +28,50 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Notify Slack (if requested)
-        if: ${{ github.event.inputs.notify_slack == 'true' && secrets.SLACK_WEBHOOK != '' }}
+        if: ${{ github.event.inputs.notify_slack == 'true' }}
         run: |
-          echo "Sending test Slack notification..."
-          curl -s -X POST -H 'Content-type: application/json' --data "{\"text\":\"${{ github.event.inputs.message }}\"}" ${{ secrets.SLACK_WEBHOOK }}
+          if [ -z "${{ secrets.SLACK_WEBHOOK }}" ]; then
+            echo "SLACK_WEBHOOK not configured; skipping Slack notification"
+          else
+            echo "Sending test Slack notification..."
+            curl -s -X POST -H 'Content-type: application/json' --data "{\"text\":\"${{ github.event.inputs.message }}\"}" "${{ secrets.SLACK_WEBHOOK }}" || echo "Slack notify failed (non-fatal)"
+          fi
 
-      - name: Slack not configured or skipped
-        if: ${{ github.event.inputs.notify_slack != 'true' || secrets.SLACK_WEBHOOK == '' }}
+      - name: Slack not requested
+        if: ${{ github.event.inputs.notify_slack != 'true' }}
         run: |
-          echo "Slack notification skipped — notify_slack=${{ github.event.inputs.notify_slack }} SLACK_WEBHOOK set=${{ secrets.SLACK_WEBHOOK != '' }}"
+          echo "Slack notification skipped by input — notify_slack=${{ github.event.inputs.notify_slack }}"
 
       - name: Send test email (if requested)
-        if: ${{ github.event.inputs.notify_email == 'true' && secrets.SMTP_SERVER != '' }}
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: ${{ secrets.SMTP_SERVER }}
-          server_port: ${{ secrets.SMTP_PORT }}
-          username: ${{ secrets.SMTP_USERNAME }}
-          password: ${{ secrets.SMTP_PASSWORD }}
-          subject: ${{ github.event.inputs.subject }}
-          to: ${{ secrets.NOTIFY_EMAIL }}
-          from: "ci@alverse.app"
-          body: |
-            ${{ github.event.inputs.message }}
-
-      - name: Email not configured or skipped
-        if: ${{ github.event.inputs.notify_email != 'true' || secrets.SMTP_SERVER == '' }}
+        if: ${{ github.event.inputs.notify_email == 'true' }}
+        env:
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
+          SUBJECT: ${{ github.event.inputs.subject }}
+          MESSAGE: ${{ github.event.inputs.message }}
         run: |
-          echo "Email notification skipped — notify_email=${{ github.event.inputs.notify_email }} SMTP configured=${{ secrets.SMTP_SERVER != '' }}"
+          if [ -z "$SMTP_SERVER" ]; then
+            echo "SMTP not configured; skipping email notification"
+            exit 0
+          fi
+          python3 - <<'PY'
+import os, smtplib
+from email.message import EmailMessage
+msg = EmailMessage()
+msg['Subject'] = os.getenv('SUBJECT')
+msg['From'] = 'ci@alverse.app'
+msg['To'] = os.getenv('NOTIFY_EMAIL')
+msg.set_content(os.getenv('MESSAGE'))
+s = smtplib.SMTP(os.getenv('SMTP_SERVER'), int(os.getenv('SMTP_PORT') or 25))
+s.login(os.getenv('SMTP_USERNAME'), os.getenv('SMTP_PASSWORD'))
+s.send_message(msg)
+s.quit()
+PY
+
+      - name: Email not requested
+        if: ${{ github.event.inputs.notify_email != 'true' }}
+        run: |
+          echo "Email notification skipped by input — notify_email=${{ github.event.inputs.notify_email }}"
