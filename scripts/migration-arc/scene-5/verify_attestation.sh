@@ -92,6 +92,12 @@ if [ "$ATT_TYPE" = "tpm" ]; then
         echo "Expected PCRs file not found: $EXPECTED_PCRS_FILE" >&2
         exit 15
       fi
+      # Ensure expected PCRs JSON is valid
+      if ! jq -e '.' "$EXPECTED_PCRS_FILE" >/dev/null 2>&1; then
+        migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=malformed_expected_pcrs" "file=$EXPECTED_PCRS_FILE"
+        echo "Expected PCRs file is not valid JSON: $EXPECTED_PCRS_FILE" >&2
+        exit 16
+      fi
       # Read expected and actual PCR JSON objects
       EXPECTED_PCR_JSON=$(jq -c '.' "$EXPECTED_PCRS_FILE" 2>/dev/null || echo '{}')
       ACTUAL_PCR_JSON=$(jq -c '.pcrs // {}' "$ATTEST_FILE" 2>/dev/null || echo '{}')
