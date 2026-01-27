@@ -36,15 +36,17 @@ if [ -f "$REVOCATION_LIST" ] && grep -q "^${SERIAL}$" "$REVOCATION_LIST"; then
 fi
 
 # Extract principals robustly (handle case/format variations)
-PR_LINE=$(ssh-keygen -Lf "$CERT_FILE" | grep -i 'valid principals' -m1 || true)
+# Try 'Principals:' first (typical ssh-keygen -Lf output), then fallback to 'Valid principals'
+PR_LINE=$(ssh-keygen -Lf "$CERT_FILE" | grep -i -E '^\s*Principals:|^\s*Valid principals' -m1 || true)
 PRINCIPALS_LINE=""
 if [ -n "$PR_LINE" ]; then
   PRINCIPALS_LINE=$(echo "$PR_LINE" | sed -E 's/^[^:]*:[[:space:]]*//')
 fi
 
 if [ -z "$PRINCIPALS_LINE" ]; then
-  # No principals embedded; default to deny
-  migration_log "step=authorized_principals" "action=done" "serial=$SERIAL" "principals=none"
+  # Debug: capture ssh-keygen -Lf output in log for diagnosis
+  SSH_LF_OUT=$(ssh-keygen -Lf "$CERT_FILE" 2>/dev/null || true)
+  migration_log "step=authorized_principals" "action=failed" "reason=no_principals_found" "serial=$SERIAL" "ssh_lf_out=$(echo "$SSH_LF_OUT" | tr '\n' ' ' | sed 's/"/\\"/g')"
   exit 1
 fi
 
