@@ -6,6 +6,7 @@
 import { callOpenAI } from '../ai/openaiClient';
 import { supabase } from '../supabaseClient';
 import { AISpirit, Hall, Chapel, Street } from '../types/world';
+import { log as ndLog, timeAsync } from '@/lib/server-ndjson';
 
 export class AISpiritSystem {
   /**
@@ -32,20 +33,22 @@ Colors: ${hall.atmosphere.color_palette.join(', ')}
 Create a unique AI spirit for this Hall.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 0.9);
+      ndLog('info','spirit_generate_start',{type:'hall', id: hall.id});
+      const response = await timeAsync('AISpirit.generateHallSpirit.ai', async () => await callOpenAI(systemPrompt, userPrompt, 0.9), { hall: hall.id });
       const spirit = JSON.parse(response);
       
       // Save to database
-      await supabase.from('ai_spirits').upsert({
+      await timeAsync('supabase.ai_spirits.upsert', async () => await supabase.from('ai_spirits').upsert({
         entity_type: 'hall',
         entity_id: hall.id,
         spirit_data: spirit,
         updated_at: new Date().toISOString(),
-      });
+      }), { hall: hall.id });
 
+      ndLog('info','spirit_generate_end',{type:'hall', id: hall.id});
       return spirit;
     } catch (error) {
-      console.error('Error generating Hall spirit:', error);
+      ndLog('error','spirit_generate_failed',{type:'hall', id: hall.id, error: String(error)});
       return this.getDefaultSpirit('hall');
     }
   }
@@ -74,19 +77,21 @@ Symbolism: ${chapel.symbolism.join(', ')}
 Create an intimate AI spirit for this Chapel.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 1.0);
+      ndLog('info','spirit_generate_start',{type:'chapel', id: chapel.id});
+      const response = await timeAsync('AISpirit.generateChapelSpirit.ai', async () => await callOpenAI(systemPrompt, userPrompt, 1.0), { chapel: chapel.id });
       const spirit = JSON.parse(response);
       
-      await supabase.from('ai_spirits').upsert({
+      await timeAsync('supabase.ai_spirits.upsert', async () => await supabase.from('ai_spirits').upsert({
         entity_type: 'chapel',
         entity_id: chapel.id,
         spirit_data: spirit,
         updated_at: new Date().toISOString(),
-      });
+      }), { chapel: chapel.id });
 
+      ndLog('info','spirit_generate_end',{type:'chapel', id: chapel.id});
       return spirit;
     } catch (error) {
-      console.error('Error generating Chapel spirit:', error);
+      ndLog('error','spirit_generate_failed',{type:'chapel', id: chapel.id, error: String(error)});
       return this.getDefaultSpirit('chapel');
     }
   }
@@ -115,19 +120,21 @@ Popularity: ${street.popularity_score}
 Create a dynamic AI spirit for this Street.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 0.8);
+      ndLog('info','spirit_generate_start',{type:'street', id: street.id});
+      const response = await timeAsync('AISpirit.generateStreetSpirit.ai', async () => await callOpenAI(systemPrompt, userPrompt, 0.8), { street: street.id });
       const spirit = JSON.parse(response);
       
-      await supabase.from('ai_spirits').upsert({
+      await timeAsync('supabase.ai_spirits.upsert', async () => await supabase.from('ai_spirits').upsert({
         entity_type: 'street',
         entity_id: street.id,
         spirit_data: spirit,
         updated_at: new Date().toISOString(),
-      });
+      }), { street: street.id });
 
+      ndLog('info','spirit_generate_end',{type:'street', id: street.id});
       return spirit;
     } catch (error) {
-      console.error('Error generating Street spirit:', error);
+      ndLog('error','spirit_generate_failed',{type:'street', id: street.id, error: String(error)});
       return this.getDefaultSpirit('street');
     }
   }
@@ -165,9 +172,10 @@ Generate a brief message (1-2 sentences) in character.`;
     const userPrompt = context || 'A visitor has arrived.';
 
     try {
-      const message = await callOpenAI(systemPrompt, userPrompt, 0.9);
-      return message.trim();
+      const message = await timeAsync('AISpirit.getSpiritMessage.ai', async () => await callOpenAI(systemPrompt, userPrompt, 0.9), { entityType, entityId });
+      return (message as string).trim();
     } catch (error) {
+      ndLog('warn','ai_request_failed',{entityType, entityId, error: String(error)});
       return spirit.greeting;
     }
   }
@@ -209,7 +217,8 @@ User Sentiment: ${this.analyzeInteractions(interactions)}
 Suggest spirit evolution.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 0.7);
+      ndLog('info','spirit_evolution_start',{entityType, entityId});
+      const response = await timeAsync('AISpirit.evolveSpiritPersonality.ai', async () => await callOpenAI(systemPrompt, userPrompt, 0.7), { entityType, entityId });
       const evolution = JSON.parse(response);
 
       // Update spirit with evolved traits
@@ -217,18 +226,18 @@ Suggest spirit evolution.`;
       const currentHistory = spiritData.evolution_history || [];
       const updatedHistory = [...currentHistory, evolutionEntry];
 
-      await supabase
+      await timeAsync('supabase.ai_spirits.update', async () => await supabase
         .from('ai_spirits')
         .update({
           spirit_data: evolvedSpirit,
           evolution_history: updatedHistory,
         })
         .eq('entity_type', entityType)
-        .eq('entity_id', entityId);
+        .eq('entity_id', entityId), { entityType, entityId });
 
-      console.log(`✓ ${currentSpirit.name} evolved: ${evolution.evolution_reasoning}`);
+      ndLog('info','spirit_evolved',{entityType, entityId, reason: evolution.evolution_reasoning});
     } catch (error) {
-      console.error('Spirit evolution error:', error);
+      ndLog('error','spirit_evolution_failed',{entityType, entityId, error: String(error)});
     }
   }
 
@@ -303,7 +312,7 @@ Create a magical welcome message that makes visitors feel the city's living spir
       const response = await callOpenAI(systemPrompt, userPrompt, 0.8);
       return response.trim();
     } catch (error) {
-      console.error('Error generating welcome message:', error);
+      ndLog('error','welcome_message_failed',{error: String(error)});
       return "Welcome to the AI City, where every space breathes with possibility.";
     }
   }

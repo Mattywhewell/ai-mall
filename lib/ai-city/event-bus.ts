@@ -18,6 +18,8 @@ export interface EventSubscriber {
   priority?: number;
 }
 
+import { log as ndLog } from '@/lib/server-ndjson';
+
 export class EventBus {
   private static instance: EventBus;
   private subscribers: Map<string, EventSubscriber[]> = new Map();
@@ -79,7 +81,7 @@ export class EventBus {
 
     // Prevent recursive event processing
     if (this.isProcessing) {
-      console.warn('Event bus is already processing, queuing event:', event.type);
+      ndLog('warn','event_bus_busy',{event: event.type});
       setTimeout(() => this.publish(event), 0);
       return;
     }
@@ -103,7 +105,7 @@ export class EventBus {
         try {
           await subscriber.callback(fullEvent);
         } catch (error) {
-          console.error(`Error in event subscriber ${subscriber.id}:`, error);
+          ndLog('error','event_subscriber_error',{subscriber: subscriber.id, error: String(error)});
         }
       });
 

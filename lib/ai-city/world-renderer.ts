@@ -6,41 +6,32 @@
 import { supabase } from '../supabaseClient';
 import { UserWorldView, WorldLayer, Hall, Street, Chapel } from '../types/world';
 import { callOpenAI } from '../ai/openaiClient';
+import { log as ndLog, timeAsync } from '@/lib/server-ndjson';
 
 export class WorldRenderer {
   /**
    * Build personalized world view for user
    */
   static async renderPersonalizedWorld(userId: string): Promise<WorldLayer> {
+    const start = Date.now();
+    ndLog('info','renderer_render_start',{userId});
+
     // Get user's world preferences
-    const userView = await this.getUserWorldView(userId);
+    const userView = await timeAsync('WorldRenderer.getUserWorldView', async () => this.getUserWorldView(userId), { userId });
 
     // Fetch all layers
-    const { data: halls } = await supabase
-      .from('halls')
-      .select('*')
-      .order('created_at', { ascending: true });
-
-    const { data: streets } = await supabase
-      .from('streets')
-      .select('*')
-      .order('popularity_score', { ascending: false });
-
-    const { data: chapels } = await supabase
-      .from('chapels')
-      .select('*')
-      .order('created_at', { ascending: true });
-
-    const { data: districts } = await supabase
-      .from('microstores')
-      .select('*')
-      .order('created_at', { ascending: true });
+    const halls = await timeAsync('supabase.halls', async () => (await supabase.from('halls').select('*').order('created_at', { ascending: true })).data || [], { userId });
+    const streets = await timeAsync('supabase.streets', async () => (await supabase.from('streets').select('*').order('popularity_score', { ascending: false })).data || [], { userId });
+    const chapels = await timeAsync('supabase.chapels', async () => (await supabase.from('chapels').select('*').order('created_at', { ascending: true })).data || [], { userId });
+    const districts = await timeAsync('supabase.microstores', async () => (await supabase.from('microstores').select('*').order('created_at', { ascending: true })).data || [], { userId });
 
     // Personalize order and atmosphere
     const personalizedHalls = this.personalizeHalls(halls || [], userView);
     const personalizedStreets = this.personalizeStreets(streets || [], userView);
     const personalizedChapels = this.personalizeChapels(chapels || [], userView);
     const personalizedDistricts = this.personalizeDistricts(districts || [], userView);
+
+    ndLog('info','renderer_render_end',{userId, duration_ms: Date.now()-start});
 
     return {
       halls: personalizedHalls,
@@ -221,9 +212,11 @@ ${userContext ? `User Context: ${userContext}` : ''}
 Generate atmospheric description.`;
 
     try {
-      const description = await callOpenAI(systemPrompt, userPrompt, 1.0);
-      return description.trim();
+      const description = await timeAsync('WorldRenderer.generateAtmosphericDescription.ai', async () => callOpenAI(systemPrompt, userPrompt, 1.0), { layer, entityId: entity.id });
+      ndLog('info','renderer_atmospheric_generated',{layer, entityId: entity.id});
+      return (description as string).trim();
     } catch (error) {
+      ndLog('warn','renderer_atmospheric_failed',{layer, entityId: entity.id, error: String(error)});
       return `Welcome to ${entity.name}.`;
     }
   }
@@ -272,10 +265,13 @@ User Preferences: ${JSON.stringify({
 Suggest 3 places to explore.`;
 
     try {
-      const response = await callOpenAI(systemPrompt, userPrompt, 0.8);
-      const suggestions = JSON.parse(response);
+      ndLog('info','renderer_navigation_start',{userId, location: currentLocation});
+      const response = await timeAsync('WorldRenderer.generateNavigationSuggestions.ai', async () => callOpenAI(systemPrompt, userPrompt, 0.8), { userId, location: currentLocation });
+      const suggestions = JSON.parse(response as string);
+      ndLog('info','renderer_navigation_end',{userId, location: currentLocation});
       return suggestions;
     } catch (error) {
+      ndLog('warn','renderer_navigation_failed',{userId, location: currentLocation, error: String(error)});
       return [
         'Explore a nearby Hall',
         'Discover a hidden Chapel',

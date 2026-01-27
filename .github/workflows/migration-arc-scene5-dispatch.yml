@@ -1,0 +1,23 @@
+name: Migration Arc - Scene 5 Dispatch
+
+on:
+  workflow_dispatch:
+
+jobs:
+  scene5:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install OpenSSH (ensure ssh-keygen present)
+        run: sudo apt-get update && sudo apt-get install -y openssh-client
+      - name: Run Scene 5 (jq install + guard + tests)
+        run: |
+          echo "Scene 5 dispatch: installing dependencies (jq)..."
+          sudo apt-get update && sudo apt-get install -y jq
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "ERROR: 'jq' is required to run Scene 5 tests but was not found after install. Aborting." >&2
+            exit 1
+          fi
+          # Run the Scene 5 tests (TPM simulator, enrollment, attestation)
+          bash ./scripts/migration-arc/tests/test_scene5_hardware_integration.sh
+          bash ./scripts/migration-arc/tests/test_scene5_tpm_attestation.sh
