@@ -129,6 +129,33 @@ PY
           done
           if [ "$HTTP" != "200" ]; then echo "Protected endpoint access failed" >&2; exit 1; fi
 
+      - name: Negative test: corrupt attestation and assert onboarding rejected
+        run: |
+          set -euo pipefail
+          CORRUPT=$(./scripts/tpm/corrupt_attestation.sh)
+          echo "Created corrupt attest: $CORRUPT"
+          # Create request and then patch 'attest_log' to point to corrupt file
+          REQ=$(./scripts/tpm/request_onboarding.sh)
+          REQ_MOD=${REQ/.json/_corrupt.json}
+          jq --arg a "$CORRUPT" '.attest_log=$a' "$REQ" > "$REQ_MOD"
+          echo "Running onboard service with corrupt attest (expect failure)"
+          set +e
+          python3 scripts/tpm/onboard_service.py "$REQ_MOD"
+          RC=$?
+          set -e
+          if [ "$RC" -eq 0 ]; then
+            echo "Onboarding unexpectedly succeeded with corrupt attestation" >&2
+            exit 1
+          fi
+          echo "Onboarding failed as expected (rc=$RC)"
+          # verify NDJSON contains a failed attestation entry
+          if grep -q '"attestation_verify".*"failed"' tmp/*.ndjson; then
+            echo "Found attestation_verify failed in NDJSON: OK"
+          else
+            echo "Expected attestation_verify failed NDJSON not found" >&2
+            exit 1
+          fi
+
       - name: Upload TPM artifacts
         uses: actions/upload-artifact@v4
         with:
