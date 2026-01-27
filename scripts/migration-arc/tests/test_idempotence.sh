@@ -17,6 +17,9 @@ EOF
 export KEY_PATH="$TEST_ROOT/.ssh/adele_ed25519"
 export PUBKEY_FILE="$TEST_ROOT/etc/ssh/adele.pub"
 
+# Ensure .ssh dir exists
+mkdir -p "$TEST_ROOT/.ssh"
+
 # Create a fake public key
 ssh-keygen -t ed25519 -a 100 -f "$TEST_ROOT/.ssh/adele_ed25519" -N '' -C 'test' >/dev/null
 cp "$TEST_ROOT/.ssh/adele_ed25519.pub" "$PUBKEY_FILE"
