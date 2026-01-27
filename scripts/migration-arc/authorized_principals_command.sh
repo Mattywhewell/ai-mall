@@ -114,7 +114,9 @@ while IFS= read -r p; do
   fi
 done < <(printf '%s' "$PRINCIPALS_LINE" | tr ',' '\n')
 
-# If all verifications passed, print principals
-(printf '%s\n' "${VALIDATED_PRINCIPALS[@]}") | tee /dev/stderr >/dev/stdout
+# If all verifications passed, print principals (one per line)
+for p_out in "${VALIDATED_PRINCIPALS[@]}"; do
+  echo "$p_out"
+done
 migration_log "step=authorized_principals" "action=done" "serial=$SERIAL" "principals=$PRINCIPALS_LINE"
 exit 0
