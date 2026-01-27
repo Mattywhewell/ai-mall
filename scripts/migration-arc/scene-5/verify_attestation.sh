@@ -8,6 +8,9 @@ DEVICE=${1:-}
 ATTEST_FILE=${2:-}
 EXPECTED_PUBKEY_FILE=${3:-}
 EXPECTED_TYPE=${4:-tpm-sim}
+# Optional: expected PCRs file (JSON) and PCR mode: 'strict' (default) or 'permissive'
+EXPECTED_PCRS_FILE=${5:-}
+PCR_MODE=${6:-strict}
 
 if [ -z "$DEVICE" ] || [ -z "$ATTEST_FILE" ] || [ -z "$EXPECTED_PUBKEY_FILE" ]; then
   echo "Usage: $0 <device-id> <attestation-file> <expected-pubkey-file> [expected-type]" >&2
@@ -81,6 +84,54 @@ if [ "$ATT_TYPE" = "tpm" ]; then
   if tpm2_checkquote -u "$AK_PEM_FILE" -m "$TMPDIR/quote.bin" -s "$TMPDIR/sig.bin" >/dev/null 2>&1; then
     migration_log "step=attestation_verify" "action=done" "device=$DEVICE" "method=real_tpm" "attest_file=$ATTEST_FILE"
     echo "TPM quote signature verified"
+
+    # If an expected PCRs file is provided, validate PCRs according to mode
+    if [ -n "$EXPECTED_PCRS_FILE" ]; then
+      if [ ! -f "$EXPECTED_PCRS_FILE" ]; then
+        migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=expected_pcrs_missing" "file=$EXPECTED_PCRS_FILE"
+        echo "Expected PCRs file not found: $EXPECTED_PCRS_FILE" >&2
+        exit 15
+      fi
+      # Read expected and actual PCR JSON objects
+      EXPECTED_PCR_JSON=$(jq -c '.' "$EXPECTED_PCRS_FILE" 2>/dev/null || echo '{}')
+      ACTUAL_PCR_JSON=$(jq -c '.pcrs // {}' "$ATTEST_FILE" 2>/dev/null || echo '{}')
+
+      # For each PCR in expected, compare values
+      mismatch=0
+      for p in $(echo "$EXPECTED_PCR_JSON" | jq -r 'keys[]' 2>/dev/null || true); do
+        expected_val=$(echo "$EXPECTED_PCR_JSON" | jq -r --arg k "$p" '.[$k]')
+        actual_val=$(echo "$ACTUAL_PCR_JSON" | jq -r --arg k "$p" '.[$k] // empty')
+        if [ -z "$actual_val" ]; then
+          migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=pcr_missing" "pcr=$p"
+          echo "PCR $p missing in attestation" >&2
+          mismatch=1
+          if [ "$PCR_MODE" = "strict" ]; then break; fi
+          continue
+        fi
+        if [ "$expected_val" != "$actual_val" ]; then
+          migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=pcr_mismatch" "pcr=$p" "expected=$expected_val" "got=$actual_val"
+          echo "PCR $p mismatch: expected=$expected_val got=$actual_val" >&2
+          mismatch=1
+          if [ "$PCR_MODE" = "strict" ]; then break; fi
+        else
+          migration_log "step=attestation_verify" "action=pcr_check" "device=$DEVICE" "pcr=$p" "status=pass"
+        fi
+      done
+
+      if [ $mismatch -eq 1 ]; then
+        if [ "$PCR_MODE" = "strict" ]; then
+          migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=pcr_policy_failed"
+          echo "PCR policy check failed (strict mode)" >&2
+          exit 14
+        else
+          migration_log "step=attestation_verify" "action=warn" "device=$DEVICE" "reason=pcr_policy_mismatch" "mode=permissive"
+          echo "PCR policy mismatch (permissive mode): continuing" >&2
+        fi
+      else
+        migration_log "step=attestation_verify" "action=done" "device=$DEVICE" "method=real_tpm" "attest_file=$ATTEST_FILE" "pcr_check=pass"
+      fi
+    fi
+
     exit 0
   else
     migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=checkquote_failed"
