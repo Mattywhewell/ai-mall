@@ -42,6 +42,14 @@ if [ ! -f "$ATTEST_FILE" ]; then
 fi
 
 # Parse attestation JSON for 'pubkey' and 'type' (accept type-specific keys)
+# Emit a debug NDJSON event with the raw attestation (or mark non-JSON) to aid CI debugging
+RAW_ATT=$(cat "$ATTEST_FILE" 2>/dev/null || true)
+if echo "$RAW_ATT" | jq -c '.' >/dev/null 2>&1; then
+  migration_log "step=attestation_verify" "action=info" "device=$DEVICE" "attest_raw=$(echo "$RAW_ATT" | jq -c '.')"
+else
+  migration_log "step=attestation_verify" "action=info" "device=$DEVICE" "attest_raw=<<non-json>>"
+fi
+
 ATT_TYPE=$(jq -r '.type // empty' "$ATTEST_FILE" 2>/dev/null || true)
 ATT_PUB=""
 if [ "$ATT_TYPE" = "yubikey" ]; then
