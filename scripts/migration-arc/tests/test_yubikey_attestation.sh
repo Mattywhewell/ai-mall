@@ -19,7 +19,7 @@ FAKE_FP="SHA256:DEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF
 cat > "$TEST_ROOT/attest.json" <<EOF
 {
   "type": "yubikey",
-  "cert_pem": "$(jq -Rs . < "$FAKE_CERT")",
+  "cert_pem": $(jq -Rs . < "$FAKE_CERT"),
   "cert_fingerprint": "$FAKE_FP",
   "slot": "9a",
   "label": "YubiKey-Test"
