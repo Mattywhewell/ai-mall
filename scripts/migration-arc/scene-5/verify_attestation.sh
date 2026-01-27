@@ -41,12 +41,23 @@ if [ ! -f "$ATTEST_FILE" ]; then
   exit 3
 fi
 
-# Parse attestation JSON for 'pubkey' and 'type'
-ATT_PUB=$(jq -r '.pubkey // empty' "$ATTEST_FILE" 2>/dev/null || true)
+# Parse attestation JSON for 'pubkey' and 'type' (accept type-specific keys)
 ATT_TYPE=$(jq -r '.type // empty' "$ATTEST_FILE" 2>/dev/null || true)
-if [ -z "$ATT_PUB" ] || [ -z "$ATT_TYPE" ]; then
-  migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=invalid_attestation_json" "attest_file=$ATTEST_FILE"
-  exit 4
+ATT_PUB=""
+if [ "$ATT_TYPE" = "yubikey" ]; then
+  # YubiKey attestations include a cert fingerprint or cert PEM rather than an ssh pubkey
+  ATT_FP=$(jq -r '.cert_fingerprint // empty' "$ATTEST_FILE" 2>/dev/null || true)
+  ATT_CERT=$(jq -r '.cert_pem // empty' "$ATTEST_FILE" 2>/dev/null || true)
+  if [ -z "$ATT_FP" ] && [ -z "$ATT_CERT" ]; then
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=invalid_attestation_json" "attest_file=$ATTEST_FILE"
+    exit 4
+  fi
+else
+  ATT_PUB=$(jq -r '.pubkey // empty' "$ATTEST_FILE" 2>/dev/null || true)
+  if [ -z "$ATT_PUB" ] || [ -z "$ATT_TYPE" ]; then
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=invalid_attestation_json" "attest_file=$ATTEST_FILE"
+    exit 4
+  fi
 fi
 
 # Check type matches
