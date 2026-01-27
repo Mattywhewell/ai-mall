@@ -10,6 +10,7 @@
 
 import { supabase } from '@/lib/supabaseClient';
 import { AISpiritSystem } from '@/lib/ai-city/spirits';
+import { log as ndLog, timeAsync } from '@/lib/server-ndjson';
 
 const spiritSystem = new AISpiritSystem();
 
@@ -18,26 +19,19 @@ const spiritSystem = new AISpiritSystem();
  * Runs every hour - recalculates popularity scores based on recent analytics
  */
 export async function updateStreetPopularity() {
-  console.log('[World Evolution] Updating street popularity scores...');
+  ndLog('info','job_start',{job:'updateStreetPopularity'});
 
   try {
-    const { data: streets, error } = await supabase
-      .from('streets')
-      .select('id, slug, name, popularity_score');
+    const { data: streets, error } = await timeAsync('supabase.streets.fetch_all', async () => (await supabase.from('streets').select('id, slug, name, popularity_score')).data || [], { job: 'updateStreetPopularity' }) as any;
 
-    if (error || !streets) {
-      console.error('Failed to fetch streets:', error);
+    if (!streets || (error && error !== null)) {
+      ndLog('warn','job_step_error',{job:'updateStreetPopularity', error: String(error)});
       return;
     }
 
     for (const street of streets) {
       // Calculate new popularity based on last 7 days of analytics
-      const { data: analytics } = await supabase
-        .from('world_analytics')
-        .select('metric_value')
-        .eq('layer_type', 'street')
-        .eq('entity_id', street.id)
-        .gte('recorded_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+      const { data: analytics } = await timeAsync('supabase.world_analytics.fetch_recent', async () => (await supabase.from('world_analytics').select('metric_value').eq('layer_type', 'street').eq('entity_id', street.id).gte('recorded_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())).data || [], { street: street.id, job: 'updateStreetPopularity' }) as any;
 
       if (analytics && analytics.length > 0) {
         // Calculate weighted average
@@ -48,22 +42,19 @@ export async function updateStreetPopularity() {
         const newScore = Math.min(100, (avgEngagement * 10) + (visitCount / 100));
 
         // Update street
-        await supabase
-          .from('streets')
-          .update({
-            popularity_score: newScore,
-            trending: newScore > 70,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', street.id);
+        await timeAsync('supabase.streets.update', async () => await supabase.from('streets').update({
+          popularity_score: newScore,
+          trending: newScore > 70,
+          updated_at: new Date().toISOString()
+        }).eq('id', street.id), { street: street.id, job: 'updateStreetPopularity' });
 
-        console.log(`  ✓ ${street.name}: ${street.popularity_score} → ${newScore.toFixed(2)}`);
+        ndLog('info','job_step',{job:'updateStreetPopularity', street: street.slug, old: street.popularity_score, new: newScore});
       }
     }
 
-    console.log('[World Evolution] Street popularity update complete');
+    ndLog('info','job_end',{job:'updateStreetPopularity'});
   } catch (error) {
-    console.error('[World Evolution] Error updating street popularity:', error);
+    ndLog('error','job_failed',{job:'updateStreetPopularity', error: String(error)});
   }
 }
 
@@ -72,59 +63,48 @@ export async function updateStreetPopularity() {
  * Runs daily - AI personalities adapt based on user interactions
  */
 export async function evolveAISpirits() {
-  console.log('[World Evolution] Evolving AI spirit personalities...');
+  ndLog('info','job_start',{job:'evolveAISpirits'});
 
   try {
-    const { data: spirits, error } = await supabase
-      .from('ai_spirits')
-      .select('*')
-      .gte('interaction_count', 10); // Only evolve spirits with significant interactions
+    const { data: spirits, error } = await timeAsync('supabase.ai_spirits.fetch', async () => (await supabase.from('ai_spirits').select('*').gte('interaction_count', 10)).data || [], { job: 'evolveAISpirits' }) as any;
 
-    if (error || !spirits) {
-      console.error('Failed to fetch spirits:', error);
+    if (!spirits || (error && error !== null)) {
+      ndLog('warn','job_step_error',{job:'evolveAISpirits', error: String(error)});
       return;
     }
 
     for (const spirit of spirits) {
       // Get recent interactions
-      const { data: interactions } = await supabase
-        .from('spirit_interactions')
-        .select('*')
-        .eq('spirit_id', spirit.id)
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-        .order('created_at', { ascending: false });
+      const interactions = await timeAsync('supabase.spirit_interactions.fetch_recent', async () => (await supabase.from('spirit_interactions').select('*').eq('spirit_id', spirit.id).gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()).order('created_at', { ascending: false })).data || [], { spiritId: spirit.id, job: 'evolveAISpirits' }) as any;
 
       if (interactions && interactions.length >= 5) {
         // Analyze interaction patterns
-        const sentiments = interactions.map(i => i.user_sentiment);
-        const engagedCount = sentiments.filter(s => s === 'engaged').length;
-        const disengagedCount = sentiments.filter(s => s === 'disengaged').length;
+        const sentiments = interactions.map((i:any) => i.user_sentiment);
+        const engagedCount = sentiments.filter((s:any) => s === 'engaged').length;
+        const disengagedCount = sentiments.filter((s:any) => s === 'disengaged').length;
 
         // Only evolve if there's meaningful engagement
         if (engagedCount > disengagedCount) {
-          const evolvedSpirit = await spiritSystem.evolveSpiritPersonality(
-            spirit.entity_type,
-            spirit.entity_id,
-            interactions
-          );
+          ndLog('info','job_step',{job:'evolveAISpirits', spirit: spirit.id});
+          await timeAsync('AISpiritSystem.evolveSpiritPersonality', async () => spiritSystem.evolveSpiritPersonality(spirit.entity_type, spirit.entity_id, interactions), { spirit: spirit.id, job: 'evolveAISpirits' });
 
-          console.log(`  ✓ Evolved ${spirit.spirit_data.name} (${spirit.entity_type})`);
+          ndLog('info','job_step',{job:'evolveAISpirits', msg: `Evolved ${spirit.spirit_data?.name || 'unknown'}`, spirit: spirit.id});
         }
       }
     }
 
-    console.log('[World Evolution] AI spirit evolution complete');
+    ndLog('info','job_end',{job:'evolveAISpirits'});
   } catch (error) {
-    console.error('[World Evolution] Error evolving spirits:', error);
+    ndLog('error','job_failed',{job:'evolveAISpirits', error: String(error)});
   }
-}
+} 
 
 /**
  * Regenerate Atmospheric Content
  * Runs daily - Creates fresh atmospheric descriptions for variety
  */
 export async function regenerateAtmosphericContent() {
-  console.log('[World Evolution] Regenerating atmospheric content...');
+  ndLog('info','job_start',{job:'regenerateAtmosphericContent'});
 
   try {
     const currentHour = new Date().getHours();
@@ -139,12 +119,10 @@ export async function regenerateAtmosphericContent() {
       const table = layerType === 'hall' ? 'halls' :
                     layerType === 'street' ? 'streets' : 'chapels';
 
-      const { data: entities } = await supabase
-        .from(table)
-        .select('id, name');
+      const entities = await timeAsync('supabase.' + table + '.fetch', async () => (await supabase.from(table).select('id, name')).data || [], { job: 'regenerateAtmosphericContent', layerType });
 
-      if (entities) {
-        for (const entity of entities) {
+      if (entities && (entities as any).length) {
+        for (const entity of entities as any[]) {
           // Generate new atmospheric state
           const stateData = {
             timeOfDay,
@@ -153,49 +131,42 @@ export async function regenerateAtmosphericContent() {
             lastUpdated: new Date().toISOString()
           };
 
-          await supabase
-            .from('atmospheric_states')
-            .upsert({
-              entity_type: layerType,
-              entity_id: entity.id,
-              state_data: stateData,
-              time_of_day: timeOfDay,
-              active: true,
-              updated_at: new Date().toISOString()
-            }, {
-              onConflict: 'entity_type,entity_id'
-            });
+          await timeAsync('supabase.atmospheric_states.upsert', async () => await supabase.from('atmospheric_states').upsert({
+            entity_type: layerType,
+            entity_id: entity.id,
+            state_data: stateData,
+            time_of_day: timeOfDay,
+            active: true,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'entity_type,entity_id' }), { job: 'regenerateAtmosphericContent', layerType, entityId: entity.id });
         }
 
-        console.log(`  ✓ Updated ${entities.length} ${layerType}s`);
+        ndLog('info','job_step',{job:'regenerateAtmosphericContent', layerType, updated: (entities as any).length});
       }
     }
 
-    console.log('[World Evolution] Atmospheric regeneration complete');
+    ndLog('info','job_end',{job:'regenerateAtmosphericContent'});
   } catch (error) {
-    console.error('[World Evolution] Error regenerating atmospheric content:', error);
+    ndLog('error','job_failed',{job:'regenerateAtmosphericContent', error: String(error)});
   }
-}
+} 
 
 /**
  * Aggregate World Analytics
  * Runs daily - Summarizes analytics for insights
  */
 export async function aggregateWorldAnalytics() {
-  console.log('[World Evolution] Aggregating world analytics...');
+  ndLog('info','job_start',{job:'aggregateWorldAnalytics'});
 
   try {
     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
     // Get analytics from last 24 hours
-    const { data: analytics } = await supabase
-      .from('world_analytics')
-      .select('*')
-      .gte('recorded_at', yesterday.toISOString());
+    const analytics = await timeAsync('supabase.world_analytics.fetch', async () => (await supabase.from('world_analytics').select('*').gte('recorded_at', yesterday.toISOString())).data || [], { job: 'aggregateWorldAnalytics' }) as any;
 
     if (analytics && analytics.length > 0) {
       // Group by layer type and entity
-      const grouped = analytics.reduce((acc, item) => {
+      const grouped = analytics.reduce((acc: any, item: any) => {
         const key = `${item.layer_type}:${item.entity_id}`;
         if (!acc[key]) {
           acc[key] = {
@@ -212,16 +183,14 @@ export async function aggregateWorldAnalytics() {
         if (item.user_id) acc[key].uniqueUsers.add(item.user_id);
 
         return acc;
-      }, {} as Record<string, any>);
+      }, {});
 
-      console.log(`  📊 Processed ${analytics.length} analytics events`);
-      console.log(`  📊 Unique entities: ${Object.keys(grouped).length}`);
-      console.log(`  📊 Total unique users: ${new Set(analytics.map(a => a.user_id)).size}`);
+      ndLog('info','job_summary',{job:'aggregateWorldAnalytics', events: analytics.length, uniqueEntities: Object.keys(grouped).length, uniqueUsers: new Set(analytics.map((a:any) => a.user_id)).size});
     }
 
-    console.log('[World Evolution] Analytics aggregation complete');
+    ndLog('info','job_end',{job:'aggregateWorldAnalytics'});
   } catch (error) {
-    console.error('[World Evolution] Error aggregating analytics:', error);
+    ndLog('error','job_failed',{job:'aggregateWorldAnalytics', error: String(error)});
   }
 }
 
@@ -253,14 +222,14 @@ function calculateBrightness(timeOfDay: string): number {
  * Run merchandising optimization
  */
 export async function runMerchandisingOptimization() {
-  console.log('[World Evolution] Running merchandising optimization...');
+  ndLog('info','job_start',{job:'runMerchandisingOptimization'});
   
   try {
     const { merchandisingEngine } = await import('../revenue/merchandising-engine');
-    await merchandisingEngine.runMerchandisingOptimization();
-    console.log('[World Evolution] Merchandising optimization complete');
+    await timeAsync('merchandisingEngine.runMerchandisingOptimization', async () => merchandisingEngine.runMerchandisingOptimization(), { job: 'runMerchandisingOptimization' });
+    ndLog('info','job_end',{job:'runMerchandisingOptimization'});
   } catch (error) {
-    console.error('[World Evolution] Merchandising error:', error);
+    ndLog('error','job_failed',{job:'runMerchandisingOptimization', error: String(error)});
   }
 }
 
@@ -268,14 +237,14 @@ export async function runMerchandisingOptimization() {
  * Run content optimization
  */
 export async function runContentOptimization() {
-  console.log('[World Evolution] Running content optimization...');
+  ndLog('info','job_start',{job:'runContentOptimization'});
   
   try {
     const { contentGenerator } = await import('../revenue/content-generator');
-    await contentGenerator.runWeeklyContentOptimization();
-    console.log('[World Evolution] Content optimization complete');
+    await timeAsync('contentGenerator.runWeeklyContentOptimization', async () => contentGenerator.runWeeklyContentOptimization(), { job: 'runContentOptimization' });
+    ndLog('info','job_end',{job:'runContentOptimization'});
   } catch (error) {
-    console.error('[World Evolution] Content optimization error:', error);
+    ndLog('error','job_failed',{job:'runContentOptimization', error: String(error)});
   }
 }
 
@@ -283,14 +252,14 @@ export async function runContentOptimization() {
  * Run bundle generation
  */
 export async function runBundleGeneration() {
-  console.log('[World Evolution] Running bundle generation...');
+  ndLog('info','job_start',{job:'runBundleGeneration'});
   
   try {
     const { bundlingEngine } = await import('../revenue/bundling-engine');
-    await bundlingEngine.runBundleGeneration();
-    console.log('[World Evolution] Bundle generation complete');
+    await timeAsync('bundlingEngine.runBundleGeneration', async () => bundlingEngine.runBundleGeneration(), { job: 'runBundleGeneration' });
+    ndLog('info','job_end',{job:'runBundleGeneration'});
   } catch (error) {
-    console.error('[World Evolution] Bundle generation error:', error);
+    ndLog('error','job_failed',{job:'runBundleGeneration', error: String(error)});
   }
 }
 
@@ -298,27 +267,27 @@ export async function runBundleGeneration() {
  * Run all world evolution jobs (including revenue optimization)
  */
 export async function runWorldEvolutionJobs() {
-  console.log('=== World Evolution Jobs Started ===');
+  ndLog('info','job_start',{job:'runWorldEvolutionJobs'});
   const startTime = Date.now();
 
   // World Architecture Evolution
-  await updateStreetPopularity();
-  await evolveAISpirits();
-  await regenerateAtmosphericContent();
-  await aggregateWorldAnalytics();
+  await timeAsync('world.updateStreetPopularity', async () => updateStreetPopularity(), { job: 'runWorldEvolutionJobs', step: 'updateStreetPopularity' });
+  await timeAsync('world.evolveAISpirits', async () => evolveAISpirits(), { job: 'runWorldEvolutionJobs', step: 'evolveAISpirits' });
+  await timeAsync('world.regenerateAtmosphericContent', async () => regenerateAtmosphericContent(), { job: 'runWorldEvolutionJobs', step: 'regenerateAtmosphericContent' });
+  await timeAsync('world.aggregateWorldAnalytics', async () => aggregateWorldAnalytics(), { job: 'runWorldEvolutionJobs', step: 'aggregateWorldAnalytics' });
 
   // Revenue Optimization (run less frequently)
   const hour = new Date().getHours();
   if (hour === 3) { // Run at 3 AM
-    await runMerchandisingOptimization();
-    await runBundleGeneration();
+    await timeAsync('world.runMerchandisingOptimization', async () => runMerchandisingOptimization(), { job: 'runWorldEvolutionJobs', step: 'runMerchandisingOptimization' });
+    await timeAsync('world.runBundleGeneration', async () => runBundleGeneration(), { job: 'runWorldEvolutionJobs', step: 'runBundleGeneration' });
   }
   if (hour === 4) { // Run at 4 AM
-    await runContentOptimization();
+    await timeAsync('world.runContentOptimization', async () => runContentOptimization(), { job: 'runWorldEvolutionJobs', step: 'runContentOptimization' });
   }
 
   const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-  console.log(`=== World Evolution Jobs Complete (${duration}s) ===`);
+  ndLog('info','job_end',{job:'runWorldEvolutionJobs', duration_s: Number(duration)});
 }
 
 // Export individual jobs for flexible scheduling

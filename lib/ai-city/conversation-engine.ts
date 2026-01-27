@@ -5,6 +5,7 @@
  */
 
 import { getOpenAI } from '../openai';
+import { log as ndLog } from '@/lib/server-ndjson';
 
 export interface ConversationContext {
   userId: string;
@@ -59,7 +60,7 @@ export async function generateSpiritResponse(
     
     return response.choices[0]?.message?.content || "I'm here to help you explore.";
   } catch (error) {
-    console.error('Spirit conversation error:', error);
+    ndLog('error','spirit_conversation_error',{error: String(error), userMessage});
     return generateFallbackResponse(userMessage, context);
   }
 }

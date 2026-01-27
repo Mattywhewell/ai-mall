@@ -1,18 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { log as ndLog } from '@/lib/server-ndjson';
 
 export function middleware(request: NextRequest) {
   // Debug: log request entry and key headers for tracing 403 sources
   try {
-    console.log('[Middleware] Incoming request', {
+    // Emit a high-signal NDJSON request start event for tracing
+    ndLog('info','request_start',{
       method: request.method,
       url: request.url,
-      auth: request.headers.get('authorization') ? '[present]' : '[missing]',
+      pathname: request.nextUrl.pathname,
+      auth_present: !!request.headers.get('authorization'),
       contentType: request.headers.get('content-type'),
       forwardedFor: request.headers.get('x-forwarded-for'),
       userAgent: request.headers.get('user-agent')?.slice(0, 100)
     });
   } catch (e) {
-    console.warn('[Middleware] Failed to log request headers', e);
+    ndLog('warn','middleware_log_failed',{error: String(e)});
   }
 
   const { pathname } = request.nextUrl;
@@ -27,7 +30,7 @@ export function middleware(request: NextRequest) {
     if (url.pathname.startsWith('/test-pages') && url.searchParams.has('test_user')) {
       if (!url.searchParams.has('_test_user_force')) {
         url.searchParams.set('_test_user_force', '1');
-        console.log('[Middleware] Rewriting test-pages request to bypass prerender cache', url.toString());
+        ndLog('info','rewrite_test_pages',{from: request.nextUrl.toString(), to: url.toString()});
         const rewritten = NextResponse.rewrite(url);
         // Add a diagnostic header so we can confirm middleware rewrites in network traces
         rewritten.headers.set('x-test-pages-rewritten', '1');
@@ -44,7 +47,7 @@ export function middleware(request: NextRequest) {
     if (url.searchParams.has('test_user')) {
       if (!url.searchParams.has('_test_user_force')) {
         url.searchParams.set('_test_user_force', '1');
-        console.log('[Middleware] Rewriting request with ?test_user to bypass prerender cache', url.toString());
+        ndLog('info','rewrite_test_user',{from: request.nextUrl.toString(), to: url.toString()});
         const rewritten = NextResponse.rewrite(url);
         rewritten.headers.set('x-test-user-rewritten', '1');
         rewritten.headers.set('x-test-user-original', request.nextUrl.toString());
@@ -58,7 +61,7 @@ export function middleware(request: NextRequest) {
     if (url.searchParams.has('_test_user_force')) {
       if (!url.searchParams.has('_test_user_rewritten')) {
         url.searchParams.set('_test_user_rewritten', '1');
-        console.log('[Middleware] Rewriting request with _test_user_force to ensure dynamic SSR', url.toString());
+        ndLog('info','rewrite_test_user_force',{from: request.nextUrl.toString(), to: url.toString()});
         const rewritten = NextResponse.rewrite(url);
         rewritten.headers.set('x-test-user-force-rewritten', '1');
         rewritten.headers.set('x-test-user-original', request.nextUrl.toString());
@@ -66,7 +69,7 @@ export function middleware(request: NextRequest) {
       }
     }
   } catch (e) {
-    console.warn('[Middleware] Failed to rewrite test-pages or test_user request', e);
+    ndLog('warn','middleware_rewrite_failed',{error: String(e)});
   }
   
   // Block test/development routes in production
@@ -74,7 +77,7 @@ export function middleware(request: NextRequest) {
   const testRoutes = ['/test-auth', '/test-pricing'];
   
   if (isProduction && testRoutes.some(route => pathname.startsWith(route))) {
-    console.log(`[Middleware] Blocking test route in production: ${pathname}`);
+    ndLog('warn','blocking_test_route_in_production',{route: pathname});
     // Return 404 for test routes in production
     return new NextResponse(null, { status: 404 });
   }
@@ -98,7 +101,7 @@ export function middleware(request: NextRequest) {
       path: '/',
       sameSite: 'lax',
     });
-    console.log(`[Middleware] Set user-country cookie to ${country}`);
+    ndLog('info','user_country_cookie_set',{country});
   }
   
   return response;

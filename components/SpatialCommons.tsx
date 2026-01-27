@@ -2,6 +2,7 @@
 
 import React, { Suspense, useRef, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import { log as ndLog } from '@/lib/client-ndjson';
 
 // Dynamically import the entire 3D canvas to prevent SSR issues
 const SpatialCanvas = dynamic(() => import('./SpatialCanvas'), { ssr: false });
@@ -33,14 +34,14 @@ class ThreeErrorBoundary extends React.Component<
 
   static getDerivedStateFromError(error: Error) {
     // Log generic error
-    console.error('Three.js Error Boundary caught an error:', error);
+    ndLog('error','threejs_error_caught',{error: String(error)});
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Include component name if provided
     const name = (this.props as any).componentName || 'Unknown 3D Component';
-    console.error(`Three.js Error Boundary details for ${name}:`, error, errorInfo);
+    ndLog('error','threejs_error_details',{componentName: name, error: String(error), info: String(errorInfo)});
   }
 
   render() {
@@ -77,10 +78,10 @@ export function SpatialCommons() {
       const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
       setWebglSupported(!!gl);
       if (!gl) {
-        console.warn('WebGL not supported');
+        ndLog('warn','webgl_not_supported',{});
       }
     } catch (e) {
-      console.error('Error checking WebGL support:', e);
+      ndLog('error','webgl_check_failed',{error: String(e)});
       setWebglSupported(false);
     }
   }, []);
@@ -90,14 +91,14 @@ export function SpatialCommons() {
     if (typeof window === 'undefined') return;
 
     const onError = (event: ErrorEvent) => {
-      console.error('Client error captured:', event.error || event.message);
+      ndLog('error','client_error_captured',{error: String(event.error || event.message)});
       setClientError(event.error || new Error(event.message || 'Unknown error'));
-    };
+    }; 
 
     const onRejection = (event: PromiseRejectionEvent) => {
-      console.error('Unhandled rejection captured:', event.reason);
+      ndLog('error','unhandled_rejection',{reason: String(event.reason)});
       setClientError(event.reason instanceof Error ? event.reason : new Error(String(event.reason)));
-    };
+    }; 
 
     window.addEventListener('error', onError);
     window.addEventListener('unhandledrejection', onRejection as any);
@@ -157,19 +158,15 @@ export function SpatialCommons() {
         <SpatialCanvas
           navigationMode={navigationMode}
           onDistrictSelect={(districtId) => {
-            console.log('District selected:', districtId);
-            // TODO: Implement district teleportation
-          }}
-          onShopSelect={(shopId) => {
-            console.log('Shop selected:', shopId);
-            setActiveShopTour(shopId);
-          }}
-          onCitizenInteract={(citizenId) => {
-            console.log('Citizen interaction:', citizenId);
-            // TODO: Implement citizen interaction
-          }}
-        />
-      </ThreeErrorBoundary>
+              ndLog('info','district_selected',{districtId});
+              // TODO: Implement district teleportation
+            }}
+            onShopSelect={(shopId) => {
+              ndLog('info','shop_selected',{shopId});
+              setActiveShopTour(shopId);
+            }}
+            onCitizenInteract={(citizenId) => {
+              ndLog('info','citizen_interaction',{citizenId});
 
       {/* Active Shop Tour Viewer */}
       {activeShopTour && (
@@ -200,7 +197,7 @@ export function SpatialCommons() {
           <EnhancedNavigationControls
             mode={navigationMode}
             onModeChange={setNavigationMode}
-            onHomeClick={() => console.log('Return to home')}
+            onHomeClick={() => ndLog('info','return_home',{})}
           />
         </React.Suspense>
       </div>

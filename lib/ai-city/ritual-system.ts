@@ -6,6 +6,7 @@
 import { eventBus, publishRitualEvent } from './event-bus';
 import { supabaseAdmin } from '../supabaseClient';
 import { callOpenAI } from '../ai/openaiClient';
+import { log as ndLog } from '@/lib/server-ndjson';
 
 export interface Ritual {
   id: string;
@@ -110,7 +111,7 @@ export class RitualSystem {
   async start(): Promise<void> {
     if (this.isRunning) return;
 
-    console.log('🕯️ Starting Ritual Interaction System...');
+    ndLog('info','system_start',{system:'RitualSystem'});
     this.isRunning = true;
 
     // Load existing rituals
@@ -131,7 +132,7 @@ export class RitualSystem {
   stop(): void {
     if (!this.isRunning) return;
 
-    console.log('🛑 Stopping Ritual Interaction System...');
+    ndLog('info','system_stopping',{system:'RitualSystem'});
     this.isRunning = false;
 
     if (this.checkInterval) {
@@ -159,9 +160,9 @@ export class RitualSystem {
         this.rituals.set(ritual.id, ritual as Ritual);
       });
 
-      console.log(`📖 Loaded ${this.rituals.size} rituals from database`);
+      ndLog('info','rituals_loaded',{count: this.rituals.size});
     } catch (error) {
-      console.error('Error loading rituals:', error);
+      ndLog('error','rituals_load_failed',{error: String(error)});
     }
   }
 
@@ -177,7 +178,7 @@ export class RitualSystem {
     );
 
     await Promise.allSettled(promises);
-    console.log(`💾 Saved ${this.rituals.size} rituals to database`);
+    ndLog('info','rituals_saved',{count: this.rituals.size});
   }
 
   /**
@@ -473,7 +474,7 @@ export class RitualSystem {
     const ritual = this.rituals.get(ritualId);
     if (!ritual || ritual.status !== 'scheduled') return;
 
-    console.log(`🕯️ Triggering ritual: ${ritual.name} in ${ritual.district}`);
+    ndLog('info','ritual_triggered',{ritualId: ritualId, ritualName: ritual.name, district: ritual.district});
 
     ritual.status = 'active';
     ritual.actual_start = new Date().toISOString();
@@ -509,7 +510,7 @@ export class RitualSystem {
     const ritual = this.rituals.get(ritualId);
     if (!ritual || ritual.status !== 'active') return;
 
-    console.log(`✅ Completing ritual: ${ritual.name}`);
+    ndLog('info','ritual_completed',{ritualId: ritualId, ritualName: ritual.name, district: ritual.district});
 
     ritual.status = 'completed';
     ritual.actual_end = new Date().toISOString();

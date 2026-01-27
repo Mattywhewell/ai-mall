@@ -74,6 +74,33 @@ if [ -z "$PRINCIPALS_LINE" ]; then
 fi
 
 # Split principals on comma and print each on its own line
-printf '%s' "$PRINCIPALS_LINE" | tr ',' '\n' | sed 's/^\s*//;s/\s*$//' | tee /dev/stderr >/dev/stdout
+# But first, verify TPM-bound principals via attestation verifier.
+# Any "tpm:<device>" principal must have a matching enrollment (pubkey) and a valid attestation.
+IFS=$'\n'
+VALIDATED_PRINCIPALS=()
+while IFS= read -r p; do
+  p_trim=$(echo "$p" | sed 's/^\s*//;s/\s*$//')
+  if [ -n "$(echo "$p_trim" | grep -E '^tpm:')" ]; then
+    # Device principal: tpm:device-id
+    DEVICE=${p_trim#tpm:}
+    ATTEST_FILE="$TEST_ROOT/etc/ssh/keys/hardware/attestations/${DEVICE}-attestation.json"
+    PUBKEY_FILE="$TEST_ROOT/etc/ssh/keys/hardware/${DEVICE}.pub"
+    if [ ! -f "$ATTEST_FILE" ] || [ ! -f "$PUBKEY_FILE" ]; then
+      migration_log "step=authorized_principals" "action=deny" "serial=$SERIAL" "reason=attestation_missing_or_pub_missing" "device=$DEVICE"
+      exit 1
+    fi
+    # Call verifier
+    if ! "$(dirname "$0")/scene-5/verify_attestation.sh" "$DEVICE" "$ATTEST_FILE" "$PUBKEY_FILE"; then
+      migration_log "step=authorized_principals" "action=deny" "serial=$SERIAL" "reason=attestation_invalid" "device=$DEVICE"
+      exit 1
+    fi
+    VALIDATED_PRINCIPALS+=("$p_trim")
+  else
+    VALIDATED_PRINCIPALS+=("$p_trim")
+  fi
+done < <(printf '%s' "$PRINCIPALS_LINE" | tr ',' '\n')
+
+# If all verifications passed, print principals
+(printf '%s\n' "${VALIDATED_PRINCIPALS[@]}") | tee /dev/stderr >/dev/stdout
 migration_log "step=authorized_principals" "action=done" "serial=$SERIAL" "principals=$PRINCIPALS_LINE"
 exit 0

@@ -6,6 +6,7 @@
 import { createMemory, calculateMemoryStrength, UserMemory } from './memory-garden';
 import { CitizenState, CitizenMemory, CitizenPersonality } from './citizen-ai-service';
 import { supabase } from '../supabaseClient';
+import { log as ndLog } from '@/lib/server-ndjson';
 
 export interface CitizenMemoryGarden {
   citizenId: string;
@@ -318,7 +319,7 @@ export async function saveCitizenMemoryGarden(garden: CitizenMemoryGarden): Prom
       last_updated: garden.lastUpdated
     });
   } catch (error) {
-    console.error('Error saving citizen memory garden:', error);
+    ndLog('error','save_memory_garden_failed',{error: String(error), citizenId: garden.citizenId});
   }
 }
 
@@ -345,7 +346,7 @@ export async function loadCitizenMemoryGarden(citizenId: string): Promise<Citize
       lastUpdated: data.last_updated
     };
   } catch (error) {
-    console.error('Error loading citizen memory garden:', error);
+    ndLog('error','load_memory_garden_failed',{error: String(error), citizenId});
     return null;
   }
 }

@@ -7,20 +7,38 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 [ -f "$script_dir/utils.sh" ] && . "$script_dir/utils.sh"
 export DOTENV_PATH=${DOTENV_PATH:-.env.local}
+# Simple flags: --env-file <path>, --dry-run
+DRY_RUN=0
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --env-file) DOTENV_PATH="$2"; shift 2;;
+    --dry-run) DRY_RUN=1; shift;;
+    *) shift;;
+  esac
+done
+
+# NDJSON logger
+log_ndjson() {
+  ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+  level="$1"; msg="$2"; context="$3"
+  if [ -z "$context" ]; then context='{}'; fi
+  printf '{"ts":"%s","level":"%s","msg":"%s","context":%s}\n' "$ts" "$level" "$msg" "$context"
+}
+
 TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 LOG_DIR="$(pwd)/introspect-logs-${TIMESTAMP}"
 mkdir -p "$LOG_DIR"
 
-echo "🔧 Running SSL-enabled Postgres connect test..."
+log_ndjson info "running_dbconnect_start" "{\"script\":\"ci-supabase-dbconnect\"}"
 if command -v node >/dev/null 2>&1; then
-  NODE_OPTIONS='' node -r dotenv/config "$script_dir/ci-supabase-dbconnect.js" > "$LOG_DIR/dbconnect.log" 2>&1 || echo "-- dbconnect exited with non-zero; see $LOG_DIR/dbconnect.log"
+  NODE_OPTIONS='' node -r dotenv/config "$script_dir/ci-supabase-dbconnect.js" > "$LOG_DIR/dbconnect.log" 2>&1 || log_ndjson warn "dbconnect_exit_nonzero" "{\"path\":\"$LOG_DIR/dbconnect.log\"}"
 else
-  echo "Node.js not found in PATH. Install Node 18+ and retry." >&2
+  log_ndjson error "node_not_found" "{\"hint\":\"Install Node 18+\"}"
   exit 2
 fi
 
-echo "🔍 Running Supabase introspection..."
-(node -r dotenv/config "$script_dir/ci-supabase-introspect.js" 2>&1 | tee "$LOG_DIR/supabase-introspect.log") || echo "-- introspect finished with errors; see logs"
+log_ndjson info "running_introspect_start" "{\"script\":\"ci-supabase-introspect\"}"
+(node -r dotenv/config "$script_dir/ci-supabase-introspect.js" 2>&1 | tee "$LOG_DIR/supabase-introspect.log") || log_ndjson warn "introspect_finished_with_errors" "{\"path\":\"$LOG_DIR/supabase-introspect.log\"}"
 
 # Copy helpful files for context
 cp "$script_dir/../supabase-auth-fixes.sql" "$LOG_DIR/" 2>/dev/null || true
@@ -38,24 +56,27 @@ PY
   ZIPPATH="${LOG_DIR}/supabase-migrations-logs-${TIMESTAMP}.zip"
 }
 
-echo "📦 Logs packaged at: $ZIPPATH"
+log_ndjson info "logs_packaged" "{\"zip\":\"$ZIPPATH\"}"
 
 # Upload logic
+if [ "$DRY_RUN" -eq 1 ]; then
+  log_ndjson info "dry_run_upload_skipped" "{\"zip\":\"$ZIPPATH\"}"
+  exit 0
+fi
+
 if command -v gh >/dev/null 2>&1 && [ -n "${GH_REPO:-}" ] && ( [ -n "${GITHUB_TOKEN:-}" ] || [ -n "${GH_TOKEN:-}" ] ); then
   TAG="introspect-${TIMESTAMP}"
-  echo "🚀 Creating GitHub release $TAG in $GH_REPO and uploading asset..."
-  gh release create "$TAG" "$ZIPPATH" --repo "$GH_REPO" -t "Introspection logs $TAG" -n "Uploaded by run-introspect-and-upload.sh on ${TIMESTAMP}" && echo "✅ Release created: $TAG"
+  log_ndjson info "creating_github_release" "{\"tag\":\"$TAG\",\"repo\":\"$GH_REPO\"}"
+  gh release create "$TAG" "$ZIPPATH" --repo "$GH_REPO" -t "Introspection logs $TAG" -n "Uploaded by run-introspect-and-upload.sh on ${TIMESTAMP}" && log_ndjson info "release_created" "{\"tag\":\"$TAG\"}"
   exit 0
 fi
 
 if command -v gh >/dev/null 2>&1 && [ "${CREATE_GIST:-0}" = "1" ] && ( [ -n "${GITHUB_TOKEN:-}" ] || [ -n "${GH_TOKEN:-}" ] ); then
-  echo "📝 Creating a gist with logs..."
-  gh gist create "$LOG_DIR/supabase-introspect.log" "$LOG_DIR/dbconnect.log" "$LOG_DIR/supabase-auth-fixes.sql" --public && echo "✅ Gist created"
+  log_ndjson info "creating_gist" "{\"files\": [\"supabase-introspect.log\",\"dbconnect.log\"]}"
+  gh gist create "$LOG_DIR/supabase-introspect.log" "$LOG_DIR/dbconnect.log" "$LOG_DIR/supabase-auth-fixes.sql" --public && log_ndjson info "gist_created" "{}"
   exit 0
 fi
 
-echo "⚠️ No upload method configured. To upload:
-  - Export GH_REPO='owner/repo' and GITHUB_TOKEN, or
-  - Set CREATE_GIST=1 and GITHUB_TOKEN, or
-  - Manually upload $ZIPPATH where you want."
+log_ndjson warn "no_upload_method_configured" "{\"zip\":\"$ZIPPATH\"}"
+log_ndjson info "upload_instructions" "{\"hint\":\"Export GH_REPO and set GITHUB_TOKEN, or set CREATE_GIST=1 and GITHUB_TOKEN\"}"
 exit 0
