@@ -7,13 +7,22 @@ export TEST_ROOT
 DEVICE=test-yubikey
 mkdir -p "$TEST_ROOT/etc/ssh/keys/hardware"
 
-# Create a fake cert file and fingerprint
-FAKE_CERT="$TEST_ROOT/fake_cert.pem"
-echo "-----BEGIN CERTIFICATE-----" > "$FAKE_CERT"
-echo "MIIB...FAKE...CERT..." >> "$FAKE_CERT"
-echo "-----END CERTIFICATE-----" >> "$FAKE_CERT"
-# Create a deterministic fingerprint string for tests (not a real SHA but ok for hermetic tests)
-FAKE_FP="SHA256:DEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF"
+# Create a minimal CA and leaf cert (hermetic) and derive fingerprint
+CA_KEY="$TEST_ROOT/ca.key"
+CA_CRT="$TEST_ROOT/ca.crt"
+LEAF_KEY="$TEST_ROOT/leaf.key"
+LEAF_CSR="$TEST_ROOT/leaf.csr"
+LEAF_CRT="$TEST_ROOT/leaf.crt"
+
+openssl genrsa -out "$CA_KEY" 2048 >/dev/null 2>&1
+openssl req -new -x509 -days 365 -key "$CA_KEY" -subj "/CN=Test Yubi CA" -out "$CA_CRT" >/dev/null 2>&1
+openssl genrsa -out "$LEAF_KEY" 2048 >/dev/null 2>&1
+openssl req -new -key "$LEAF_KEY" -subj "/CN=YubiKey-Test" -out "$LEAF_CSR" >/dev/null 2>&1
+openssl x509 -req -in "$LEAF_CSR" -CA "$CA_CRT" -CAkey "$CA_KEY" -CAcreateserial -out "$LEAF_CRT" -days 365 -sha256 >/dev/null 2>&1
+
+FAKE_CERT="$LEAF_CRT"
+FP_HEX=$(openssl x509 -noout -fingerprint -sha256 -in "$LEAF_CRT" | awk -F'=' '{print $NF}' | tr -d ':' | tr -d '\n' | tr '[:lower:]' '[:upper:]')
+FAKE_FP="SHA256:$FP_HEX"
 
 # Build attest JSON that the extractor would produce
 cat > "$TEST_ROOT/attest.json" <<EOF

@@ -24,7 +24,7 @@ openssl req -new -key "$LEAF_KEY" -subj "$OPENSSL_SUBJ_LEAF" -out "$LEAF_CSR" >/
 openssl x509 -req -in "$LEAF_CSR" -CA "$CA_CRT" -CAkey "$CA_KEY" -CAcreateserial -out "$LEAF_CRT" -days 365 -sha256 >/dev/null 2>&1
 
 # Compute fingerprint in the expected canonical form: SHA256:<HEX NO COLONS>
-FP_HEX=$(openssl x509 -noout -fingerprint -sha256 -in "$LEAF_CRT" | sed 's/SHA256 Fingerprint=//' | tr -d ':' | tr -d '\n' | tr '[:lower:]' '[:upper:]')
+FP_HEX=$(openssl x509 -noout -fingerprint -sha256 -in "$LEAF_CRT" | awk -F'=' '{print $NF}' | tr -d ':' | tr -d '\n' | tr '[:lower:]' '[:upper:]')
 CERT_FP="SHA256:$FP_HEX"
 
 # Build attest JSON (cert_pem from leaf cert)
@@ -61,11 +61,12 @@ openssl genrsa -out "$TEST_ROOT/other_ca.key" 2048 >/dev/null 2>&1
 openssl req -new -x509 -days 365 -key "$TEST_ROOT/other_ca.key" -subj "/CN=Other CA" -out "$TEST_ROOT/other_ca.crt" >/dev/null 2>&1
 mv "$TEST_ROOT/other_ca.crt" "$TEST_ROOT/yubikey_ca.pem"
 set +e
-OUT=$(scripts/migration-arc/authorized_principals_command.sh "$DEVICE" "$TEST_ROOT/attest.json" "$TEST_ROOT/${DEVICE}.pub" 2>&1 || true)
+OUT=$(scripts/migration-arc/authorized_principals_command.sh "$DEVICE" "$TEST_ROOT/attest.json" "$TEST_ROOT/${DEVICE}.pub" 2>&1)
 RC=$?
 set -e
 if [ $RC -eq 0 ]; then
   echo "Bad chain accepted unexpectedly" >&2
+  echo "$OUT" >&2
   exit 3
 fi
 if ! echo "$OUT" | grep -q 'cert_chain_invalid'; then
@@ -118,11 +119,12 @@ cat > "$TEST_ROOT/attest.json" <<EOF
 }
 EOF
 set +e
-OUT=$(scripts/migration-arc/authorized_principals_command.sh "$DEVICE" "$TEST_ROOT/attest.json" "$TEST_ROOT/${DEVICE}.pub" 2>&1 || true)
+OUT=$(scripts/migration-arc/authorized_principals_command.sh "$DEVICE" "$TEST_ROOT/attest.json" "$TEST_ROOT/${DEVICE}.pub" 2>&1)
 RC=$?
 set -e
 if [ $RC -eq 0 ]; then
   echo "Malformed cert accepted unexpectedly" >&2
+  echo "$OUT" >&2
   exit 7
 fi
 if ! echo "$OUT" | grep -q 'malformed_attestation'; then
