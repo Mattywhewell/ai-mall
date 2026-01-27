@@ -90,6 +90,15 @@ if [ ${#candidates[@]} -gt 0 ]; then
   # Use jq -s to slurp all candidate files into an array and reduce them (later files override earlier)
   # This avoids jq features that may not be available on all distributions.
   if ! jq -s 'reduce .[] as $item ({}; . * $item)' "${candidates[@]}" > "$MERGED" 2>/dev/null; then
+    # If merge failed, try to detect if any candidate file is malformed JSON and report a more specific reason
+    for c in "${candidates[@]}"; do
+      if ! jq -e '.' "$c" >/dev/null 2>&1; then
+        migration_log "step=authorized_principals" "action=failed" "device=$DEVICE" "reason=malformed_expected_pcrs" "file=$c"
+        echo "Malformed policy file detected: $c" >&2
+        exit 1
+      fi
+    done
+
     migration_log "step=authorized_principals" "action=failed" "device=$DEVICE" "reason=policy_merge_failed"
     echo "Failed to merge policy files: ${candidates[*]}" >&2
     exit 1
