@@ -12,7 +12,7 @@ mkdir -p "$TEST_ROOT/etc/ssh/keys/hardware" "$TEST_ROOT/bin"
 PUBKEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC"
 echo "$PUBKEY" > "$TEST_ROOT/${DEVICE}.pub"
 
-ATT_JSON=$(cat <<'EOF'
+ATT_JSON=$(cat <<EOF
 {
   "pubkey": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC",
   "type": "tpm",
@@ -23,8 +23,8 @@ ATT_JSON=$(cat <<'EOF'
 }
 EOF
 )
-# Expand shell variables inside here
-echo "$ATT_JSON" | envsubst > "$TEST_ROOT/attest.json"
+# No envsubst needed; heredoc expanded subshells already
+echo "$ATT_JSON" > "$TEST_ROOT/attest.json"
 
 # Create a fake tpm2_checkquote that always succeeds
 cat > "$TEST_ROOT/bin/tpm2_checkquote" <<'EOF'
