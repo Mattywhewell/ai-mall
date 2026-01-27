@@ -60,7 +60,7 @@ SH
 
   # Run the check using the stubbed ssh-keygen
   PATH="$STUB_BIN:$PATH" \
-    $(dirname "$0")/../authorized_principals_command.sh "$ssl_out_file" "$TEST_ROOT/etc/ssh/revoked_cert_serials" > "$TEST_ROOT/${case_name}.out" 2>&1
+    $(dirname "$0")/../authorized_principals_command.sh "$ssl_out_file" "$TEST_ROOT/etc/ssh/revoked_cert_serials" > "$TEST_ROOT/${case_name}.out" 2>/dev/null
 
   echo "Case $case_name output:"; cat "$TEST_ROOT/${case_name}.out"
 

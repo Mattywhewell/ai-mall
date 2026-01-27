@@ -29,9 +29,9 @@ if $(dirname "$0")/../authorized_principals_command.sh "$TEST_ROOT/user-cert.pub
   echo "AuthorizedPrincipals returned:"; cat "$TEST_ROOT/principals.out"
   # Debug dump to surface exact content when CI fails
   echo "=== PRINCIPALS.OUT START ==="; cat "$TEST_ROOT/principals.out" || true; echo "=== PRINCIPALS.OUT END ==="
-  # Relaxed check for debug run: ensure at least 'adele' is present so we can exercise Scene 5
-  if grep -q "adele" "$TEST_ROOT/principals.out"; then
-    echo "Principals present (adele)"
+  # Ensure both principals are present
+  if grep -q "adele" "$TEST_ROOT/principals.out" && grep -q "admin" "$TEST_ROOT/principals.out"; then
+    echo "Principals present (adele, admin)"
   else
     echo "Principals not as expected"; exit 2
   fi
