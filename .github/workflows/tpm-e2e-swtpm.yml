@@ -117,7 +117,7 @@ jobs:
           done
           if [ "$HTTP" != "200" ]; then echo "Protected endpoint access failed" >&2; exit 1; fi
 
-      - name: Negative test: corrupt attestation and assert onboarding rejected
+      - name: "Negative test: corrupt attestation and assert onboarding rejected"
         run: |
           set -euo pipefail
           CORRUPT=$(./scripts/tpm/corrupt_attestation.sh)
