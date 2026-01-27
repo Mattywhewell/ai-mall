@@ -50,15 +50,16 @@ if [ -n "$PR_LINE" ]; then
   fi
 else
   # Fallback: extract between ' for ' and ' valid' in the one-line summary
-  PRINCIPALS_LINE=$(echo "$SSH_LF_OUT" | sed -nE 's/.* for ([^ ]+(, *[^ ]+)*) valid.*/\1/p' || true)
+  # Try a more permissive 'for ... valid' extraction first (works for single-line summaries)
+  PRINCIPALS_LINE=$(echo "$SSH_LF_OUT" | sed -nE 's/.* for (.*) valid.*/\1/p' || true)
   if [ -z "$PRINCIPALS_LINE" ]; then
     # Handle case where ssh-keygen breaks the 'for ... valid' across lines (e.g., 'for adele,admin\n valid ...')
-    # Normalize to a single line and try again
+    # Normalize to a single line and try again using a permissive capture
     SSH_LF_ONE_LINE=$(echo "$SSH_LF_OUT" | tr '\n' ' ')
-    PRINCIPALS_LINE=$(echo "$SSH_LF_ONE_LINE" | sed -nE 's/.* for ([^ ]+(, *[^ ]+)*) valid.*/\1/p' || true)
+    PRINCIPALS_LINE=$(echo "$SSH_LF_ONE_LINE" | sed -nE 's/.* for (.*) valid.*/\1/p' || true)
     if [ -z "$PRINCIPALS_LINE" ]; then
-      # Try awk with regex against the collapsed one-line string (uses gawk match capture array)
-      PRINCIPALS_LINE=$(echo "$SSH_LF_ONE_LINE" | awk 'match($0,/ for ([^ ]+(, *[^ ]+)*) valid/,a){print a[1]}' || true)
+      # Try awk with regex against the collapsed one-line string
+      PRINCIPALS_LINE=$(echo "$SSH_LF_ONE_LINE" | awk 'match($0,/ for (.*) valid/,a){print a[1]}' || true)
     fi
     if [ -z "$PRINCIPALS_LINE" ]; then
       # Last resort: token-wise awk extraction (handles more exotic spacing)
