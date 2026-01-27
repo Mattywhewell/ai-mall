@@ -78,9 +78,15 @@ fi
 
 # Restore real attestation by re-enrolling (regenerates attestation)
 set -x
-$(dirname "$0")/../scene-5/enroll_tpm.sh test-device-tpm "$TEST_ROOT/scene5"
+echo "About to reenroll (protected): $(dirname "$0")/../scene-5/enroll_tpm.sh test-device-tpm \"$TEST_ROOT/scene5\""
+# Temporarily disable errexit to protect against unexpected non-zero from reenroll
+set +e
+$(dirname "$0")/../scene-5/enroll_tpm.sh test-device-tpm "$TEST_ROOT/scene5" > "$TEST_ROOT/scene5_reenroll.out" 2> "$TEST_ROOT/scene5_reenroll.err"
 REENROLL_RC=$?
+set -e
 echo "reenroll rc=$REENROLL_RC"
+echo "reenroll stdout:"; cat "$TEST_ROOT/scene5_reenroll.out" || true
+echo "reenroll stderr:"; cat "$TEST_ROOT/scene5_reenroll.err" || true
 echo "ATTEST head after reenroll:"; head -n 5 "$ATTEST" || true
 
 # Negative test: wrong type -> should be denied
