@@ -20,6 +20,9 @@ openssl genrsa -out "$LEAF_KEY" 2048 >/dev/null 2>&1
 openssl req -new -key "$LEAF_KEY" -subj "/CN=YubiKey-Test" -out "$LEAF_CSR" >/dev/null 2>&1
 openssl x509 -req -in "$LEAF_CSR" -CA "$CA_CRT" -CAkey "$CA_KEY" -CAcreateserial -out "$LEAF_CRT" -days 365 -sha256 >/dev/null 2>&1
 
+# Make the CA available to the verifier (same convention as Y2 tests)
+cp "$CA_CRT" "$TEST_ROOT/yubikey_ca.pem"
+
 FAKE_CERT="$LEAF_CRT"
 FP_HEX=$(openssl x509 -noout -fingerprint -sha256 -in "$LEAF_CRT" | awk -F'=' '{print $NF}' | tr -d ':' | tr -d '\n' | tr '[:lower:]' '[:upper:]')
 FAKE_FP="SHA256:$FP_HEX"
