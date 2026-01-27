@@ -148,11 +148,11 @@ PY
             exit 1
           fi
           echo "Onboarding failed as expected (rc=$RC)"
-          # verify NDJSON contains a failed attestation entry
-          if grep -q '"attestation_verify".*"failed"' tmp/*.ndjson; then
-            echo "Found attestation_verify failed in NDJSON: OK"
+          # verify NDJSON contains a canonical onboarding_reject entry
+          if ls tmp/lineage/rejections_*.ndjson >/dev/null 2>&1 && grep -q '"action":"onboarding_reject"' tmp/lineage/rejections_*.ndjson; then
+            echo "Found onboarding_reject in lineage: OK"
           else
-            echo "Expected attestation_verify failed NDJSON not found" >&2
+            echo "Expected onboarding_reject NDJSON not found in tmp/lineage" >&2
             exit 1
           fi
 
