@@ -19,5 +19,7 @@ jobs:
         run: bash ./scripts/migration-arc/tests/test_cert_flow.sh
       - name: Run authorized principals (revocation) test
         run: bash ./scripts/migration-arc/tests/test_authorized_principals.sh
+      - name: Run authorized principals parsing-variant tests
+        run: bash ./scripts/migration-arc/tests/test_authorized_principals_parsing.sh
       - name: Run simulated sshd integration test
         run: bash ./scripts/migration-arc/tests/test_sshd_simulated.sh
