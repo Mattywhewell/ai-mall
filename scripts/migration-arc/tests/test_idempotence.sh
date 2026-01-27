@@ -38,8 +38,8 @@ PUBKEY_FILE="$PUBKEY_FILE" TEST_ROOT="$TEST_ROOT" USER=$USER $(dirname "$0")/../
 # Test patch_sshd in dry-run mode
 SSHD_CONFIG="$TEST_ROOT/etc/ssh/sshd_config" DRY_RUN=1 $(dirname "$0")/../patch_sshd.sh || true
 
-# Check log exists and contains steps
-if grep -q "step=generate_key" "$MIGRATION_LOG" && grep -q "step=install_key" "$MIGRATION_LOG"; then
+# Check log exists and contains steps (look for JSON keys produced by migration_log)
+if grep -Eq '"step"\s*:\s*"generate_key"' "$MIGRATION_LOG" && grep -Eq '"step"\s*:\s*"install_key"' "$MIGRATION_LOG"; then
   echo "Idempotence smoke tests passed. Log: $MIGRATION_LOG"
   exit 0
 else
