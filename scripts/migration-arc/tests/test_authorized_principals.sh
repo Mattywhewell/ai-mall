@@ -20,6 +20,10 @@ PUBKEY="$USER_KEY.pub"
 # Issue cert valid for 120s with principals 'adele,admin'
 CA_KEY="$CA_KEY" TEST_ROOT="$TEST_ROOT" DURATION=120 $(dirname "$0")/../issue_cert.sh "$PUBKEY" "adele,admin" "$TEST_ROOT/user-cert.pub"
 
+# Dump ssh-keygen -Lf output for debug
+ssh-keygen -Lf "$TEST_ROOT/user-cert.pub" > "$TEST_ROOT/ssh-lf.out" || true
+echo "SSH -Lf output:"; sed -n '1,200p' "$TEST_ROOT/ssh-lf.out" || true
+
 # Check authorized principals allows before revoke
 if $(dirname "$0")/../authorized_principals_command.sh "$TEST_ROOT/user-cert.pub" "$TEST_ROOT/etc/ssh/revoked_cert_serials" > "$TEST_ROOT/principals.out" 2>/dev/null; then
   echo "AuthorizedPrincipals returned:"; cat "$TEST_ROOT/principals.out"
