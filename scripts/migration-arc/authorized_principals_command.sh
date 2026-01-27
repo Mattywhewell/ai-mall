@@ -142,7 +142,8 @@ fi
 VERIFY_SCRIPT="${VERIFY_SCRIPT:-$(dirname "$0")/scene-5/verify_attestation.sh}"
 
 # Call verifier: args are <device> <attest-file> <expected-pubkey-file> <type> [expected-pcrs-file] [pcr-mode]
-if ! "$VERIFY_SCRIPT" "$DEVICE" "$ATTEST_FILE" "$EXPECTED_PUBKEY_FILE" "tpm" "$POLICY_FILE" "$PCR_MODE"; then
+# Use detected attestation type instead of hard-coded 'tpm'
+if ! "$VERIFY_SCRIPT" "$DEVICE" "$ATTEST_FILE" "$EXPECTED_PUBKEY_FILE" "$ATTEST_TYPE" "$POLICY_FILE" "$PCR_MODE"; then
   migration_log "step=authorized_principals" "action=deny" "device=$DEVICE" "reason=attestation_invalid"
   exit 1
 fi

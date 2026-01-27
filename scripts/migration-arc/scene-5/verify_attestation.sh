@@ -55,6 +55,43 @@ if [ "$ATT_TYPE" != "$EXPECTED_TYPE" ]; then
   exit 5
 fi
 
+# If this is a YubiKey attestation, validate the certificate fingerprint and attributes
+if [ "$ATT_TYPE" = "yubikey" ]; then
+  # The verifier accepts an expected policy file which can either be a plain fingerprint or a full policy object
+  EXPECTED_FP=""
+  if [ -n "$EXPECTED_PCRS_FILE" ] && [ -f "$EXPECTED_PCRS_FILE" ]; then
+    if jq -e '.fingerprint' "$EXPECTED_PCRS_FILE" >/dev/null 2>&1; then
+      EXPECTED_FP=$(jq -r '.fingerprint' "$EXPECTED_PCRS_FILE" 2>/dev/null || echo "")
+    fi
+  fi
+
+  ACTUAL_FP=$(jq -r '.cert_fingerprint // empty' "$ATTEST_FILE" 2>/dev/null || true)
+  if [ -z "$ACTUAL_FP" ]; then
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=fingerprint_missing"
+    echo "Attestation missing cert_fingerprint" >&2
+    exit 11
+  fi
+
+  if [ -n "$EXPECTED_FP" ]; then
+    if [ "$EXPECTED_FP" != "$ACTUAL_FP" ]; then
+      if [ "$PCR_MODE" = "strict" ]; then
+        migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=fingerprint_mismatch" "expected=$EXPECTED_FP" "got=$ACTUAL_FP"
+        echo "YubiKey fingerprint mismatch (strict mode)" >&2
+        exit 14
+      else
+        migration_log "step=attestation_verify" "action=warn" "device=$DEVICE" "reason=fingerprint_mismatch" "mode=permissive" "expected=$EXPECTED_FP" "got=$ACTUAL_FP"
+        echo "YubiKey fingerprint mismatch (permissive mode): continuing" >&2
+      fi
+    else
+      migration_log "step=attestation_verify" "action=done" "device=$DEVICE" "method=yubikey" "attest_file=$ATTEST_FILE" "fingerprint_check=pass"
+    fi
+  else
+    # No expected fingerprint provided; accept but emit info
+    migration_log "step=attestation_verify" "action=info" "device=$DEVICE" "method=yubikey" "fingerprint=$ACTUAL_FP" "note=no_expected_fingerprint"
+  fi
+  exit 0
+fi
+
 # If this is a real TPM attestation, perform a quote signature check using tpm2_checkquote
 if [ "$ATT_TYPE" = "tpm" ]; then
   # Ensure tpm2_checkquote available
