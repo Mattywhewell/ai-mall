@@ -92,8 +92,12 @@ echo "ATTEST head after reenroll:"; head -n 5 "$ATTEST" || true
 # Negative test: wrong type -> should be denied
 jq '.type = "not-tpm"' "$ATTEST" > "$ATTEST.tmp" && mv "$ATTEST.tmp" "$ATTEST"
 echo "ATTEST after wrong-type injection head:"; head -n 5 "$ATTEST" || true
+echo "About to run authorized_principals (wrong-type) as a protected command"
+# Temporarily disable errexit to protect against the expected non-zero exit
+set +e
 $(dirname "$0")/../authorized_principals_command.sh "$TEST_ROOT/user-cert.pub" "$TEST_ROOT/etc/ssh/revoked_cert_serials" > "$TEST_ROOT/scene5_tpm_principals_wrong_type.out" 2> "$TEST_ROOT/scene5_tpm_principals_wrong_type.err"
 AP_WRONG_RC=$?
+set -e
 echo "authorized_principals wrong_type rc=$AP_WRONG_RC"
 echo "stdout wrong_type:"; cat "$TEST_ROOT/scene5_tpm_principals_wrong_type.out" || true
 echo "stderr wrong_type:"; cat "$TEST_ROOT/scene5_tpm_principals_wrong_type.err" || true
