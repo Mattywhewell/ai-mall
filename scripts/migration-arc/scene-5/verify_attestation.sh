@@ -118,7 +118,7 @@ if [ "$ATT_TYPE" = "yubikey" ]; then
   fi
 
   # Compute fingerprint from cert and ensure it matches the embedded value
-  COMPUTED_FP_HEX=$(openssl x509 -noout -fingerprint -sha256 -in "$ATTEST_CERT_FILE" | sed 's/SHA256 Fingerprint=//' | tr -d ':' | tr -d '\n' | tr '[:lower:]' '[:upper:]')
+  COMPUTED_FP_HEX=$(openssl x509 -noout -fingerprint -sha256 -in "$ATTEST_CERT_FILE" | awk -F'=' '{print $NF}' | tr -d ':' | tr -d '\n' | tr '[:lower:]' '[:upper:]')
   COMPUTED_FP="SHA256:$COMPUTED_FP_HEX"
   ACTUAL_FP=$(jq -r '.cert_fingerprint // empty' "$ATTEST_FILE" 2>/dev/null || true)
   if [ -z "$ACTUAL_FP" ]; then
