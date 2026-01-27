@@ -52,6 +52,7 @@ If telemetry or nightly E2E fails, follow this three‑step ritual:
 1. Dispatch the precheck
    - In the GitHub UI: Repository → **Actions** → **Manual E2E Precheck** → **Run workflow**
    - Or from CLI: `gh workflow run manual-e2e-precheck.yml --ref main`
+   - Quick one-liner: `gh workflow run manual-e2e-precheck.yml`
 
 2. Download the artifact
    - After the run completes, download the `e2e-precheck` artifact and open `precheck.txt`.
