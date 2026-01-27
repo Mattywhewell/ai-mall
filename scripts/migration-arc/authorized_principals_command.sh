@@ -35,16 +35,20 @@ if [ -f "$REVOCATION_LIST" ] && grep -q "^${SERIAL}$" "$REVOCATION_LIST"; then
   exit 1
 fi
 
-# Extract principals
-PRINCIPALS_LINE=$(ssh-keygen -Lf "$CERT_FILE" | awk -F":" '/Valid principals/ {print $2; exit}') || PRINCIPALS_LINE=""
+# Extract principals robustly (handle case/format variations)
+PR_LINE=$(ssh-keygen -Lf "$CERT_FILE" | grep -i 'valid principals' -m1 || true)
+PRINCIPALS_LINE=""
+if [ -n "$PR_LINE" ]; then
+  PRINCIPALS_LINE=$(echo "$PR_LINE" | sed -E 's/^[^:]*:[[:space:]]*//')
+fi
 
 if [ -z "$PRINCIPALS_LINE" ]; then
-  # No principals embedded; default to empty (deny) or could print user arg
+  # No principals embedded; default to deny
   migration_log "step=authorized_principals" "action=done" "serial=$SERIAL" "principals=none"
   exit 1
 fi
 
 # Split principals on comma and print each on its own line
-echo "$PRINCIPALS_LINE" | tr ',' '\n' | sed 's/^\s*//;s/\s*$//' | tee /dev/stderr >/dev/stdout
-migration_log "step=authorized_principals" "action=done" "serial=$SERIAL" "principals=$(echo $PRINCIPALS_LINE)"
+printf '%s' "$PRINCIPALS_LINE" | tr ',' '\n' | sed 's/^\s*//;s/\s*$//' | tee /dev/stderr >/dev/stdout
+migration_log "step=authorized_principals" "action=done" "serial=$SERIAL" "principals=$PRINCIPALS_LINE"
 exit 0
