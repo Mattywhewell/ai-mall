@@ -9,6 +9,8 @@ on:
 jobs:
   idempotence:
     runs-on: ubuntu-latest
+    env:
+      CI_RUN_SCENE5: "true"
     steps:
       - uses: actions/checkout@v4
       - name: Install OpenSSH (ensure ssh-keygen present)
