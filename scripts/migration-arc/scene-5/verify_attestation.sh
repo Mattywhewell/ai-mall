@@ -2,7 +2,19 @@
 # Verify a simulated TPM attestation.
 # Usage: verify_attestation.sh <device-id> <attestation-file> <expected-pubkey-file> [expected-type]
 set -euo pipefail
-source "$(dirname "$0")/../lib/log.sh"
+# Prefer external migration_log helper when available
+if [ -f "$(dirname "$0")/../lib/log.sh" ]; then
+  # shellcheck disable=SC1091
+  source "$(dirname "$0")/../lib/log.sh"
+else
+  migration_log() {
+    if [ "$(type -t migration_log 2>/dev/null)" = "file" ]; then
+      command migration_log "$@"
+    else
+      echo "$*" >&2
+    fi
+  }
+fi
 
 DEVICE=${1:-}
 ATTEST_FILE=${2:-}
@@ -99,7 +111,12 @@ if [ "$ATT_TYPE" = "tpm" ]; then
         exit 16
       fi
       # Read expected and actual PCR JSON objects
-      EXPECTED_PCR_JSON=$(jq -c '.' "$EXPECTED_PCRS_FILE" 2>/dev/null || echo '{}')
+      # If the provided expected file is a full policy object with a 'pcrs' key, extract it.
+      if jq -e '.pcrs' "$EXPECTED_PCRS_FILE" >/dev/null 2>&1; then
+        EXPECTED_PCR_JSON=$(jq -c '.pcrs' "$EXPECTED_PCRS_FILE" 2>/dev/null || echo '{}')
+      else
+        EXPECTED_PCR_JSON=$(jq -c '.' "$EXPECTED_PCRS_FILE" 2>/dev/null || echo '{}')
+      fi
       ACTUAL_PCR_JSON=$(jq -c '.pcrs // {}' "$ATTEST_FILE" 2>/dev/null || echo '{}')
 
       # For each PCR in expected, compare values

@@ -77,9 +77,8 @@ cat > "$TMP_DIR/etc/ssh/keys/hardware/${DEVICE}.json" <<'EOF'
 EOF
 TEST_ENV=prod run_and_get_policy
 # Expect permissive mode used by device file
-if ! grep -q 'permissive' <<< "$ARGS2"; then
-  echo "Device-specific policy did not override prod" >&2
-  echo "ARGS: $ARGS2" >&2
+if ! echo "$POLJSON" | jq -e '.mode == "permissive"' >/dev/null 2>&1; then
+  echo "Device-specific policy did not override prod (got: $POLJSON)" >&2
   exit 3
 fi
 
@@ -90,9 +89,8 @@ cat > "$TMP_DIR/etc/ssh/keys/hardware/${DEVICE}.tpm.json" <<'EOF'
 {"mode":"strict","pcrs":{"0":"1111","1":"deadbeef"}}
 EOF
 TEST_ENV=prod run_and_get_policy
-if ! grep -q 'strict' <<< "$ARGS2"; then
-  echo "Device+type policy did not override device.json" >&2
-  echo "ARGS: $ARGS2" >&2
+if ! echo "$POLJSON" | jq -e '.mode == "strict"' >/dev/null 2>&1; then
+  echo "Device+type policy did not override device.json (got: $POLJSON)" >&2
   exit 4
 fi
 
