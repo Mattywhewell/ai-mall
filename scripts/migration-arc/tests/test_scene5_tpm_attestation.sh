@@ -6,6 +6,11 @@ export TEST_ROOT
 export MIGRATION_LOG=${MIGRATION_LOG:-$TEST_ROOT/migration-arc.ndjson}
 
 echo "Running Scene 5 TPM attestation tests in TEST_ROOT=$TEST_ROOT"
+# Skip if jq not present (local dev environments may not have it). CI runners provide jq.
+if ! command -v jq >/dev/null 2>&1; then
+  echo "jq not found; skipping TPM attestation tests (install jq to run locally)"
+  exit 0
+fi
 
 # Prepare CA
 mkdir -p "$TEST_ROOT/root"
@@ -33,6 +38,30 @@ if $(dirname "$0")/../authorized_principals_command.sh "$TEST_ROOT/user-cert.pub
   echo "AuthorizedPrincipals returned for tpm-bound cert:"; cat "$TEST_ROOT/scene5_tpm_principals.out"
 else
   echo "AuthorizedPrincipals denied tpm-bound cert (unexpected)"; cat "$MIGRATION_LOG" || true; exit 3
+fi
+
+# Negative test: tamper attestation pubkey -> should be denied
+ATTEST="$TEST_ROOT/etc/ssh/keys/hardware/attestations/test-device-tpm-attestation.json"
+if [ -f "$ATTEST" ]; then
+  jq '.pubkey = "CORRUPTED_PUBKEY"' "$ATTEST" > "$ATTEST.tmp" && mv "$ATTEST.tmp" "$ATTEST"
+  if $(dirname "$0")/../authorized_principals_command.sh "$TEST_ROOT/user-cert.pub" "$TEST_ROOT/etc/ssh/revoked_cert_serials" > /dev/null 2>/dev/null; then
+    echo "AuthorizedPrincipals allowed cert with corrupted attestation (unexpected)"; exit 6
+  else
+    echo "Corrupted attestation correctly denied"
+  fi
+else
+  echo "No attestation file to tamper with"; exit 7
+fi
+
+# Restore real attestation by re-enrolling (regenerates attestation)
+$(dirname "$0")/../scene-5/enroll_tpm.sh test-device-tpm "$TEST_ROOT/scene5"
+
+# Negative test: wrong type -> should be denied
+jq '.type = "not-tpm"' "$ATTEST" > "$ATTEST.tmp" && mv "$ATTEST.tmp" "$ATTEST"
+if $(dirname "$0")/../authorized_principals_command.sh "$TEST_ROOT/user-cert.pub" "$TEST_ROOT/etc/ssh/revoked_cert_serials" > /dev/null 2>/dev/null; then
+  echo "AuthorizedPrincipals allowed cert with wrong attestation type (unexpected)"; exit 8
+else
+  echo "Wrong attestation type correctly denied"
 fi
 
 # Revoke and ensure denial

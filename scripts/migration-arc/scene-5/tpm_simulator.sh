@@ -21,8 +21,12 @@ ATTEST_FILE="$OUT_DIR/${DEVICE_ID}-attestation.json"
 ssh-keygen -t ed25519 -f "$KEY_FILE" -N '' -C "tpm-${DEVICE_ID}" >/dev/null
 
 # Mock attestation blob (in a real TPM, this would be a quote + signed statement)
-PUBKEY_CONTENT=$(cat "$PUB_FILE")
-ATTEST_JSON=$(jq -n --arg dev "$DEVICE_ID" --arg pub "$PUBKEY_CONTENT" '{device:$dev, type:"tpm-sim", pubkey:$pub, attestation:"SIMULATED_TPM_QUOTE_BASE64"}')
+PUBKEY_CONTENT=$(cat "$PUB_FILE")# Ensure jq available for attestation JSON creation
+if ! command -v jq >/dev/null 2>&1; then
+  migration_log "step=scene5_tpm_sim" "action=failed" "device=$DEVICE" "reason=jq_missing"
+  echo "jq is required to build attestation JSON" >&2
+  exit 2
+fiATTEST_JSON=$(jq -n --arg dev "$DEVICE_ID" --arg pub "$PUBKEY_CONTENT" '{device:$dev, type:"tpm-sim", pubkey:$pub, attestation:"SIMULATED_TPM_QUOTE_BASE64"}')
 
 echo "$ATTEST_JSON" > "$ATTEST_FILE"
 migration_log "step=scene5_tpm_sim" "action=done" "device=$DEVICE_ID" "attest_file=$ATTEST_FILE" "pubkey=$PUB_FILE"
