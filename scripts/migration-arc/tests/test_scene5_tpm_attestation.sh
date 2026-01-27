@@ -57,8 +57,13 @@ ATTEST="$TEST_ROOT/etc/ssh/keys/hardware/attestations/test-device-tpm-attestatio
 if [ -f "$ATTEST" ]; then
   jq '.pubkey = "CORRUPTED_PUBKEY"' "$ATTEST" > "$ATTEST.tmp" && mv "$ATTEST.tmp" "$ATTEST"
   echo "Tampered ATTEST head:"; head -n 5 "$ATTEST" || true
+  echo "About to run authorized_principals (after tamper) as a protected command"
+  echo "CMD: $(dirname "$0")/../authorized_principals_command.sh \"$TEST_ROOT/user-cert.pub\" \"$TEST_ROOT/etc/ssh/revoked_cert_serials\""
+  # Protect the outer test script from set -e by temporarily disabling it while we run the expected-to-fail command
+  set +e
   $(dirname "$0")/../authorized_principals_command.sh "$TEST_ROOT/user-cert.pub" "$TEST_ROOT/etc/ssh/revoked_cert_serials" > "$TEST_ROOT/scene5_tpm_principals_after_tamper.out" 2> "$TEST_ROOT/scene5_tpm_principals_after_tamper.err"
   AP_TAMPER_RC=$?
+  set -e
   echo "authorized_principals after tamper rc=$AP_TAMPER_RC"
   echo "stdout after tamper:"; cat "$TEST_ROOT/scene5_tpm_principals_after_tamper.out" || true
   echo "stderr after tamper:"; cat "$TEST_ROOT/scene5_tpm_principals_after_tamper.err" || true
