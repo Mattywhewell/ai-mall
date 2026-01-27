@@ -96,20 +96,37 @@ if [ ${#candidates[@]} -gt 0 ]; then
   fi
   # Log merged policy for visibility
   migration_log "step=authorized_principals" "merged_policy=$(jq -c '.' "$MERGED" 2>/dev/null || echo '{}')"
-  # Validate and extract mode (from merged policy by default)
-  if jq -e '.mode' "$MERGED" >/dev/null 2>&1; then
-    PCR_MODE=$(jq -r '.mode' "$MERGED" 2>/dev/null || echo "strict")
-  fi
-  # Allow TEST-level device policy to explicitly override mode if present (defense-in-depth)
+
+  # If TEST-level device policies exist, overlay them on top of the merged repo-level policy
+  overlaid="$MERGED"
   if [ -n "${TEST_ROOT:-}" ]; then
-    if [ -f "$TEST_ROOT/etc/ssh/keys/hardware/${DEVICE}.${ATTEST_TYPE}.json" ] && jq -e '.mode' "$TEST_ROOT/etc/ssh/keys/hardware/${DEVICE}.${ATTEST_TYPE}.json" >/dev/null 2>&1; then
-      PCR_MODE=$(jq -r '.mode' "$TEST_ROOT/etc/ssh/keys/hardware/${DEVICE}.${ATTEST_TYPE}.json" 2>/dev/null || echo "$PCR_MODE")
-    elif [ -f "$TEST_ROOT/etc/ssh/keys/hardware/${DEVICE}.json" ] && jq -e '.mode' "$TEST_ROOT/etc/ssh/keys/hardware/${DEVICE}.json" >/dev/null 2>&1; then
-      PCR_MODE=$(jq -r '.mode' "$TEST_ROOT/etc/ssh/keys/hardware/${DEVICE}.json" 2>/dev/null || echo "$PCR_MODE")
+    overlay_files=()
+    if [ -f "$TEST_ROOT/etc/ssh/keys/hardware/${DEVICE}.json" ]; then
+      overlay_files+=("$TEST_ROOT/etc/ssh/keys/hardware/${DEVICE}.json")
+    fi
+    if [ -f "$TEST_ROOT/etc/ssh/keys/hardware/${DEVICE}.${ATTEST_TYPE}.json" ]; then
+      overlay_files+=("$TEST_ROOT/etc/ssh/keys/hardware/${DEVICE}.${ATTEST_TYPE}.json")
+    fi
+    if [ ${#overlay_files[@]} -gt 0 ]; then
+      # Merge base MERGED and overlay files so overlay wins
+      if ! jq -s 'reduce .[] as $item ({}; . * $item)' "$MERGED" "${overlay_files[@]}" > "$MERGED".overlay 2>/dev/null; then
+        migration_log "step=authorized_principals" "action=failed" "device=$DEVICE" "reason=overlay_merge_failed"
+        echo "Failed to overlay TEST-level policy files: ${overlay_files[*]}" >&2
+        exit 1
+      fi
+      overlaid="$MERGED".overlay
+      migration_log "step=authorized_principals" "overlay_files=${overlay_files[*]}"
+      migration_log "step=authorized_principals" "merged_policy_after_overlay=$(jq -c '.' "$overlaid" 2>/dev/null || echo '{}')"
     fi
   fi
-  # Write merged to POLICY_FILE path for verifier consumption
-  POLICY_FILE="$MERGED"
+
+  # Validate and extract mode (from final merged policy by default)
+  if jq -e '.mode' "$overlaid" >/dev/null 2>&1; then
+    PCR_MODE=$(jq -r '.mode' "$overlaid" 2>/dev/null || echo "strict")
+  fi
+
+  # Write final merged to POLICY_FILE path for verifier consumption
+  POLICY_FILE="$overlaid"
 fi
 
 # Allow overriding verifier path for tests
