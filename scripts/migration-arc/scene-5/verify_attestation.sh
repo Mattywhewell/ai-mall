@@ -78,14 +78,48 @@ fi
 
 # If this is a YubiKey attestation, validate the certificate fingerprint and attributes
 if [ "$ATT_TYPE" = "yubikey" ]; then
-  # The verifier accepts an expected policy file which can either be a plain fingerprint or a full policy object
+  # Require openssl for cert parsing and chain validation
+  if ! command -v openssl >/dev/null 2>&1; then
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=openssl_missing"
+    echo "openssl is required to verify yubikey attestations" >&2
+    exit 9
+  fi
+
+  # Extract policy-level expectations (fingerprint, slot, label, ca_file)
   EXPECTED_FP=""
+  EXPECTED_SLOT=""
+  EXPECTED_LABEL=""
+  EXPECTED_CA_FILE=""
   if [ -n "$EXPECTED_PCRS_FILE" ] && [ -f "$EXPECTED_PCRS_FILE" ]; then
     if jq -e '.fingerprint' "$EXPECTED_PCRS_FILE" >/dev/null 2>&1; then
       EXPECTED_FP=$(jq -r '.fingerprint' "$EXPECTED_PCRS_FILE" 2>/dev/null || echo "")
     fi
+    if jq -e '.slot' "$EXPECTED_PCRS_FILE" >/dev/null 2>&1; then
+      EXPECTED_SLOT=$(jq -r '.slot' "$EXPECTED_PCRS_FILE" 2>/dev/null || echo "")
+    fi
+    if jq -e '.label' "$EXPECTED_PCRS_FILE" >/dev/null 2>&1; then
+      EXPECTED_LABEL=$(jq -r '.label' "$EXPECTED_PCRS_FILE" 2>/dev/null || echo "")
+    fi
+    # optional CA file path in policy
+    if jq -e '.ca_file' "$EXPECTED_PCRS_FILE" >/dev/null 2>&1; then
+      EXPECTED_CA_FILE=$(jq -r '.ca_file' "$EXPECTED_PCRS_FILE" 2>/dev/null || echo "")
+    fi
   fi
 
+  # Write the embedded cert PEM to a file and ensure it parses
+  TMPDIR=$(mktemp -d)
+  ATTEST_CERT_FILE="$TMPDIR/attest_cert.pem"
+  jq -r '.cert_pem' "$ATTEST_FILE" > "$ATTEST_CERT_FILE" || true
+
+  if ! openssl x509 -in "$ATTEST_CERT_FILE" -noout >/dev/null 2>&1; then
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=malformed_attestation"
+    echo "Attestation cert PEM is malformed" >&2
+    exit 17
+  fi
+
+  # Compute fingerprint from cert and ensure it matches the embedded value
+  COMPUTED_FP_HEX=$(openssl x509 -noout -fingerprint -sha256 -in "$ATTEST_CERT_FILE" | sed 's/SHA256 Fingerprint=//' | tr -d ':' | tr -d '\n' | tr '[:lower:]' '[:upper:]')
+  COMPUTED_FP="SHA256:$COMPUTED_FP_HEX"
   ACTUAL_FP=$(jq -r '.cert_fingerprint // empty' "$ATTEST_FILE" 2>/dev/null || true)
   if [ -z "$ACTUAL_FP" ]; then
     migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=fingerprint_missing"
@@ -93,6 +127,38 @@ if [ "$ATT_TYPE" = "yubikey" ]; then
     exit 11
   fi
 
+  if [ "$COMPUTED_FP" != "$ACTUAL_FP" ]; then
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=attest_cert_fingerprint_mismatch" "computed=$COMPUTED_FP" "attested=$ACTUAL_FP"
+    echo "Attestation cert fingerprint does not match embedded certificate" >&2
+    exit 18
+  fi
+
+  # Certificate chain validation: prefer TEST_ROOT/yubikey_ca.pem, otherwise use ca_file from policy if present
+  CA_FILE=""
+  if [ -n "${TEST_ROOT:-}" ] && [ -f "${TEST_ROOT}/yubikey_ca.pem" ]; then
+    CA_FILE="${TEST_ROOT}/yubikey_ca.pem"
+  elif [ -n "$EXPECTED_CA_FILE" ]; then
+    # Policy may point at a file path; try resolving relative to TEST_ROOT or absolute
+    if [ -n "${TEST_ROOT:-}" ] && [ -f "${TEST_ROOT}/$EXPECTED_CA_FILE" ]; then
+      CA_FILE="${TEST_ROOT}/$EXPECTED_CA_FILE"
+    elif [ -f "$EXPECTED_CA_FILE" ]; then
+      CA_FILE="$EXPECTED_CA_FILE"
+    fi
+  fi
+
+  if [ -z "$CA_FILE" ] || [ ! -f "$CA_FILE" ]; then
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=ca_missing"
+    echo "CA file for YubiKey verification not found" >&2
+    exit 19
+  fi
+
+  if ! openssl verify -CAfile "$CA_FILE" "$ATTEST_CERT_FILE" >/dev/null 2>&1; then
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=cert_chain_invalid"
+    echo "Certificate chain validation failed" >&2
+    exit 20
+  fi
+
+  # Policy fingerprint enforcement (strict/permissive behavior)
   if [ -n "$EXPECTED_FP" ]; then
     if [ "$EXPECTED_FP" != "$ACTUAL_FP" ]; then
       if [ "$PCR_MODE" = "strict" ]; then
@@ -104,12 +170,37 @@ if [ "$ATT_TYPE" = "yubikey" ]; then
         echo "YubiKey fingerprint mismatch (permissive mode): continuing" >&2
       fi
     else
-      migration_log "step=attestation_verify" "action=done" "device=$DEVICE" "method=yubikey" "attest_file=$ATTEST_FILE" "fingerprint_check=pass"
+      migration_log "step=attestation_verify" "action=info" "device=$DEVICE" "method=yubikey" "attest_file=$ATTEST_FILE" "fingerprint_check=pass"
     fi
   else
-    # No expected fingerprint provided; accept but emit info
     migration_log "step=attestation_verify" "action=info" "device=$DEVICE" "method=yubikey" "fingerprint=$ACTUAL_FP" "note=no_expected_fingerprint"
   fi
+
+  # Optional slot/label checks
+  POL_SLOT="$EXPECTED_SLOT"
+  POL_LABEL="$EXPECTED_LABEL"
+  ATTSLOT=$(jq -r '.slot // empty' "$ATTEST_FILE" 2>/dev/null || true)
+  ATTLABEL=$(jq -r '.label // empty' "$ATTEST_FILE" 2>/dev/null || true)
+  if [ -n "$POL_SLOT" ] && [ "$POL_SLOT" != "$ATTSLOT" ]; then
+    if [ "$PCR_MODE" = "strict" ]; then
+      migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=slot_mismatch" "expected=$POL_SLOT" "got=$ATTSLOT"
+      echo "YubiKey slot mismatch (strict): deny" >&2
+      exit 21
+    else
+      migration_log "step=attestation_verify" "action=warn" "device=$DEVICE" "reason=slot_mismatch" "mode=permissive" "expected=$POL_SLOT" "got=$ATTSLOT"
+    fi
+  fi
+  if [ -n "$POL_LABEL" ] && [ "$POL_LABEL" != "$ATTLABEL" ]; then
+    if [ "$PCR_MODE" = "strict" ]; then
+      migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=label_mismatch" "expected=$POL_LABEL" "got=$ATTLABEL"
+      echo "YubiKey label mismatch (strict): deny" >&2
+      exit 22
+    else
+      migration_log "step=attestation_verify" "action=warn" "device=$DEVICE" "reason=label_mismatch" "mode=permissive" "expected=$POL_LABEL" "got=$ATTLABEL"
+    fi
+  fi
+
+  migration_log "step=attestation_verify" "action=done" "device=$DEVICE" "method=yubikey" "attest_file=$ATTEST_FILE" "fingerprint_check=pass" "cert_chain=pass"
   exit 0
 fi
 
