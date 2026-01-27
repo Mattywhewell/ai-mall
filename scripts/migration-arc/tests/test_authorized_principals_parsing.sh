@@ -43,8 +43,8 @@ case "$BASE" in
     echo "                admin"
     ;;
   case_wrapped.pub)
-    # Wrapped 'for ...' split across lines
-    echo "Signed user key $FILE: id \"alverse-1003\" serial 1003 for adele,"
+    # Wrapped 'for <principals>' split across lines (observed variant: principals at EOL, 'valid' starts next line)
+    echo "Signed user key $FILE: id \"alverse-1003\" serial 1003 for adele,admin"
     echo " valid from ... to ..."
     echo "Serial: 1003"
     ;;
