@@ -28,6 +28,69 @@ jobs:
         env:
           OUTDIR: tmp
 
+      - name: Issue TPM-backed SSH cert
+        run: |
+          chmod +x scripts/tpm/issue_tpm_ssh_cert.sh
+          ./scripts/tpm/issue_tpm_ssh_cert.sh
+        env:
+          OUTDIR: tmp
+
+      - name: Verify SSH cert via challenge signature (simulated SSH login)
+        run: |
+          set -euo pipefail
+          # Find the cert and the pub
+          CERT=$(ls -1t tmp/sign_ssh_cert_* -1 2>/dev/null | head -n1 || true)
+          PUB=$(ls -1t tmp/sign_ssh_pub_* -1 2>/dev/null | head -n1 || true)
+          if [ -z "$CERT" ] || [ -z "$PUB" ]; then echo "No cert/pub found" >&2; exit 1; fi
+          echo "Found cert=$CERT pub=$PUB"
+
+          # extract public key PEM from the earlier sign pub PEM created in Beat2
+          SIGN_PEM=$(ls -1t tmp/sign_pub_for_ssh_* 2>/dev/null | head -n1 || true)
+          if [ -z "$SIGN_PEM" ]; then echo "No sign PEM found" >&2; exit 1; fi
+
+          # Challenge
+          CHALLENGE=tmp/challenge.bin
+          echo -n "ci-challenge-$(date +%s)" > "$CHALLENGE"
+
+          # sign with TPM persistent signing handle: try to read sign handle from lineage
+          SIGN_HANDLE=$(python3 - <<PY
+import json,sys,glob
+f=sorted(glob.glob('tmp/tpm_beat2_*.ndjson'),reverse=True)
+if f:
+  for l in open(f[0]):
+    try:
+      o=json.loads(l)
+    except:
+      continue
+    if o.get('key_type')=='SIGNING':
+      print(o.get('handle',''))
+      sys.exit(0)
+print('')
+PY
+)
+          if [ -z "$SIGN_HANDLE" ]; then echo "No sign handle found" >&2; exit 1; fi
+          echo "Signing with handle $SIGN_HANDLE"
+
+          SIG=tmp/challenge.sig
+          tpm2_sign -c "$SIGN_HANDLE" -g sha256 -o "$SIG" "$CHALLENGE" || { echo 'tpm2_sign failed' >&2; exit 1; }
+
+          # verify signature with public key PEM
+          PEM=$(ls -1t tmp/sign_pub_for_ssh_* | head -n1)
+          if [ -z "$PEM" ]; then echo "sign pub pem missing" >&2; exit 1; fi
+          # openssl verify
+          if openssl dgst -sha256 -verify "$PEM" -signature "$SIG" "$CHALLENGE" >/dev/null 2>&1; then
+            echo "Signature verified with TPM-resident key: OK"
+          else
+            echo "Signature verification failed" >&2; exit 1
+          fi
+
+          # check certificate was signed by CA
+          if ssh-keygen -L -f "$CERT" | grep -qi 'Signature:'; then
+            echo "Certificate appears signed by CA: OK"
+          else
+            echo "Certificate signature missing or invalid" >&2; ssh-keygen -L -f "$CERT" || true; exit 1
+          fi
+
       - name: Upload TPM artifacts
         uses: actions/upload-artifact@v4
         with:
