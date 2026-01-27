@@ -66,6 +66,14 @@ else
   fi
 fi
 
+# Extra fallback: extract explicit tpm:<device> tokens if previous parsing failed
+if [ -z "$PRINCIPALS_LINE" ]; then
+  FALLBACK_TPM=$(echo "$SSH_LF_OUT" | grep -oE 'tpm:[^[:space:],]+' | paste -sd ',' - || true)
+  if [ -n "$FALLBACK_TPM" ]; then
+    PRINCIPALS_LINE="$FALLBACK_TPM"
+  fi
+fi
+
 if [ -z "$PRINCIPALS_LINE" ]; then
   # Debug: capture ssh-keygen -Lf output in log for diagnosis
   migration_log "step=authorized_principals" "action=failed" "reason=no_principals_found" "serial=$SERIAL" "ssh_lf_out=$(echo "$SSH_LF_OUT" | tr '\n' ' ' | sed 's/"/\\"/g')"
