@@ -148,13 +148,10 @@ PY
             exit 1
           fi
           echo "Onboarding failed as expected (rc=$RC)"
-          # verify NDJSON contains a canonical onboarding_reject entry
-          if ls tmp/lineage/rejections_*.ndjson >/dev/null 2>&1 && grep -q '"action":"onboarding_reject"' tmp/lineage/rejections_*.ndjson; then
-            echo "Found onboarding_reject in lineage: OK"
-          else
-            echo "Expected onboarding_reject NDJSON not found in tmp/lineage" >&2
-            exit 1
-          fi
+          # verify NDJSON contains a canonical onboarding_reject entry and validate schema
+          chmod +x scripts/tpm/assert_rejections_schema.sh
+          ./scripts/tpm/assert_rejections_schema.sh attestation_verify_failed
+          echo "Rejection schema validated: OK"
 
       - name: Upload TPM artifacts
         uses: actions/upload-artifact@v4
