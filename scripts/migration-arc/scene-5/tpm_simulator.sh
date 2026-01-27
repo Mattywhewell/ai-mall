@@ -35,5 +35,6 @@ echo "$ATTEST_JSON" > "$ATTEST_FILE"
 migration_log "step=scene5_tpm_sim" "action=done" "device=$DEVICE_ID" "attest_file=$ATTEST_FILE" "pubkey=$PUB_FILE"
 
 # Output key and attestation file paths
+# lint: ensure ending newline
 echo "$KEY_FILE" "$PUB_FILE" "$ATTEST_FILE"
 exit 0
