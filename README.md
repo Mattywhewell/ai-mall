@@ -177,6 +177,8 @@ Visit [http://localhost:3000](http://localhost:3000) 🎉
 
 Tip: For developer tooling related to the SQL-patch arc (sequencer, JSON ingestion, and tests), see the `Sequencer runner & tests` section in `QUICK_START.md` for quick commands to run the sequencer and its tests locally.
 
+Quick CI diagnostics: See `.github/README.md` → "CI Diagnostics (Quick Reference)" for the `manual-e2e-precheck` workflow and instructions on downloading `precheck.txt` artifacts when E2E telemetry fails.
+
 ## 🧪 Testing
 
 ### Enhanced Security Features Test
