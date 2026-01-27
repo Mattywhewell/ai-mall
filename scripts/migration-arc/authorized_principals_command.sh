@@ -89,9 +89,10 @@ echo "DEBUG: SPLIT COUNT:"; printf '%s' "$PRINCIPALS_LINE" | tr ',' '\n' | wc -l
 # Split principals on comma and print each on its own line
 # But first, verify TPM-bound principals via attestation verifier.
 # Any "tpm:<device>" principal must have a matching enrollment (pubkey) and a valid attestation.
-IFS=$'\n'
+# Split by comma into array to avoid read/process-substitution edge cases
+IFS=',' read -r -a PRINC_ARRAY <<< "$PRINCIPALS_LINE"
 VALIDATED_PRINCIPALS=()
-while IFS= read -r p; do
+for p in "${PRINC_ARRAY[@]}"; do
   p_trim=$(echo "$p" | sed 's/^\s*//;s/\s*$//')
   echo "DEBUG: principal parsed=<$p_trim>" >&2
   if [ -n "$(echo "$p_trim" | grep -E '^tpm:')" ]; then
@@ -112,7 +113,7 @@ while IFS= read -r p; do
   else
     VALIDATED_PRINCIPALS+=("$p_trim")
   fi
-done < <(printf '%s' "$PRINCIPALS_LINE" | tr ',' '\n')
+done
 
 # If all verifications passed, print principals (one per line)
 for p_out in "${VALIDATED_PRINCIPALS[@]}"; do
