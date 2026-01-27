@@ -20,12 +20,19 @@ ssh-keygen -t ed25519 -f "$CA_KEY" -N '' -C 'test-ca' >/dev/null
 # Simulate TPM and enroll
 mkdir -p "$TEST_ROOT/scene5"
 $(dirname "$0")/../scene-5/enroll_tpm.sh test-device-tpm "$TEST_ROOT/scene5"
+ENROLL_RC=$?
+echo "ENROLL TPM rc=$ENROLL_RC"
 
 # Ensure attestation present
 ATTEST="$TEST_ROOT/etc/ssh/keys/hardware/attestations/test-device-tpm-attestation.json"
 if [ ! -f "$ATTEST" ]; then
-  echo "Missing attestation file: $ATTEST"; cat "$MIGRATION_LOG" || true; exit 2
+  echo "Missing attestation file: $ATTEST"; ls -l "$(dirname "$ATTEST")" || true; cat "$MIGRATION_LOG" || true; exit 2
 fi
+
+echo "ATTEST file exists: $ATTEST"
+echo "ATTEST head:"; head -n 5 "$ATTEST" || true
+PUBKEY="$TEST_ROOT/etc/ssh/keys/hardware/test-device-tpm.pub"
+echo "PUBKEY path: $PUBKEY"; ls -l "$PUBKEY" || true
 
 # Issue cert with principal tagging the device
 PUBKEY="$TEST_ROOT/userkey.pub"
@@ -34,7 +41,12 @@ PUBKEY="$TEST_ROOT/userkey.pub"
 CA_KEY="$CA_KEY" TEST_ROOT="$TEST_ROOT" DURATION=120 $(dirname "$0")/../issue_cert.sh "$PUBKEY" "tpm:test-device-tpm" "$TEST_ROOT/user-cert.pub"
 
 # Check AuthorizedPrincipals accepts device principal
-if $(dirname "$0")/../authorized_principals_command.sh "$TEST_ROOT/user-cert.pub" "$TEST_ROOT/etc/ssh/revoked_cert_serials" > "$TEST_ROOT/scene5_tpm_principals.out" 2>/dev/null; then
+$(dirname "$0")/../authorized_principals_command.sh "$TEST_ROOT/user-cert.pub" "$TEST_ROOT/etc/ssh/revoked_cert_serials" > "$TEST_ROOT/scene5_tpm_principals.out" 2> "$TEST_ROOT/scene5_tpm_principals.err"
+AP_RC=$?
+echo "authorized_principals rc=$AP_RC"
+echo "authorized_principals stdout:"; cat "$TEST_ROOT/scene5_tpm_principals.out" || true
+echo "authorized_principals stderr:"; cat "$TEST_ROOT/scene5_tpm_principals.err" || true
+if [ $AP_RC -eq 0 ]; then
   echo "AuthorizedPrincipals returned for tpm-bound cert:"; cat "$TEST_ROOT/scene5_tpm_principals.out"
 else
   echo "AuthorizedPrincipals denied tpm-bound cert (unexpected)"; cat "$MIGRATION_LOG" || true; exit 3
@@ -44,7 +56,13 @@ fi
 ATTEST="$TEST_ROOT/etc/ssh/keys/hardware/attestations/test-device-tpm-attestation.json"
 if [ -f "$ATTEST" ]; then
   jq '.pubkey = "CORRUPTED_PUBKEY"' "$ATTEST" > "$ATTEST.tmp" && mv "$ATTEST.tmp" "$ATTEST"
-  if $(dirname "$0")/../authorized_principals_command.sh "$TEST_ROOT/user-cert.pub" "$TEST_ROOT/etc/ssh/revoked_cert_serials" > /dev/null 2>/dev/null; then
+  echo "Tampered ATTEST head:"; head -n 5 "$ATTEST" || true
+  $(dirname "$0")/../authorized_principals_command.sh "$TEST_ROOT/user-cert.pub" "$TEST_ROOT/etc/ssh/revoked_cert_serials" > "$TEST_ROOT/scene5_tpm_principals_after_tamper.out" 2> "$TEST_ROOT/scene5_tpm_principals_after_tamper.err"
+  AP_TAMPER_RC=$?
+  echo "authorized_principals after tamper rc=$AP_TAMPER_RC"
+  echo "stdout after tamper:"; cat "$TEST_ROOT/scene5_tpm_principals_after_tamper.out" || true
+  echo "stderr after tamper:"; cat "$TEST_ROOT/scene5_tpm_principals_after_tamper.err" || true
+  if [ $AP_TAMPER_RC -eq 0 ]; then
     echo "AuthorizedPrincipals allowed cert with corrupted attestation (unexpected)"; exit 6
   else
     echo "Corrupted attestation correctly denied"
@@ -54,11 +72,21 @@ else
 fi
 
 # Restore real attestation by re-enrolling (regenerates attestation)
+set -x
 $(dirname "$0")/../scene-5/enroll_tpm.sh test-device-tpm "$TEST_ROOT/scene5"
+REENROLL_RC=$?
+echo "reenroll rc=$REENROLL_RC"
+echo "ATTEST head after reenroll:"; head -n 5 "$ATTEST" || true
 
 # Negative test: wrong type -> should be denied
 jq '.type = "not-tpm"' "$ATTEST" > "$ATTEST.tmp" && mv "$ATTEST.tmp" "$ATTEST"
-if $(dirname "$0")/../authorized_principals_command.sh "$TEST_ROOT/user-cert.pub" "$TEST_ROOT/etc/ssh/revoked_cert_serials" > /dev/null 2>/dev/null; then
+echo "ATTEST after wrong-type injection head:"; head -n 5 "$ATTEST" || true
+$(dirname "$0")/../authorized_principals_command.sh "$TEST_ROOT/user-cert.pub" "$TEST_ROOT/etc/ssh/revoked_cert_serials" > "$TEST_ROOT/scene5_tpm_principals_wrong_type.out" 2> "$TEST_ROOT/scene5_tpm_principals_wrong_type.err"
+AP_WRONG_RC=$?
+echo "authorized_principals wrong_type rc=$AP_WRONG_RC"
+echo "stdout wrong_type:"; cat "$TEST_ROOT/scene5_tpm_principals_wrong_type.out" || true
+echo "stderr wrong_type:"; cat "$TEST_ROOT/scene5_tpm_principals_wrong_type.err" || true
+if [ $AP_WRONG_RC -eq 0 ]; then
   echo "AuthorizedPrincipals allowed cert with wrong attestation type (unexpected)"; exit 8
 else
   echo "Wrong attestation type correctly denied"
@@ -66,7 +94,14 @@ fi
 
 # Revoke and ensure denial
 $(dirname "$0")/../revoke_cert.sh "$TEST_ROOT/user-cert.pub"
-if $(dirname "$0")/../authorized_principals_command.sh "$TEST_ROOT/user-cert.pub" "$TEST_ROOT/etc/ssh/revoked_cert_serials" >/dev/null 2>/dev/null; then
+REVOKE_RC=$?
+echo "revoke_cert rc=$REVOKE_RC"
+$(dirname "$0")/../authorized_principals_command.sh "$TEST_ROOT/user-cert.pub" "$TEST_ROOT/etc/ssh/revoked_cert_serials" > "$TEST_ROOT/scene5_tpm_principals_revoked.out" 2> "$TEST_ROOT/scene5_tpm_principals_revoked.err"
+AP_REVOKED_RC=$?
+echo "authorized_principals revoked rc=$AP_REVOKED_RC"
+echo "stdout revoked:"; cat "$TEST_ROOT/scene5_tpm_principals_revoked.out" || true
+echo "stderr revoked:"; cat "$TEST_ROOT/scene5_tpm_principals_revoked.err" || true
+if [ $AP_REVOKED_RC -eq 0 ]; then
   echo "AuthorizedPrincipals allowed revoked tpm cert (unexpected)"; exit 4
 else
   echo "Revoked tpm cert correctly denied"
@@ -78,6 +113,7 @@ if grep -q "scene5_tpm_sim" "$MIGRATION_LOG"; then
 else
   echo "Missing TPM simulation log"; cat "$MIGRATION_LOG" || true; exit 5
 fi
+set +x
 
 rm -rf "$TEST_ROOT"
 
