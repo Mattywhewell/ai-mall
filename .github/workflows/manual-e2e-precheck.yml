@@ -1,0 +1,29 @@
+name: Manual E2E Precheck
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  manual-e2e-precheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: E2E Supabase pre-check and artifact
+        run: |
+          echo "Supabase env presence:" > precheck.txt
+          echo "NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:+present}" >> precheck.txt
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:+present}" >> precheck.txt
+          echo "SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:+present}" >> precheck.txt
+          node scripts/e2e-precheck.js >> precheck.txt 2>&1 || true
+          cat precheck.txt
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Upload precheck artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-precheck
+          path: precheck.txt
