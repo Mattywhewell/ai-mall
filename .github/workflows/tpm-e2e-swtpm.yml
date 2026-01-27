@@ -148,13 +148,10 @@ PY
             exit 1
           fi
           echo "Onboarding failed as expected (rc=$RC)"
-          # verify NDJSON contains a failed attestation entry
-          if grep -q '"attestation_verify".*"failed"' tmp/*.ndjson; then
-            echo "Found attestation_verify failed in NDJSON: OK"
-          else
-            echo "Expected attestation_verify failed NDJSON not found" >&2
-            exit 1
-          fi
+          # verify NDJSON contains a canonical onboarding_reject entry and validate schema
+          chmod +x scripts/tpm/assert_rejections_schema.sh
+          ./scripts/tpm/assert_rejections_schema.sh attestation_verify_failed
+          echo "Rejection schema validated: OK"
 
       - name: Upload TPM artifacts
         uses: actions/upload-artifact@v4

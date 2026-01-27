@@ -1,0 +1,39 @@
+name: TPM Onboarding Rejection Unit Test
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/tpm/**'
+      - '.github/workflows/**'
+  push:
+    branches:
+      - main
+
+jobs:
+  unit-rejection-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare minimal environment
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y -qq jq python3 openssl
+
+      - name: Make scripts executable
+        run: |
+          chmod +x scripts/tpm/*.sh
+          chmod +x scripts/tpm/*.py
+
+      - name: Run unit negative onboarding test
+        run: |
+          set -euo pipefail
+          ./scripts/tpm/test_onboarding_rejection_unit.sh
+        env:
+          OUTDIR: tmp
+
+      - name: Upload unit test artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tpm-unit-artifacts
+          path: tmp/**

@@ -3,7 +3,7 @@
 Reads an onboarding request JSON and verifies attestation then issues a short-lived JWT (RS256).
 Emits NDJSON events into tmp/. No external Python deps required.
 """
-import sys, json, os, subprocess, time, base64, tempfile
+import sys, json, os, subprocess, time, base64, tempfile, uuid
 from pathlib import Path
 
 OUTDIR = os.environ.get('OUTDIR', './tmp')
@@ -12,6 +12,49 @@ Path(OUTDIR).mkdir(parents=True, exist_ok=True)
 def emit(obj):
     print(json.dumps(obj))
     sys.stdout.flush()
+
+def write_rejection(device_id, request_file, reason_code, reason_detail, evidence=None, severity='high', actor='automated', workflow_run=None, trace_id=None):
+    ts = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+    # build workflow URL if running in GH actions
+    if not workflow_run:
+        gh_id = os.environ.get('GITHUB_RUN_ID')
+        gh_server = os.environ.get('GITHUB_SERVER_URL')
+        gh_repo = os.environ.get('GITHUB_REPOSITORY')
+        if gh_id and gh_server and gh_repo:
+            workflow_run = f"{gh_server}/{gh_repo}/actions/runs/{gh_id}"
+        else:
+            workflow_run = ''
+    if not trace_id:
+        trace_id = uuid.uuid4().hex
+
+    # enforce permitted severity domain
+    allowed_severities = {'high', 'medium', 'low'}
+    if severity not in allowed_severities:
+        # normalize unknown severity to 'high' for safety
+        severity = 'high'
+
+    obj = {
+        'ts': ts,
+        'action': 'onboarding_reject',
+        'device_id': device_id,
+        'request_file': str(request_file),
+        'reason_code': reason_code,
+        'reason_detail': reason_detail,
+        'evidence': evidence or {},
+        'severity': severity,
+        'actor': actor,
+        'workflow_run': workflow_run,
+        'trace_id': trace_id,
+    }
+    # persist to ./tmp/lineage/rejections_<ts>.ndjson
+    lineage_dir = Path(OUTDIR) / 'lineage'
+    lineage_dir.mkdir(parents=True, exist_ok=True)
+    fname = lineage_dir / f"rejections_{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}.ndjson"
+    with open(fname, 'a') as f:
+        f.write(json.dumps(obj) + '\n')
+    emit(obj)
+    return str(fname)
+
 
 def run_verifier(lineage, attest):
     cmd = ['./scripts/tpm/beat5_verify_attestation.sh', '--lineage', lineage, '--attest', attest]
@@ -75,6 +118,8 @@ def main():
 
     ok = run_verifier(lineage, attest)
     if not ok:
+        verifier_cmd = ['./scripts/tpm/beat5_verify_attestation.sh', '--lineage', lineage, '--attest', attest]
+        write_rejection(device_id, reqfile, 'attestation_verify_failed', 'Verifier failed to validate attestation', evidence={'verifier_cmd': verifier_cmd, 'attest_log': attest, 'lineage_log': lineage}, severity='high', actor='automated')
         emit({'action':'onboarding_issue','device_id':device_id,'status':'failed','reason':'verifier_failed'})
         sys.exit(1)
 
@@ -85,9 +130,14 @@ def main():
     iat = int(time.time())
     exp = iat + 15*60  # 15 minutes
     payload = {'device_id': device_id, 'iat': iat, 'exp': exp, 'scope': 'network:join'}
-    token = make_jwt_rs256(payload, ca_key)
-    token_file = Path(OUTDIR) / f'onboard_token_{time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())}.txt'
-    token_file.write_text(token)
+    try:
+        token = make_jwt_rs256(payload, ca_key)
+        token_file = Path(OUTDIR) / f'onboard_token_{time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())}.txt'
+        token_file.write_text(token)
+    except Exception as e:
+        write_rejection(device_id, reqfile, 'token_issue_failed', str(e), evidence={'payload': payload}, severity='high', actor='automated')
+        emit({'action':'onboarding_issue','device_id':device_id,'status':'failed','reason':'token_issue_failed','error':str(e)})
+        sys.exit(1)
 
     emit({'action':'onboarding_verify','device_id':device_id,'result':'pass'})
     emit({'action':'onboarding_issue','device_id':device_id,'token_file':str(token_file),'ttl':'PT15M','status':'ok'})
