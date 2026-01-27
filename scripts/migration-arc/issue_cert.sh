@@ -59,7 +59,7 @@ fi
 CERT_SERIAL="$SERIAL"
 # write NDJSON (try jq first, fallback to migration_log)
 if command -v jq >/dev/null 2>&1; then
-  jq -nc --arg ts "$(date -Iseconds)" --arg step "issue_cert" --arg action "done" --arg pub "$PUBKEY" --arg cert "$OUT_CERT" --arg serial "$CERT_SERIAL" '{ts:$ts,step:$step,action:$action,pubkey:$pub,cert:$cert,serial:$serial}' >> /var/log/migration-arc.ndjson || true
+  jq -nc --arg ts "$(date -Iseconds)" --arg step "issue_cert" --arg action "done" --arg pub "$PUBKEY" --arg cert "$OUT_CERT" --arg serial "$CERT_SERIAL" '{ts:$ts,step:$step,action:$action,pubkey:$pub,cert:$cert,serial:$serial}' >> "${MIGRATION_LOG:-/var/log/migration-arc.ndjson}" || true
 else
   migration_log "step=issue_cert" "action=done" "cert=$OUT_CERT" "serial=$CERT_SERIAL"
 fi
