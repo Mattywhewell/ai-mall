@@ -26,6 +26,13 @@ def write_rejection(device_id, request_file, reason_code, reason_detail, evidenc
             workflow_run = ''
     if not trace_id:
         trace_id = uuid.uuid4().hex
+
+    # enforce permitted severity domain
+    allowed_severities = {'high', 'medium', 'low'}
+    if severity not in allowed_severities:
+        # normalize unknown severity to 'high' for safety
+        severity = 'high'
+
     obj = {
         'ts': ts,
         'action': 'onboarding_reject',

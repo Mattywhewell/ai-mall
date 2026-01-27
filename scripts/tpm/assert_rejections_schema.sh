@@ -21,7 +21,7 @@ for f in "${FILES[@]}"; do
       (has("reason_code") and .reason_code == $expected) and
       (has("reason_detail")) and
       (has("evidence")) and
-      (has("severity") and (.severity|type=="string" and (.severity|length>0))) and
+      (has("severity") and (.severity|type=="string" and (.severity=="high" or .severity=="medium" or .severity=="low"))) and
       (has("actor") and (.actor|type=="string" and (.actor|length>0))) and
       (has("trace_id") and (.trace_id|type=="string" and (.trace_id|length>0)))' >/dev/null 2>&1; then
       FOUND=1
