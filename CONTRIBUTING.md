@@ -45,6 +45,30 @@ A short checklist to keep contributions focused and the CI signal clean:
 - What a clean signal means: all required workflows pass and there are no noisy failing jobs; this is the state we seek before merging.
 - Philosophy: prefer small, reversible PRs, include tests or a short validation note, and re-run the sequencer or validations after making changes that touch introspection or the parser.
 
+## CI Maintainers Checklist — E2E Precheck (quick ritual) ✅
+
+If telemetry or nightly E2E fails, follow this three‑step ritual:
+
+1. Dispatch the precheck
+   - In the GitHub UI: Repository → **Actions** → **Manual E2E Precheck** → **Run workflow**
+   - Or from CLI: `gh workflow run manual-e2e-precheck.yml --ref main`
+
+2. Download the artifact
+   - After the run completes, download the `e2e-precheck` artifact and open `precheck.txt`.
+
+3. Interpret results
+   - Healthy (what you want to see):
+     - `NEXT_PUBLIC_SUPABASE_URL: present`
+     - `NEXT_PUBLIC_SUPABASE_ANON_KEY: present`
+     - `SUPABASE_SERVICE_ROLE_KEY: present`
+     - `Table 'microstores' accessible` (and similar for `products`, `user_roles`)
+     - `Supabase pre-check passed.`
+   - Failing: missing `present` or an inaccessible table means either a missing secret (add `SUPABASE_SERVICE_ROLE_KEY` or the anon key in repo Settings → Secrets), or DB connectivity/schema issues (run migrations or verify Supabase network access).
+
+If the precheck passes but Playwright still times out, download the `telemetry-playwright-report` artifact and Playwright trace and attach them to a new issue with the `ci` label — they provide the diagnostic traces we need.
+
+(Keep this ritual short and high‑signal: it should take ~1–2 minutes to dispatch and obtain a clear answer.)
+
 ## DB Patch Workflow (Introspection → Patch → Validate)
 
 This project follows a lightweight, repeatable workflow for DB changes discovered via introspection:
