@@ -74,7 +74,9 @@ if [ -z "$PRINCIPALS_LINE" ]; then
 fi
 
 # Debug: show the raw principals line for troubleshooting
-echo "DEBUG: PRINCIPALS_LINE=<$PRINCIPALS_LINE>" >&2
+echo "DEBUG: PRINCIPALS_LINE=<$PRINCIPALS_LINE>"
+# Debug raw (show hidden whitespace/control chars)
+printf '%s' "$PRINCIPALS_LINE" | sed -n 'l'
 
 # Split principals on comma and print each on its own line
 # But first, verify TPM-bound principals via attestation verifier.
