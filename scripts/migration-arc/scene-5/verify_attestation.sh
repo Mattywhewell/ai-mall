@@ -47,7 +47,9 @@ RAW_ATT=$(cat "$ATTEST_FILE" 2>/dev/null || true)
 if echo "$RAW_ATT" | jq -c '.' >/dev/null 2>&1; then
   migration_log "step=attestation_verify" "action=info" "device=$DEVICE" "attest_raw=$(echo "$RAW_ATT" | jq -c '.')"
 else
-  migration_log "step=attestation_verify" "action=info" "device=$DEVICE" "attest_raw=<<non-json>>"
+  # When attestation isn't JSON, record raw bytes (base64) so CI can show exact content
+  ATT_RAW_B64=$(base64 -w0 "$ATTEST_FILE" 2>/dev/null || echo "")
+  migration_log "step=attestation_verify" "action=info" "device=$DEVICE" "attest_raw=<<non-json>>" "attest_raw_b64=$ATT_RAW_B64"
 fi
 
 ATT_TYPE=$(jq -r '.type // empty' "$ATTEST_FILE" 2>/dev/null || true)
