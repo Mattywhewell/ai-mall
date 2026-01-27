@@ -40,21 +40,28 @@ fi
 # Use ssh-keygen -s to sign
 ssh-keygen -s "$CA_KEY" -I "alverse-${SERIAL}" -n "$PRINCIPALS" -V "${START}:${END}" -z "$SERIAL" "$PUBKEY"
 
-if [ ! -f "$OUT_CERT" ]; then
-  # ssh-keygen emits <pub>-cert.pub by default; adjust
-  if [ -f "${PUBKEY}-cert.pub" ]; then
-    mv "${PUBKEY}-cert.pub" "$OUT_CERT"
+# ssh-keygen creates <basename>-cert.pub where basename = PUBKEY without trailing .pub
+PUB_BASENAME="${PUBKEY%.pub}"
+DEFAULT_CERT_PATH="${PUB_BASENAME}-cert.pub"
+if [ -f "$DEFAULT_CERT_PATH" ]; then
+  if [ "$OUT_CERT" != "$DEFAULT_CERT_PATH" ]; then
+    mv "$DEFAULT_CERT_PATH" "$OUT_CERT"
   fi
 fi
 
 # Validate certificate exists
 if [ ! -f "$OUT_CERT" ]; then
-  migration_log "step=issue_cert" "action=failed" "reason=cert_not_written"
+  migration_log "step=issue_cert" "action=failed" "reason=cert_not_written" "expected=$OUT_CERT"
   echo "Cert not created" >&2; exit 5
 fi
 
 # Record metadata
 CERT_SERIAL="$SERIAL"
-jq -n --arg ts "$(date -Iseconds)" --arg step "issue_cert" --arg action "done" --arg pub "$PUBKEY" --arg cert "$OUT_CERT" --argserial "$CERT_SERIAL" '{ts:$ts,step:$step,action:$action,pubkey:$pub,cert:$cert,serial:$serial}' >> /var/log/migration-arc.ndjson 2>/dev/null || migration_log "step=issue_cert" "action=done" "cert=$OUT_CERT" "serial=$CERT_SERIAL"
+# write NDJSON (try jq first, fallback to migration_log)
+if command -v jq >/dev/null 2>&1; then
+  jq -nc --arg ts "$(date -Iseconds)" --arg step "issue_cert" --arg action "done" --arg pub "$PUBKEY" --arg cert "$OUT_CERT" --arg serial "$CERT_SERIAL" '{ts:$ts,step:$step,action:$action,pubkey:$pub,cert:$cert,serial:$serial}' >> /var/log/migration-arc.ndjson || true
+else
+  migration_log "step=issue_cert" "action=done" "cert=$OUT_CERT" "serial=$CERT_SERIAL"
+fi
 
 echo "Issued cert: $OUT_CERT (serial=$CERT_SERIAL)"
