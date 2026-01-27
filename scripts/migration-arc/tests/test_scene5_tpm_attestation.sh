@@ -111,8 +111,11 @@ fi
 $(dirname "$0")/../revoke_cert.sh "$TEST_ROOT/user-cert.pub"
 REVOKE_RC=$?
 echo "revoke_cert rc=$REVOKE_RC"
+echo "About to run authorized_principals (revoked) as a protected command"
+set +e
 $(dirname "$0")/../authorized_principals_command.sh "$TEST_ROOT/user-cert.pub" "$TEST_ROOT/etc/ssh/revoked_cert_serials" > "$TEST_ROOT/scene5_tpm_principals_revoked.out" 2> "$TEST_ROOT/scene5_tpm_principals_revoked.err"
 AP_REVOKED_RC=$?
+set -e
 echo "authorized_principals revoked rc=$AP_REVOKED_RC"
 echo "stdout revoked:"; cat "$TEST_ROOT/scene5_tpm_principals_revoked.out" || true
 echo "stderr revoked:"; cat "$TEST_ROOT/scene5_tpm_principals_revoked.err" || true
