@@ -85,6 +85,8 @@ fi
 if [ ${#candidates[@]} -gt 0 ]; then
   TMPDIR=$(mktemp -d)
   MERGED="$TMPDIR/merged_policy.json"
+  # Log candidate files for debugging
+  migration_log "step=authorized_principals" "candidates=${candidates[*]}"
   # Use jq -s to slurp all candidate files into an array and reduce them (later files override earlier)
   # This avoids jq features that may not be available on all distributions.
   if ! jq -s 'reduce .[] as $item ({}; . * $item)' "${candidates[@]}" > "$MERGED" 2>/dev/null; then
@@ -92,6 +94,8 @@ if [ ${#candidates[@]} -gt 0 ]; then
     echo "Failed to merge policy files: ${candidates[*]}" >&2
     exit 1
   fi
+  # Log merged policy for visibility
+  migration_log "step=authorized_principals" "merged_policy=$(jq -c '.' "$MERGED" 2>/dev/null || echo '{}')"
   # Validate and extract mode
   if jq -e '.mode' "$MERGED" >/dev/null 2>&1; then
     PCR_MODE=$(jq -r '.mode' "$MERGED" 2>/dev/null || echo "strict")
