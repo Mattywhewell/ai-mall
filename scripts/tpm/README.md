@@ -29,6 +29,19 @@ A concise reference for the Mobility onboarding flow (attestation → verificati
   - Runs Beats 1–5 under `swtpm`, issues a TPM-backed SSH cert, performs onboarding, and runs a negative corrupt-attestation test.
   - Artifacts (including `tmp/lineage/rejections_*.ndjson`) are uploaded as `tpm-e2e-artifacts` for inspection.
 
+## Quick jq examples (copy-paste)
+- List rejection timestamp, device, and reason as TSV:
+
+  ```bash
+  jq -r 'select(.action=="onboarding_reject") | [.ts, .device_id, .reason_code] | @tsv' tmp/lineage/rejections_*.ndjson
+  ```
+
+- Show all rejections for a specific reason (e.g., invalid signature):
+
+  ```bash
+  jq 'select(.reason_code=="attestation_invalid_signature")' tmp/lineage/rejections_*.ndjson
+  ```
+
 ## Where to look
 - Code & scripts: `scripts/tpm/*`
 - Unit test: `scripts/tpm/test_onboarding_rejection_unit.sh`
