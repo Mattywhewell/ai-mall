@@ -17,6 +17,8 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y -qq swtpm swtpm-tools tpm2-tools jq python3 openssl
           sudo mkdir -p /usr/local/bin || true
+          # Ensure Python deps needed by validator are present
+          python3 -m pip install --upgrade pip pyyaml
 
       - name: Make scripts executable
         run: |

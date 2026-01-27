@@ -19,6 +19,8 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install -y -qq jq python3 openssl
+          # Ensure Python deps needed by validator are present
+          python3 -m pip install --upgrade pip pyyaml
 
       - name: Make scripts executable
         run: |
