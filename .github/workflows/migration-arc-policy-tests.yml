@@ -1,0 +1,46 @@
+name: Migration Arc — Policy Tests
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/migration-arc/**'
+      - '.github/workflows/migration-arc-policy-tests.yml'
+  push:
+    branches:
+      - 'chore/scene5c-add-policy-wiring'
+
+jobs:
+  migration-arc-tests:
+    name: migration-arc tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Ensure test scripts executable
+        run: |
+          chmod +x scripts/migration-arc/tests/*.sh || true
+          chmod +x scripts/migration-arc/authorized_principals_command.sh || true
+
+      - name: Run migration-arc tests
+        run: |
+          set -euo pipefail
+          mkdir -p test-logs
+          echo "Running migration-arc tests..."
+          for f in scripts/migration-arc/tests/*.sh; do
+            echo "=== RUN $f ==="
+            bash -x "$f" > "test-logs/$(basename "$f").log" 2>&1 || { echo "Test failed: $f. See test-logs/$(basename "$f").log"; exit 1; }
+            echo "=== PASS $f ==="
+          done
+          echo "All migration-arc tests passed"
+
+      - name: Upload test logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: migration-arc-test-logs
+          path: test-logs
