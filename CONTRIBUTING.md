@@ -2,6 +2,8 @@
 
 Where to start: See `QUICK_START.md` for a short setup and `docs/INTROSPECTION.md` for DB introspection & patching guidance.
 
+For TPM Mobility onboarding & rejection ritual, see `scripts/tpm/README.md` (quick reproduction, schema, and jq examples).
+
 Thanks for contributing to Aiverse! This document covers quick guidelines for contributing, running tests, and validating CI notifications.
 
 ## Telemetry Notification Test (CI)
