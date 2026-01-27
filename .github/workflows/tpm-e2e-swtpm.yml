@@ -91,6 +91,55 @@ PY
             echo "Certificate signature missing or invalid" >&2; ssh-keygen -L -f "$CERT" || true; exit 1
           fi
 
+      - name: Onboarding request
+        run: |
+          chmod +x scripts/tpm/request_onboarding.sh
+          REQ=$(./scripts/tpm/request_onboarding.sh)
+          echo "Request created: $REQ"
+        env:
+          OUTDIR: tmp
+
+      - name: Onboard service (verify & issue token)
+        run: |
+          python3 scripts/tpm/onboard_service.py "$REQ"
+          # output token file path (last onboarding_issue event contains token_file)
+          TOKEN_FILE=$(ls -1t tmp/onboard_token_*.txt 2>/dev/null | head -n1 || true)
+          if [ -z "$TOKEN_FILE" ]; then echo "No token file created" >&2; exit 1; fi
+          TOKEN=$(cat "$TOKEN_FILE")
+          echo "TOKEN_FILE=$TOKEN_FILE"; echo "TOKEN_LEN=${#TOKEN}";
+        env:
+          OUTDIR: tmp
+
+      - name: Start JWT acceptance server
+        run: |
+          chmod +x scripts/tpm/accept_jwt_server.py
+          python3 scripts/tpm/accept_jwt_server.py &
+          sleep 1
+
+      - name: Use token to access protected endpoint
+        run: |
+          TOKEN_FILE=$(ls -1t tmp/onboard_token_*.txt 2>/dev/null | head -n1 || true)
+          if [ -z "$TOKEN_FILE" ]; then echo "no token" >&2; exit 1; fi
+          TOKEN=$(cat "$TOKEN_FILE")
+          for i in 1 2 3; do
+            HTTP=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8080/validate || true)
+            echo "Attempt $i: HTTP=$HTTP"
+            if [ "$HTTP" = "200" ]; then echo OK; break; fi
+            sleep 1
+          done
+          if [ "$HTTP" != "200" ]; then echo "Protected endpoint access failed" >&2; exit 1; fi
+
+      - name: Upload TPM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tpm-e2e-artifacts
+          path: tmp/**
+
+      - name: Dump small summary
+        run: |
+          echo "--- TMP LIST ---"
+          ls -R tmp | sed -n '1,200p'
+
       - name: Upload TPM artifacts
         uses: actions/upload-artifact@v4
         with:
