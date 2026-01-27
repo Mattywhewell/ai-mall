@@ -73,6 +73,9 @@ if [ -z "$PRINCIPALS_LINE" ]; then
   exit 1
 fi
 
+# Debug: show the raw principals line for troubleshooting
+echo "DEBUG: PRINCIPALS_LINE=<$PRINCIPALS_LINE>" >&2
+
 # Split principals on comma and print each on its own line
 # But first, verify TPM-bound principals via attestation verifier.
 # Any "tpm:<device>" principal must have a matching enrollment (pubkey) and a valid attestation.
@@ -80,6 +83,7 @@ IFS=$'\n'
 VALIDATED_PRINCIPALS=()
 while IFS= read -r p; do
   p_trim=$(echo "$p" | sed 's/^\s*//;s/\s*$//')
+  echo "DEBUG: principal parsed=<$p_trim>" >&2
   if [ -n "$(echo "$p_trim" | grep -E '^tpm:')" ]; then
     # Device principal: tpm:device-id
     DEVICE=${p_trim#tpm:}
