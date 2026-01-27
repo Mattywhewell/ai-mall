@@ -23,6 +23,8 @@ CA_KEY="$CA_KEY" TEST_ROOT="$TEST_ROOT" DURATION=120 $(dirname "$0")/../issue_ce
 # Check authorized principals allows before revoke
 if $(dirname "$0")/../authorized_principals_command.sh "$TEST_ROOT/user-cert.pub" "$TEST_ROOT/etc/ssh/revoked_cert_serials" > "$TEST_ROOT/principals.out" 2>/dev/null; then
   echo "AuthorizedPrincipals returned:"; cat "$TEST_ROOT/principals.out"
+  # Debug dump to surface exact content when CI fails
+  echo "=== PRINCIPALS.OUT START ==="; cat "$TEST_ROOT/principals.out" || true; echo "=== PRINCIPALS.OUT END ==="
   if grep -q "adele" "$TEST_ROOT/principals.out" && grep -q "admin" "$TEST_ROOT/principals.out"; then
     echo "Principals present as expected"
   else
