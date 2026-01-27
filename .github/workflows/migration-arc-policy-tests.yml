@@ -32,12 +32,27 @@ jobs:
           set -euo pipefail
           mkdir -p test-logs
           echo "Running migration-arc tests..."
+          overall_rc=0
           for f in scripts/migration-arc/tests/*.sh; do
             echo "=== RUN $f ==="
-            bash -x "$f" > "test-logs/$(basename "$f").log" 2>&1 || { echo "Test failed: $f. See test-logs/$(basename "$f").log"; exit 1; }
-            echo "=== PASS $f ==="
+            bash -x "$f" > "test-logs/$(basename "$f").log" 2>&1 || rc=$? && rc=${rc:-0}
+            if [ ${rc:-0} -ne 0 ]; then
+              echo "Test failed: $f (rc=$rc). See test-logs/$(basename "$f").log"
+              overall_rc=1
+            else
+              echo "=== PASS $f ==="
+            fi
           done
-          echo "All migration-arc tests passed"
+          echo "All migration-arc tests completed; overall rc=$overall_rc"
+          # Print logs for quick debugging in GH UI
+          echo "---- test logs start ----"
+          for l in test-logs/*.log; do
+            echo "=== $l ==="; sed -n '1,200p' "$l" || true; echo "...";
+          done
+          echo "---- test logs end ----"
+          if [ $overall_rc -ne 0 ]; then
+            exit 1
+          fi
 
       - name: Upload test logs
         uses: actions/upload-artifact@v4

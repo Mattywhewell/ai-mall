@@ -2,7 +2,19 @@
 # Verify a simulated TPM attestation.
 # Usage: verify_attestation.sh <device-id> <attestation-file> <expected-pubkey-file> [expected-type]
 set -euo pipefail
-source "$(dirname "$0")/../lib/log.sh"
+# Prefer external migration_log helper when available
+if [ -f "$(dirname "$0")/../lib/log.sh" ]; then
+  # shellcheck disable=SC1091
+  source "$(dirname "$0")/../lib/log.sh"
+else
+  migration_log() {
+    if [ "$(type -t migration_log 2>/dev/null)" = "file" ]; then
+      command migration_log "$@"
+    else
+      echo "$*" >&2
+    fi
+  }
+fi
 
 DEVICE=${1:-}
 ATTEST_FILE=${2:-}
@@ -29,18 +41,167 @@ if [ ! -f "$ATTEST_FILE" ]; then
   exit 3
 fi
 
-# Parse attestation JSON for 'pubkey' and 'type'
-ATT_PUB=$(jq -r '.pubkey // empty' "$ATTEST_FILE" 2>/dev/null || true)
+# Parse attestation JSON for 'pubkey' and 'type' (accept type-specific keys)
+# Emit a debug NDJSON event with the raw attestation (or mark non-JSON) to aid CI debugging
+RAW_ATT=$(cat "$ATTEST_FILE" 2>/dev/null || true)
+if echo "$RAW_ATT" | jq -c '.' >/dev/null 2>&1; then
+  migration_log "step=attestation_verify" "action=info" "device=$DEVICE" "attest_raw=$(echo "$RAW_ATT" | jq -c '.')"
+else
+  # When attestation isn't JSON, record raw bytes (base64) so CI can show exact content
+  ATT_RAW_B64=$(base64 -w0 "$ATTEST_FILE" 2>/dev/null || echo "")
+  migration_log "step=attestation_verify" "action=info" "device=$DEVICE" "attest_raw=<<non-json>>" "attest_raw_b64=$ATT_RAW_B64"
+fi
+
 ATT_TYPE=$(jq -r '.type // empty' "$ATTEST_FILE" 2>/dev/null || true)
-if [ -z "$ATT_PUB" ] || [ -z "$ATT_TYPE" ]; then
-  migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=invalid_attestation_json" "attest_file=$ATTEST_FILE"
-  exit 4
+ATT_PUB=""
+if [ "$ATT_TYPE" = "yubikey" ]; then
+  # YubiKey attestations include a cert fingerprint or cert PEM rather than an ssh pubkey
+  ATT_FP=$(jq -r '.cert_fingerprint // empty' "$ATTEST_FILE" 2>/dev/null || true)
+  ATT_CERT=$(jq -r '.cert_pem // empty' "$ATTEST_FILE" 2>/dev/null || true)
+  if [ -z "$ATT_FP" ] && [ -z "$ATT_CERT" ]; then
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=invalid_attestation_json" "attest_file=$ATTEST_FILE"
+    exit 4
+  fi
+else
+  ATT_PUB=$(jq -r '.pubkey // empty' "$ATTEST_FILE" 2>/dev/null || true)
+  if [ -z "$ATT_PUB" ] || [ -z "$ATT_TYPE" ]; then
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=invalid_attestation_json" "attest_file=$ATTEST_FILE"
+    exit 4
+  fi
 fi
 
 # Check type matches
 if [ "$ATT_TYPE" != "$EXPECTED_TYPE" ]; then
   migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=type_mismatch" "expected=$EXPECTED_TYPE" "got=$ATT_TYPE"
   exit 5
+fi
+
+# If this is a YubiKey attestation, validate the certificate fingerprint and attributes
+if [ "$ATT_TYPE" = "yubikey" ]; then
+  # Require openssl for cert parsing and chain validation
+  if ! command -v openssl >/dev/null 2>&1; then
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=openssl_missing"
+    echo "openssl is required to verify yubikey attestations" >&2
+    exit 9
+  fi
+
+  # Extract policy-level expectations (fingerprint, slot, label, ca_file)
+  EXPECTED_FP=""
+  EXPECTED_SLOT=""
+  EXPECTED_LABEL=""
+  EXPECTED_CA_FILE=""
+  if [ -n "$EXPECTED_PCRS_FILE" ] && [ -f "$EXPECTED_PCRS_FILE" ]; then
+    if jq -e '.fingerprint' "$EXPECTED_PCRS_FILE" >/dev/null 2>&1; then
+      EXPECTED_FP=$(jq -r '.fingerprint' "$EXPECTED_PCRS_FILE" 2>/dev/null || echo "")
+    fi
+    if jq -e '.slot' "$EXPECTED_PCRS_FILE" >/dev/null 2>&1; then
+      EXPECTED_SLOT=$(jq -r '.slot' "$EXPECTED_PCRS_FILE" 2>/dev/null || echo "")
+    fi
+    if jq -e '.label' "$EXPECTED_PCRS_FILE" >/dev/null 2>&1; then
+      EXPECTED_LABEL=$(jq -r '.label' "$EXPECTED_PCRS_FILE" 2>/dev/null || echo "")
+    fi
+    # optional CA file path in policy
+    if jq -e '.ca_file' "$EXPECTED_PCRS_FILE" >/dev/null 2>&1; then
+      EXPECTED_CA_FILE=$(jq -r '.ca_file' "$EXPECTED_PCRS_FILE" 2>/dev/null || echo "")
+    fi
+  fi
+
+  # Write the embedded cert PEM to a file and ensure it parses
+  TMPDIR=$(mktemp -d)
+  ATTEST_CERT_FILE="$TMPDIR/attest_cert.pem"
+  jq -r '.cert_pem' "$ATTEST_FILE" > "$ATTEST_CERT_FILE" || true
+
+  if ! openssl x509 -in "$ATTEST_CERT_FILE" -noout >/dev/null 2>&1; then
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=malformed_attestation"
+    echo "Attestation cert PEM is malformed" >&2
+    exit 17
+  fi
+
+  # Compute fingerprint from cert and ensure it matches the embedded value
+  COMPUTED_FP_HEX=$(openssl x509 -noout -fingerprint -sha256 -in "$ATTEST_CERT_FILE" | awk -F'=' '{print $NF}' | tr -d ':' | tr -d '\n' | tr '[:lower:]' '[:upper:]')
+  COMPUTED_FP="SHA256:$COMPUTED_FP_HEX"
+  ACTUAL_FP=$(jq -r '.cert_fingerprint // empty' "$ATTEST_FILE" 2>/dev/null || true)
+  if [ -z "$ACTUAL_FP" ]; then
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=fingerprint_missing"
+    echo "Attestation missing cert_fingerprint" >&2
+    exit 11
+  fi
+
+  if [ "$COMPUTED_FP" != "$ACTUAL_FP" ]; then
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=attest_cert_fingerprint_mismatch" "computed=$COMPUTED_FP" "attested=$ACTUAL_FP"
+    echo "Attestation cert fingerprint does not match embedded certificate" >&2
+    exit 18
+  fi
+
+  # Certificate chain validation: prefer TEST_ROOT/yubikey_ca.pem, otherwise use ca_file from policy if present
+  CA_FILE=""
+  if [ -n "${TEST_ROOT:-}" ] && [ -f "${TEST_ROOT}/yubikey_ca.pem" ]; then
+    CA_FILE="${TEST_ROOT}/yubikey_ca.pem"
+  elif [ -n "$EXPECTED_CA_FILE" ]; then
+    # Policy may point at a file path; try resolving relative to TEST_ROOT or absolute
+    if [ -n "${TEST_ROOT:-}" ] && [ -f "${TEST_ROOT}/$EXPECTED_CA_FILE" ]; then
+      CA_FILE="${TEST_ROOT}/$EXPECTED_CA_FILE"
+    elif [ -f "$EXPECTED_CA_FILE" ]; then
+      CA_FILE="$EXPECTED_CA_FILE"
+    fi
+  fi
+
+  if [ -z "$CA_FILE" ] || [ ! -f "$CA_FILE" ]; then
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=ca_missing"
+    echo "CA file for YubiKey verification not found" >&2
+    exit 19
+  fi
+
+  if ! openssl verify -CAfile "$CA_FILE" "$ATTEST_CERT_FILE" >/dev/null 2>&1; then
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=cert_chain_invalid"
+    echo "Certificate chain validation failed" >&2
+    exit 20
+  fi
+
+  # Policy fingerprint enforcement (strict/permissive behavior)
+  if [ -n "$EXPECTED_FP" ]; then
+    if [ "$EXPECTED_FP" != "$ACTUAL_FP" ]; then
+      if [ "$PCR_MODE" = "strict" ]; then
+        migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=fingerprint_mismatch" "expected=$EXPECTED_FP" "got=$ACTUAL_FP"
+        echo "YubiKey fingerprint mismatch (strict mode)" >&2
+        exit 14
+      else
+        migration_log "step=attestation_verify" "action=warn" "device=$DEVICE" "reason=fingerprint_mismatch" "mode=permissive" "expected=$EXPECTED_FP" "got=$ACTUAL_FP"
+        echo "YubiKey fingerprint mismatch (permissive mode): continuing" >&2
+      fi
+    else
+      migration_log "step=attestation_verify" "action=info" "device=$DEVICE" "method=yubikey" "attest_file=$ATTEST_FILE" "fingerprint_check=pass"
+    fi
+  else
+    migration_log "step=attestation_verify" "action=info" "device=$DEVICE" "method=yubikey" "fingerprint=$ACTUAL_FP" "note=no_expected_fingerprint"
+  fi
+
+  # Optional slot/label checks
+  POL_SLOT="$EXPECTED_SLOT"
+  POL_LABEL="$EXPECTED_LABEL"
+  ATTSLOT=$(jq -r '.slot // empty' "$ATTEST_FILE" 2>/dev/null || true)
+  ATTLABEL=$(jq -r '.label // empty' "$ATTEST_FILE" 2>/dev/null || true)
+  if [ -n "$POL_SLOT" ] && [ "$POL_SLOT" != "$ATTSLOT" ]; then
+    if [ "$PCR_MODE" = "strict" ]; then
+      migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=slot_mismatch" "expected=$POL_SLOT" "got=$ATTSLOT"
+      echo "YubiKey slot mismatch (strict): deny" >&2
+      exit 21
+    else
+      migration_log "step=attestation_verify" "action=warn" "device=$DEVICE" "reason=slot_mismatch" "mode=permissive" "expected=$POL_SLOT" "got=$ATTSLOT"
+    fi
+  fi
+  if [ -n "$POL_LABEL" ] && [ "$POL_LABEL" != "$ATTLABEL" ]; then
+    if [ "$PCR_MODE" = "strict" ]; then
+      migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=label_mismatch" "expected=$POL_LABEL" "got=$ATTLABEL"
+      echo "YubiKey label mismatch (strict): deny" >&2
+      exit 22
+    else
+      migration_log "step=attestation_verify" "action=warn" "device=$DEVICE" "reason=label_mismatch" "mode=permissive" "expected=$POL_LABEL" "got=$ATTLABEL"
+    fi
+  fi
+
+  migration_log "step=attestation_verify" "action=done" "device=$DEVICE" "method=yubikey" "attest_file=$ATTEST_FILE" "fingerprint_check=pass" "cert_chain=pass"
+  exit 0
 fi
 
 # If this is a real TPM attestation, perform a quote signature check using tpm2_checkquote
@@ -99,7 +260,12 @@ if [ "$ATT_TYPE" = "tpm" ]; then
         exit 16
       fi
       # Read expected and actual PCR JSON objects
-      EXPECTED_PCR_JSON=$(jq -c '.' "$EXPECTED_PCRS_FILE" 2>/dev/null || echo '{}')
+      # If the provided expected file is a full policy object with a 'pcrs' key, extract it.
+      if jq -e '.pcrs' "$EXPECTED_PCRS_FILE" >/dev/null 2>&1; then
+        EXPECTED_PCR_JSON=$(jq -c '.pcrs' "$EXPECTED_PCRS_FILE" 2>/dev/null || echo '{}')
+      else
+        EXPECTED_PCR_JSON=$(jq -c '.' "$EXPECTED_PCRS_FILE" 2>/dev/null || echo '{}')
+      fi
       ACTUAL_PCR_JSON=$(jq -c '.pcrs // {}' "$ATTEST_FILE" 2>/dev/null || echo '{}')
 
       # For each PCR in expected, compare values

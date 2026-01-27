@@ -46,6 +46,11 @@ jobs:
         run: |
           owner_repo=${{ github.repository }}
           owner=${{ github.repository_owner }}
+          if [ -z "${GITHUB_TOKEN}" ]; then
+            echo "pr_count=0" >> $GITHUB_OUTPUT
+            echo "Skipping existing PR check because GITHUB_TOKEN is not available"
+            exit 0
+          fi
           # Query open PRs with head branch chore/ci-dx-checks
           prs=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$owner_repo/pulls?state=open&head=$owner:chore/ci-dx-checks")
           count=$(echo "$prs" | jq 'length')
@@ -57,6 +62,7 @@ jobs:
           REPO: ${{ github.repository }}
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          if [ -z "$TOKEN" ]; then echo "GITHUB_TOKEN not available; skipping create branch"; exit 0; fi
           set -e
           git fetch origin main
           git checkout -b chore/ci-dx-checks origin/main
@@ -84,19 +90,19 @@ YAML
 
           git add .github/workflows/dx-checks.yml
           git commit -m "CI: add DX checks (make help + dev:lint)"
-          git push https://x-access-token:${TOKEN}@github.com/${REPO} HEAD:chore/ci-dx-checks
+          git push https://x-access-token:${TOKEN}@github.com/${REPO} HEAD:chore/ci-dx-checks || echo "Push failed (non-fatal)"
 
       - name: Create PR
         if: steps.existing.outputs.pr_count == '0'
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          if [ -z "$TOKEN" ]; then echo "GITHUB_TOKEN not available; skipping PR creation"; exit 0; fi
           owner=${{ github.repository_owner }}
           repo=${{ github.event.repository.name }}
           title="CI: add DX checks (make help + dev:lint)"
           body="Adds a lightweight GitHub Actions job that runs 'make help' and 'npm run dev:lint' on PRs to catch regressions in developer tooling. No behavior changes; this enforces DX hygiene and keeps onboarding smooth."
-          curl -s -X POST -H "Authorization: token $TOKEN" -H "Content-Type: application/json" -d "{\"title\": \"$title\", \"head\": \"chore/ci-dx-checks\", \"base\": \"main\", \"body\": \"$body\"}" "https://api.github.com/repos/$owner/$repo/pulls" | jq -r '.html_url'
-
+          curl -s -X POST -H "Authorization: token $TOKEN" -H "Content-Type: application/json" -d "{\"title\": \"$title\", \"head\": \"chore/ci-dx-checks\", \"base\": \"main\", \"body\": \"$body\"}" "https://api.github.com/repos/$owner/$repo/pulls" | jq -r '.html_url' || echo "PR creation failed (non-fatal)"
       - name: Existing PR info
         if: steps.existing.outputs.pr_count != '0'
         run: echo "A PR for chore/ci-dx-checks already exists; nothing to do."

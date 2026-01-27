@@ -1,0 +1,37 @@
+name: Unit Tests (stable)
+
+on:
+  push:
+    branches: [ main, 'chore/*', 'feat/*', 'fix/*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies (CI-safe)
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Run unit tests (stable)
+        env:
+          CI: true
+        run: |
+          echo "Running stable unit tests with resource limits"
+          npm run test:unit:stable
+
+      - name: Upload vitest report (if present)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-report
+          path: ./test-results || true
