@@ -15,3 +15,5 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y openssh-client
       - name: Run migration-arc idempotence smoke test
         run: bash ./scripts/migration-arc/tests/test_idempotence.sh
+      - name: Run migration-arc cert flow test
+        run: bash ./scripts/migration-arc/tests/test_cert_flow.sh
