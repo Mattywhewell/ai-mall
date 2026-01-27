@@ -7,6 +7,7 @@ import { citizenAIService } from './citizen-ai-service';
 import { ritualSystem } from './ritual-system';
 import { eventBus, publishMoodEvent, publishDistrictEvent } from './event-bus';
 import { supabase } from '../supabaseClient';
+import { log as ndLog } from '@/lib/server-ndjson';
 
 export class LivingCityEngine {
   private isRunning = false;
@@ -35,7 +36,7 @@ export class LivingCityEngine {
   async start(): Promise<void> {
     if (this.isRunning) return;
 
-    console.log('🏙️ Starting Living City Engine...');
+    ndLog('info','engine_start',{engine:'LivingCityEngine'});
     this.isRunning = true;
 
     // Start all subsystems
@@ -52,7 +53,7 @@ export class LivingCityEngine {
       this.updateDistrictMoods();
     }, 60000); // Every minute
 
-    console.log('✅ Living City Engine started successfully');
+    ndLog('info','engine_started',{engine:'LivingCityEngine'});
   }
 
   /**
@@ -61,7 +62,7 @@ export class LivingCityEngine {
   stop(): void {
     if (!this.isRunning) return;
 
-    console.log('🛑 Stopping Living City Engine...');
+    ndLog('info','engine_stopping',{engine:'LivingCityEngine'});
     this.isRunning = false;
 
     // Stop all subsystems
@@ -78,7 +79,7 @@ export class LivingCityEngine {
       this.moodUpdateInterval = null;
     }
 
-    console.log('✅ Living City Engine stopped');
+    ndLog('info','engine_stopped',{engine:'LivingCityEngine'});
   }
 
   /**
@@ -121,7 +122,7 @@ export class LivingCityEngine {
       });
 
     } catch (error) {
-      console.error('Error updating city state:', error);
+      ndLog('error','city_state_update_failed',{error: String(error)});
     }
   }
 
@@ -202,7 +203,7 @@ export class LivingCityEngine {
       }
 
     } catch (error) {
-      console.error('Error updating district moods:', error);
+      ndLog('error','district_mood_update_failed',{error: String(error)});
     }
   }
 
@@ -283,7 +284,7 @@ export class LivingCityEngine {
         event.type.startsWith('ritual:') ||
         event.type.startsWith('mood:') ||
         event.type === 'city:state_update') {
-      console.log(`🏙️ Living City Event: ${event.type}`, event.payload);
+      ndLog('info','engine_event',{engine:'LivingCityEngine', event: event.type, payload: event.payload});
     }
   }
 

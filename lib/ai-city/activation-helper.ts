@@ -16,9 +16,11 @@ export function getAIStatus() {
   };
 }
 
+import { log as ndLog } from '@/lib/server-ndjson';
+
 export function requireOpenAI(feature: string) {
   if (!isOpenAIConfigured()) {
-    console.warn(`[AI City] ${feature} requires OpenAI API key. Using fallback.`);
+    ndLog('warn','require_openai',{feature});
     return false;
   }
   return true;
@@ -36,18 +38,9 @@ export function getAIMode(): 'dynamic' | 'static' {
  */
 export function logAIStatus() {
   const status = getAIStatus();
-  console.log('\n🌆 AI CITY SYSTEMS STATUS:');
-  console.log(`  ${status.openAI ? '✅' : '⚠️'} OpenAI: ${status.openAI ? 'Active' : 'Disabled (static fallbacks)'}`);
-  console.log(`  ${status.cronJobs ? '✅' : '⚠️'} Cron Jobs: ${status.cronJobs ? 'Configured' : 'Not configured'}`);
-  console.log(`  ${status.supabase ? '✅' : '❌'} Supabase: ${status.supabase ? 'Connected' : 'Not configured'}`);
-  console.log(`  🎨 Mode: ${getAIMode().toUpperCase()}`);
-  console.log('');
-  
+  ndLog('info','ai_status',{status});
+
   if (!status.openAI) {
-    console.log('💡 To enable dynamic AI:');
-    console.log('   1. Get API key: https://platform.openai.com/api-keys');
-    console.log('   2. Add to .env.local: OPENAI_API_KEY=your_key_here');
-    console.log('   3. Restart dev server');
-    console.log('');
+    ndLog('info','ai_enable_instructions',{steps: ['Get API key: https://platform.openai.com/api-keys','Add to .env.local: OPENAI_API_KEY=your_key_here','Restart dev server']});
   }
 }

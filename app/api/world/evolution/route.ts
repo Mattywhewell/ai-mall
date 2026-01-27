@@ -11,43 +11,47 @@ import {
   aggregateWorldAnalytics
 } from '@/lib/ai-city/world-evolution-jobs';
 import { livingCityEngine } from '@/lib/ai-city/living-city-engine';
+import { log as ndLog, timeAsync } from '@/lib/server-ndjson';
 
 export async function POST(request: NextRequest) {
+  const start = Date.now();
   try {
     const body = await request.json();
     const { job } = body;
+
+    ndLog('info','api_request_start',{route:'world.evolution', job});
 
     let result;
 
     switch (job) {
       case 'street-popularity':
-        console.log('[Evolution API] Running street popularity update...');
-        result = await updateStreetPopularity();
+        ndLog('info','evolution_job_start',{job});
+        result = await timeAsync('updateStreetPopularity', async () => updateStreetPopularity(), { job });
         break;
 
       case 'evolve-spirits':
-        console.log('[Evolution API] Evolving AI spirits...');
-        result = await evolveAISpirits();
+        ndLog('info','evolution_job_start',{job});
+        result = await timeAsync('evolveAISpirits', async () => evolveAISpirits(), { job });
         break;
 
       case 'atmospheric-content':
-        console.log('[Evolution API] Regenerating atmospheric content...');
-        result = await regenerateAtmosphericContent();
+        ndLog('info','evolution_job_start',{job});
+        result = await timeAsync('regenerateAtmosphericContent', async () => regenerateAtmosphericContent(), { job });
         break;
 
       case 'living-city':
-        console.log('[Evolution API] Starting Living City Engine...');
-        await livingCityEngine.start();
+        ndLog('info','evolution_job_start',{job});
+        await timeAsync('livingCityEngine.start', async () => livingCityEngine.start(), { job });
         result = { status: 'started', message: 'Living City Engine activated' };
         break;
 
       case 'all':
-        console.log('[Evolution API] Running all evolution jobs...');
+        ndLog('info','evolution_job_start',{job});
         const results = await Promise.allSettled([
-          updateStreetPopularity(),
-          evolveAISpirits(),
-          regenerateAtmosphericContent(),
-          aggregateWorldAnalytics()
+          timeAsync('updateStreetPopularity', async () => updateStreetPopularity(), { job }),
+          timeAsync('evolveAISpirits', async () => evolveAISpirits(), { job }),
+          timeAsync('regenerateAtmosphericContent', async () => regenerateAtmosphericContent(), { job }),
+          timeAsync('aggregateWorldAnalytics', async () => aggregateWorldAnalytics(), { job })
         ]);
 
         result = {
@@ -59,11 +63,14 @@ export async function POST(request: NextRequest) {
         break;
 
       default:
+        ndLog('warn','evolution_invalid_job',{job});
         return NextResponse.json(
           { error: 'Invalid job type. Use: street-popularity, evolve-spirits, atmospheric-content, analytics, or all' },
           { status: 400 }
         );
     }
+
+    ndLog('info','api_request_end',{route:'world.evolution', job, duration_ms: Date.now()-start, status: 200});
 
     return NextResponse.json({
       success: true,
@@ -73,7 +80,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Evolution API error:', error);
+    ndLog('error','api_request_failed',{route:'world.evolution', error: String(error)});
     return NextResponse.json(
       { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

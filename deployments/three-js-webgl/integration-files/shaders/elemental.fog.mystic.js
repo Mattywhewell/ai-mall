@@ -89,4 +89,4 @@ void main() {
   vec3 color = mix(vec3(0.0), u_tint, fog + particles * 0.2);
 
   gl_FragColor = vec4(color, fog * 0.8);
-}`;
+}`; 

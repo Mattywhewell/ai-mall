@@ -1,0 +1,17 @@
+[Unit]
+Description=AutoSSH reverse tunnel for %i
+After=network.target
+
+[Service]
+User=%i
+Environment="REMOTE_HOST=example-bastion.example.com"
+Environment="REMOTE_PORT=22"
+Environment="LOCAL_PORT=22"
+Environment="REMOTE_USER=bastion"
+Environment="IDENTITY_FILE=/home/%i/.ssh/adele_ed25519"
+ExecStart=/usr/bin/autossh -M 0 -o "ServerAliveInterval 30" -o "ServerAliveCountMax 3" -N -R 0:localhost:${LOCAL_PORT} ${REMOTE_USER}@${REMOTE_HOST} -p ${REMOTE_PORT} -i ${IDENTITY_FILE}
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

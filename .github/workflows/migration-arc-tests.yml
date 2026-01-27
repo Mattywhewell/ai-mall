@@ -1,0 +1,42 @@
+name: Migration Arc - Idempotence Tests
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/migration-arc/**'
+      - 'docs/migration-arc.md'
+
+jobs:
+  idempotence:
+    runs-on: ubuntu-latest
+    env:
+      CI_RUN_SCENE5: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install OpenSSH (ensure ssh-keygen present)
+        run: sudo apt-get update && sudo apt-get install -y openssh-client
+      - name: Run migration-arc idempotence smoke test
+        run: bash ./scripts/migration-arc/tests/test_idempotence.sh
+      - name: Run migration-arc cert flow test
+        run: bash ./scripts/migration-arc/tests/test_cert_flow.sh
+      - name: Run authorized principals (revocation) test
+        run: bash ./scripts/migration-arc/tests/test_authorized_principals.sh
+      - name: Run authorized principals parsing-variant tests
+        run: bash ./scripts/migration-arc/tests/test_authorized_principals_parsing.sh
+      - name: Run Scene 5 hardware tests (opt-in)
+        run: |
+          if [ "${CI_RUN_SCENE5:-false}" = "true" ]; then
+            echo "Scene 5 opt-in enabled: installing dependencies (jq)..."
+            sudo apt-get update && sudo apt-get install -y jq
+            # Guard: ensure jq is present after attempted install, fail fast with clear message if not
+            if ! command -v jq >/dev/null 2>&1; then
+              echo "ERROR: 'jq' is required to run Scene 5 tests but was not found after install. Aborting." >&2
+              exit 1
+            fi
+            bash ./scripts/migration-arc/tests/test_scene5_hardware_integration.sh
+            bash ./scripts/migration-arc/tests/test_scene5_tpm_attestation.sh
+          else
+            echo "Skipping Scene 5 hardware tests (set CI_RUN_SCENE5=true to run real-hardware tests)"
+          fi
+      - name: Run simulated sshd integration test
+        run: bash ./scripts/migration-arc/tests/test_sshd_simulated.sh

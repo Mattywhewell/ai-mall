@@ -10,6 +10,7 @@
 
 import { supabase } from '@/lib/supabaseClient';
 import { getOpenAI } from '../openai';
+import { log as ndLog } from '@/lib/server-ndjson';
 
 interface Product {
   id: string;
@@ -55,7 +56,7 @@ export class CollectionCurator {
       const products = await this.fetchCandidateProducts(theme);
       
       if (products.length < criteria.minProducts) {
-        console.error(`Not enough products found for theme: ${theme.name}`);
+        ndLog('warn','not_enough_products',{theme: theme.name, found: products.length});
         return null;
       }
 
@@ -67,7 +68,7 @@ export class CollectionCurator {
       );
 
       if (selectedProducts.length < criteria.minProducts) {
-        console.error(`AI selected too few products for ${theme.name}`);
+        ndLog('warn','ai_selected_too_few',{theme: theme.name, selected: selectedProducts.length});
         return null;
       }
 
@@ -97,7 +98,7 @@ export class CollectionCurator {
 
       return collectionId;
     } catch (error) {
-      console.error('Error curating collection:', error);
+      ndLog('error','curate_collection_failed',{error: String(error), theme: theme.name});
       return null;
     }
   }
@@ -124,7 +125,7 @@ export class CollectionCurator {
     const { data, error } = await query.limit(50);
 
     if (error) {
-      console.error('Error fetching products:', error);
+      ndLog('error','fetch_products_failed',{error: String(error), theme: theme.name});
       return [];
     }
 
@@ -187,7 +188,7 @@ No explanation, just the array.`;
         .filter(Boolean)
         .slice(0, criteria.maxProducts);
     } catch (error) {
-      console.error('Error in AI selection:', error);
+      ndLog('error','ai_selection_failed',{error: String(error), theme: theme.name});
       // Fallback: select first N products
       return candidates.slice(0, criteria.maxProducts);
     }
@@ -289,7 +290,7 @@ Format as JSON:
         .single();
 
       if (error || !collection) {
-        console.error('Collection not found');
+        ndLog('warn','collection_not_found',{collectionId});
         return false;
       }
 
@@ -298,11 +299,11 @@ Format as JSON:
       
       // If performance is good (>60), keep it. If poor (<40), refresh it.
       if (engagement > 60) {
-        console.log(`Collection ${collection.name} performing well. No refresh needed.`);
+        ndLog('info','collection_performance_ok',{collectionId, collectionName: collection.name, engagement});
         return true;
       }
 
-      console.log(`Refreshing collection ${collection.name} due to low engagement (${engagement})`);
+      ndLog('info','collection_refreshing',{collectionId, collectionName: collection.name, engagement});
 
       // Fetch new candidates
       const theme: CollectionTheme = {
@@ -332,7 +333,7 @@ Format as JSON:
         .eq('id', collectionId);
 
       if (updateError) {
-        console.error('Error updating collection:', updateError);
+        ndLog('error','collection_update_failed',{collectionId, error: String(updateError)});
         return false;
       }
 
@@ -345,7 +346,7 @@ Format as JSON:
 
       return true;
     } catch (error) {
-      console.error('Error refreshing collection:', error);
+      ndLog('error','refresh_collection_failed',{collectionId, error: String(error)});
       return false;
     }
   }
@@ -365,7 +366,7 @@ Format as JSON:
         .limit(100);
 
       if (!userActivity || userActivity.length === 0) {
-        console.log('No user activity found, cannot personalize');
+        ndLog('info','no_user_activity',{userId});
         return null;
       }
 
@@ -423,7 +424,7 @@ Format as JSON:
 
       return collectionId;
     } catch (error) {
-      console.error('Error generating personalized collection:', error);
+      ndLog('error','generate_personalized_collection_failed',{userId, error: String(error)});
       return null;
     }
   }

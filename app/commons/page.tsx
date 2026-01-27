@@ -5,6 +5,7 @@ import '@/lib/patchReactInternals';
 
 import React from 'react';
 import dynamic from 'next/dynamic';
+import { log as ndLog } from '@/lib/client-ndjson';
 
 // Dynamically import the 3D canvas to prevent SSR issues
 const SpatialCanvas = dynamic(() => import('@/components/SpatialCanvas'), { ssr: false });
@@ -37,7 +38,7 @@ class ClientErrorBoundary extends React.Component<{ children: React.ReactNode; f
     return { hasError: true, error };
   }
   componentDidCatch(error: any) {
-    console.error('ClientErrorBoundary caught error in CommonsPage:', error);
+    ndLog('error','client_error_boundary',{location: 'CommonsPage', error: String(error)});
   }
   render() {
     if (this.state.hasError) {
@@ -53,9 +54,9 @@ export default function CommonsPage() {
     <div className="min-h-screen" data-testid="spatial-environment">
       <ClientErrorBoundary fallback={<Fallback3D /> }>
         <SpatialCanvas
-          onDistrictSelect={(district) => console.log('Selected district:', district)}
-          onCitizenInteract={(citizen) => console.log('Interacted with citizen:', citizen)}
-          onShopSelect={(shop) => console.log('Selected shop:', shop)}
+          onDistrictSelect={(district) => ndLog('info','district_selected',{district})}
+          onCitizenInteract={(citizen) => ndLog('info','citizen_interacted',{citizen})}
+          onShopSelect={(shop) => ndLog('info','shop_selected',{shop})}
           fallback={<Fallback3D />}
         />
       </ClientErrorBoundary>

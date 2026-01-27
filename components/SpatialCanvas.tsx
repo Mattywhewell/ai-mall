@@ -2,6 +2,7 @@
 
 import React, { Suspense, useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
+import { log as ndLog } from '@/lib/client-ndjson';
 import { OrbitControls, Html, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import dynamic from 'next/dynamic';
@@ -97,7 +98,7 @@ class ThreeErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error(`Three.js component error in ${this.props.componentName || 'unknown'}:`, error, errorInfo);
+    ndLog('error','three_component_error',{componentName: this.props.componentName || 'unknown', error: String(error), info: String(errorInfo)});
   }
 
   render() {
@@ -213,11 +214,11 @@ export default function SpatialCanvas({ onDistrictSelect, onShopSelect, onCitize
       shadows
       className="w-full h-full"
       onCreated={({ gl }) => {
-        console.log('Three.js canvas created successfully');
+        ndLog('info','three_canvas_created',{});
         gl.setClearColor('#000011');
       }}
       onError={(error) => {
-        console.error('Three.js canvas error:', error);
+        ndLog('error','three_canvas_error',{error: String(error)});
       }}
     >
       {/* Walk Controls - only active in walk mode */}

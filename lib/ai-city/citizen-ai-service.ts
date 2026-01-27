@@ -6,6 +6,7 @@
 import { eventBus, publishCitizenEvent } from './event-bus';
 import { supabaseAdmin } from '../supabaseClient';
 import { callOpenAI } from '../ai/openaiClient';
+import { log as ndLog } from '@/lib/server-ndjson';
 
 export interface CitizenState {
   id: string;
@@ -110,7 +111,7 @@ export class CitizenAIService {
   async start(): Promise<void> {
     if (this.isRunning) return;
 
-    console.log('🚶 Starting Autonomous Citizens v2...');
+    ndLog('info','citizen_service_start',{service:'CitizenAIService'});
     this.isRunning = true;
 
     // Load existing citizens from database
@@ -134,7 +135,7 @@ export class CitizenAIService {
   stop(): void {
     if (!this.isRunning) return;
 
-    console.log('🛑 Stopping Autonomous Citizens v2...');
+    ndLog('info','citizen_service_stopping',{service:'CitizenAIService'});
     this.isRunning = false;
 
     if (this.updateInterval) {
@@ -178,9 +179,9 @@ export class CitizenAIService {
         this.citizens.set(citizen.id, transformedCitizen);
       });
 
-      console.log(`📥 Loaded ${this.citizens.size} citizens from database`);
+      ndLog('info','citizens_loaded',{count: this.citizens.size});
     } catch (error) {
-      console.error('Error loading citizens:', error);
+      ndLog('error','load_citizens_failed',{error: String(error)});
     }
   }
 
@@ -207,7 +208,7 @@ export class CitizenAIService {
     );
 
     await Promise.allSettled(promises);
-    console.log(`💾 Saved ${this.citizens.size} citizens to database`);
+    ndLog('info','citizens_saved',{count: this.citizens.size});
   }
 
   /**
@@ -243,7 +244,7 @@ export class CitizenAIService {
     this.citizens.set(citizen.id, citizen);
 
     // Save to database
-    console.log(`💾 Saving citizen ${citizen.id} to database...`);
+    ndLog('info','saving_citizen',{citizenId: citizen.id});
     const dbCitizen = {
       id: citizen.id,
       name: citizen.name,
@@ -259,7 +260,7 @@ export class CitizenAIService {
       updated_at: citizen.updated_at
     };
     const result = await supabaseAdmin().from('citizen_states').insert(dbCitizen);
-    console.log(`💾 Save result:`, result);
+    ndLog('info','save_result',{citizenId: citizen.id, result});
 
     publishCitizenEvent({
       action: 'spawned',
