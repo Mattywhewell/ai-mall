@@ -5,8 +5,8 @@ set -euo pipefail
 TEST_ROOT=${1:-$(mktemp -d)}
 mkdir -p "$TEST_ROOT/etc/ssh/keys/hardware/attestations" "$TEST_ROOT/etc/ssh/keys/hardware"
 
-# Requirements: tpm2-tools (tpm2_getcap, tpm2_createprimary, tpm2_createak, tpm2_quote, tpm2_checkquote, tpm2_readpublic)
-for cmd in tpm2_getcap tpm2_createprimary tpm2_createak tpm2_quote tpm2_checkquote tpm2_readpublic; do
+# Requirements: tpm2-tools (tpm2_getcap, tpm2_createprimary, tpm2_createak, tpm2_quote, tpm2_checkquote, tpm2_readpublic, tpm2_pcrread)
+for cmd in tpm2_getcap tpm2_createprimary tpm2_createak tpm2_quote tpm2_checkquote tpm2_readpublic tpm2_pcrread; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
     echo "ERROR: required command '$cmd' not found; install tpm2-tools" >&2
     exit 2
@@ -56,13 +56,20 @@ fi
 PCRS="sha256:0,1,2"
 QUOTE_BIN="$TMPDIR/quote.bin"
 QUOTE_SIG="$TMPDIR/quote.sig"
-PCR_OUTPUT="$TMPDIR/pcrs.out"
-# tpm2_quote expects loaded AK handle; some tpm2-tools variants use ctx from createak directly
-if tpm2_quote -c "$AK_CTX" -l "$PCRS" -q "random-nonce" -m "$QUOTE_BIN" -s "$QUOTE_SIG" -o "$PCR_OUTPUT" >/dev/null 2>&1; then
+PCR_JSON="$TMPDIR/pcrs.json"
+# tpm2_quote expects loaded AK handle; tpm2_pcrread will capture PCR values
+if tpm2_quote -c "$AK_CTX" -l "$PCRS" -q "random-nonce" -m "$QUOTE_BIN" -s "$QUOTE_SIG" >/dev/null 2>&1; then
   echo "Quote generated"
 else
   echo "tpm2_quote failed; ensure AK is loadable and tpm2-tools version supports the options used" >&2
   exit 5
+fi
+
+# Capture PCRs into a JSON structure for later verification
+if tpm2_pcrread -g sha256 0 1 2 -o "$PCR_JSON" >/dev/null 2>&1; then
+  echo "Captured PCRs to $PCR_JSON"
+else
+  echo "Warning: tpm2_pcrread failed; PCRs may not be available in the attestation artifact" >&2
 fi
 
 # 6) Convert AK pub to an SSH-format pubkey if possible
@@ -84,10 +91,13 @@ if command -v ssh-keygen >/dev/null 2>&1 && [ -f "$AK_PUB" ]; then
   fi
 fi
 
-# 7) Build attestation artifact (JSON): device, type, pubkey (as string), attestation (base64 quote)
+# 7) Build attestation artifact (JSON): device, type, pubkey (as string), attestation (base64 quote), signature (base64), pcrs (json)
 QUOTE_B64=$(base64 -w0 "$QUOTE_BIN" || base64 "$QUOTE_BIN" | tr -d '\n')
+SIG_B64=$(base64 -w0 "$QUOTE_SIG" || base64 "$QUOTE_SIG" | tr -d '\n')
+PCRS_STR=$( [ -f "$PCR_JSON" ] && jq -c '.' "$PCR_JSON" || echo '{}')
 PUBKEY_STR="$( [ -f "$PUBKEY_FILE" ] && tr -d '\n' < "$PUBKEY_FILE" || echo "(no-ssh-pub-available)" )"
-jq -n --arg device "$DEVICE" --arg type "tpm" --arg pubkey "$PUBKEY_STR" --arg attest "$QUOTE_B64" '{device:$device, type:$type, pubkey:$pubkey, attestation:$attest}' > "$ATTEST_FILE"
+AK_PEM_STR="$( [ -f "$AK_PUB" ] && sed ':a;N;$!ba;s/\n/\\n/g' "$AK_PUB" | sed 's/"/\\\"/g' || echo "")"
+jq -n --arg device "$DEVICE" --arg type "tpm" --arg pubkey "$PUBKEY_STR" --arg attest "$QUOTE_B64" --arg signature "$SIG_B64" --argjson pcrs "$PCRS_STR" --arg ak_pem "$AK_PEM_STR" '{device:$device, type:$type, pubkey:$pubkey, attestation:$attest, signature:$signature, pcrs:$pcrs, ak_pub_pem:$ak_pem}' > "$ATTEST_FILE"
 
 echo "Wrote attestation JSON -> $ATTEST_FILE"
 ls -l "$ATTEST_FILE" "$PUBKEY_FILE" || true

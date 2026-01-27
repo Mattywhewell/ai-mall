@@ -40,6 +40,56 @@ if [ "$ATT_TYPE" != "$EXPECTED_TYPE" ]; then
   exit 5
 fi
 
+# If this is a real TPM attestation, perform a quote signature check using tpm2_checkquote
+if [ "$ATT_TYPE" = "tpm" ]; then
+  # Ensure tpm2_checkquote available
+  if ! command -v tpm2_checkquote >/dev/null 2>&1; then
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=tpm2_checkquote_missing"
+    echo "tpm2_checkquote is required to verify real TPM attestations" >&2
+    exit 10
+  fi
+
+  ATT_QUOTE_B64=$(jq -r '.attestation // empty' "$ATTEST_FILE" || true)
+  ATT_SIG_B64=$(jq -r '.signature // empty' "$ATTEST_FILE" || true)
+  AK_PUB_PEM=$(jq -r '.ak_pub_pem // empty' "$ATTEST_FILE" || true)
+
+  if [ -z "$ATT_QUOTE_B64" ] || [ -z "$ATT_SIG_B64" ]; then
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=missing_quote_or_signature"
+    exit 11
+  fi
+
+  TMPDIR=$(mktemp -d)
+  echo "$ATT_QUOTE_B64" | tr -d '\n' | base64 -d > "$TMPDIR/quote.bin"
+  echo "$ATT_SIG_B64" | tr -d '\n' | base64 -d > "$TMPDIR/sig.bin"
+
+  # Prefer AK pub provided in attestation (PEM). Otherwise try converting the expected pubkey file.
+  AK_PEM_FILE="$TMPDIR/ak.pub.pem"
+  if [ -n "$AK_PUB_PEM" ]; then
+    # jq -r will output real newlines; write it directly
+    jq -r '.ak_pub_pem' "$ATTEST_FILE" > "$AK_PEM_FILE" || true
+  else
+    # Try convert expected pubkey (ssh) to PEM (PKCS8)
+    if ssh-keygen -f "$EXPECTED_PUBKEY_FILE" -e -m PKCS8 > "$AK_PEM_FILE" 2>/dev/null; then
+      echo "Converted expected pubkey to PEM for AK verification"
+    else
+      migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=ak_pub_missing"
+      exit 12
+    fi
+  fi
+
+  # Run tpm2_checkquote against AK pub, quote, and signature
+  if tpm2_checkquote -u "$AK_PEM_FILE" -m "$TMPDIR/quote.bin" -s "$TMPDIR/sig.bin" >/dev/null 2>&1; then
+    migration_log "step=attestation_verify" "action=done" "device=$DEVICE" "method=real_tpm" "attest_file=$ATTEST_FILE"
+    echo "TPM quote signature verified"
+    exit 0
+  else
+    migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=checkquote_failed"
+    echo "tpm2_checkquote failed to verify the quote" >&2
+    exit 13
+  fi
+fi
+
+# Fallback: simulated attestation (existing behavior)
 # Read expected pubkey
 if [ ! -f "$EXPECTED_PUBKEY_FILE" ]; then
   migration_log "step=attestation_verify" "action=failed" "device=$DEVICE" "reason=expected_pubkey_missing" "pubkey_file=$EXPECTED_PUBKEY_FILE"
