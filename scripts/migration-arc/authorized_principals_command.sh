@@ -77,6 +77,9 @@ fi
 echo "DEBUG: PRINCIPALS_LINE=<$PRINCIPALS_LINE>"
 # Debug raw (show hidden whitespace/control chars)
 printf '%s' "$PRINCIPALS_LINE" | sed -n 'l'
+# Debug: show split lines and count
+echo "DEBUG: SPLIT LINES:"; printf '%s' "$PRINCIPALS_LINE" | tr ',' '\n' | sed -n '1,200p'
+echo "DEBUG: SPLIT COUNT:"; printf '%s' "$PRINCIPALS_LINE" | tr ',' '\n' | wc -l
 
 # Split principals on comma and print each on its own line
 # But first, verify TPM-bound principals via attestation verifier.
