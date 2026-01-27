@@ -21,5 +21,12 @@ jobs:
         run: bash ./scripts/migration-arc/tests/test_authorized_principals.sh
       - name: Run authorized principals parsing-variant tests
         run: bash ./scripts/migration-arc/tests/test_authorized_principals_parsing.sh
+      - name: Run Scene 5 hardware tests (opt-in)
+        run: |
+          if [ "${CI_RUN_SCENE5:-false}" = "true" ]; then
+            bash ./scripts/migration-arc/tests/test_scene5_hardware_integration.sh
+          else
+            echo "Skipping Scene 5 hardware tests (set CI_RUN_SCENE5=true to run real-hardware tests)"
+          fi
       - name: Run simulated sshd integration test
         run: bash ./scripts/migration-arc/tests/test_sshd_simulated.sh
