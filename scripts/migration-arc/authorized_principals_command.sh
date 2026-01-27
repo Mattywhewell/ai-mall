@@ -96,9 +96,17 @@ if [ ${#candidates[@]} -gt 0 ]; then
   fi
   # Log merged policy for visibility
   migration_log "step=authorized_principals" "merged_policy=$(jq -c '.' "$MERGED" 2>/dev/null || echo '{}')"
-  # Validate and extract mode
+  # Validate and extract mode (from merged policy by default)
   if jq -e '.mode' "$MERGED" >/dev/null 2>&1; then
     PCR_MODE=$(jq -r '.mode' "$MERGED" 2>/dev/null || echo "strict")
+  fi
+  # Allow TEST-level device policy to explicitly override mode if present (defense-in-depth)
+  if [ -n "${TEST_ROOT:-}" ]; then
+    if [ -f "$TEST_ROOT/etc/ssh/keys/hardware/${DEVICE}.${ATTEST_TYPE}.json" ] && jq -e '.mode' "$TEST_ROOT/etc/ssh/keys/hardware/${DEVICE}.${ATTEST_TYPE}.json" >/dev/null 2>&1; then
+      PCR_MODE=$(jq -r '.mode' "$TEST_ROOT/etc/ssh/keys/hardware/${DEVICE}.${ATTEST_TYPE}.json" 2>/dev/null || echo "$PCR_MODE")
+    elif [ -f "$TEST_ROOT/etc/ssh/keys/hardware/${DEVICE}.json" ] && jq -e '.mode' "$TEST_ROOT/etc/ssh/keys/hardware/${DEVICE}.json" >/dev/null 2>&1; then
+      PCR_MODE=$(jq -r '.mode' "$TEST_ROOT/etc/ssh/keys/hardware/${DEVICE}.json" 2>/dev/null || echo "$PCR_MODE")
+    fi
   fi
   # Write merged to POLICY_FILE path for verifier consumption
   POLICY_FILE="$MERGED"
