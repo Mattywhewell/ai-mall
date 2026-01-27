@@ -1,0 +1,40 @@
+name: TPM E2E (swtpm)
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - main
+
+jobs:
+  tpm-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare environment
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y -qq swtpm swtpm-tools tpm2-tools jq python3 openssl
+          sudo mkdir -p /usr/local/bin || true
+
+      - name: Make scripts executable
+        run: |
+          chmod +x scripts/tpm/*.sh
+
+      - name: Run Beats 1-5 under swtpm
+        run: |
+          ./scripts/tpm/ci_run_beats_1_to_5.sh
+        env:
+          OUTDIR: tmp
+
+      - name: Upload TPM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tpm-e2e-artifacts
+          path: tmp/**
+
+      - name: Dump small summary
+        run: |
+          echo "--- TMP LIST ---"
+          ls -R tmp | sed -n '1,200p'
