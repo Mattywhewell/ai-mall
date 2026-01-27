@@ -18,7 +18,7 @@ jobs:
           echo "NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:+present}" >> precheck.txt
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:+present}" >> precheck.txt
           echo "SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:+present}" >> precheck.txt
-          node scripts/e2e-precheck.js >> precheck.txt 2>&1 || true
+          node scripts/e2e-precheck.js >> precheck.txt 2>&1
           cat precheck.txt
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
