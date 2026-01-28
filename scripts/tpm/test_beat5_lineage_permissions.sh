@@ -2,10 +2,11 @@
 # Fast unit test: ensure beat5 fails when lineage file is unreadable
 set -euo pipefail
 OUTDIR=${OUTDIR:-./tmp}
-mkdir -p "$OUTDIR" "$OUTDIR/lineage"
+POUTDIR="$OUTDIR/perm_$TS"
+mkdir -p "$POUTDIR" "$POUTDIR/lineage"
 TS=$(date -u +"%Y%m%dT%H%M%SZ")
-LINEAGE="$OUTDIR/lineage/device_unit_$TS.full.ndjson"
-ATTEST="$OUTDIR/tpm_attest_$TS.ndjson"
+LINEAGE="$POUTDIR/lineage/device_unit_$TS.full.ndjson"
+ATTEST="$POUTDIR/tpm_attest_$TS.ndjson"
 
 # ensure we clean up the unreadable artifact on exit so other tests are not affected
 trap 'chmod 644 "$LINEAGE" 2>/dev/null || true; rm -f "$LINEAGE" 2>/dev/null || true; rm -f "$ATTEST" 2>/dev/null || true' EXIT
