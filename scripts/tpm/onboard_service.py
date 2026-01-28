@@ -46,12 +46,24 @@ def write_rejection(device_id, request_file, reason_code, reason_detail, evidenc
         'workflow_run': workflow_run,
         'trace_id': trace_id,
     }
-    # persist to ./tmp/lineage/rejections_<ts>.ndjson
+    # persist to ./tmp/lineage/rejections_<ts>.ndjson (append and fsync for durability)
     lineage_dir = Path(OUTDIR) / 'lineage'
     lineage_dir.mkdir(parents=True, exist_ok=True)
     fname = lineage_dir / f"rejections_{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}.ndjson"
-    with open(fname, 'a') as f:
-        f.write(json.dumps(obj) + '\n')
+    data = (json.dumps(obj) + '\n').encode('utf-8')
+    try:
+        with open(fname, 'ab') as f:
+            f.write(data)
+            f.flush()
+            os.fsync(f.fileno())
+    except Exception:
+        # fallback: write a temp file and replace atomically
+        tmpf = lineage_dir / f".rejections_{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}.{uuid.uuid4().hex}.tmp"
+        with open(tmpf, 'wb') as tf:
+            tf.write(data)
+            tf.flush()
+            os.fsync(tf.fileno())
+        os.replace(tmpf, fname)
     emit(obj)
     return str(fname)
 

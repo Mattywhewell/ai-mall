@@ -140,5 +140,9 @@ emit "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"action\":\"identity_registere
 # Final completion event
 emit "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"action\":\"identity_registered\",\"device_id\":\"$DEVICE_ID\",\"status\":\"ok\",\"path\":\"$LINEAGE_FILE\"}"
 
+# ensure canonical lineage artifacts are readable for downstream Beats
+chmod 644 "$LINEAGE_FILE" || true
+chmod 644 "$ARTFILE" || true
+
 printf "Identity lineage registered: device_id=%s path=%s\n" "$DEVICE_ID" "$LINEAGE_FILE" >&2
 exit 0

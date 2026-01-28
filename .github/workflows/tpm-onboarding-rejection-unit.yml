@@ -27,9 +27,38 @@ jobs:
           chmod +x scripts/tpm/*.sh
           chmod +x scripts/tpm/*.py
 
+      - name: Beats preflight check
+        run: |
+          set -euo pipefail
+          echo "Running TPM beats preflight guard"
+          ./scripts/tpm/test_beats_preflight.sh
+        env:
+          OUTDIR: tmp
+
+      - name: Run beat5 lineage permissions test
+        run: |
+          set -euo pipefail
+          echo "Running quick beat5 lineage permissions test"
+          ./scripts/tpm/test_beat5_lineage_permissions.sh
+        env:
+          OUTDIR: tmp
+
+      - name: Run beat5 python-indexerror simulation test
+        run: |
+          set -euo pipefail
+          echo "Running beat5 python IndexError simulation test"
+          SIMULATE_PY_INDEXERROR=1 ./scripts/tpm/test_beat5_python_indexerror.sh
+        env:
+          OUTDIR: tmp
+
       - name: Run unit negative onboarding test
         run: |
           set -euo pipefail
+          echo "PWD: $(pwd)"
+          echo "Listing scripts/tpm:"
+          ls -la scripts/tpm || true
+          echo "Listing scripts:"
+          ls -la scripts || true
           ./scripts/tpm/test_onboarding_rejection_unit.sh
         env:
           OUTDIR: tmp
