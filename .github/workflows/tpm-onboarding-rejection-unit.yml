@@ -35,6 +35,14 @@ jobs:
         env:
           OUTDIR: tmp
 
+      - name: Run beat5 lineage permissions test
+        run: |
+          set -euo pipefail
+          echo "Running quick beat5 lineage permissions test"
+          ./scripts/tpm/test_beat5_lineage_permissions.sh
+        env:
+          OUTDIR: tmp
+
       - name: Run unit negative onboarding test
         run: |
           set -euo pipefail

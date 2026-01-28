@@ -54,6 +54,16 @@ if [ -z "$LINEAGE_FILE" ] || [ -z "$ATTEST_FILE" ]; then
   exit 1
 fi
 
+# Ensure logs are readable before proceeding to avoid executing filenames by mistake
+if [ ! -r "$LINEAGE_FILE" ]; then
+  emit "{\"action\":\"attestation_verify\",\"status\":\"failed\",\"step\":\"lineage_unreadable\",\"error\":\"$LINEAGE_FILE not readable\"}"
+  exit 1
+fi
+if [ ! -r "$ATTEST_FILE" ]; then
+  emit "{\"action\":\"attestation_verify\",\"status\":\"failed\",\"step\":\"attest_unreadable\",\"error\":\"$ATTEST_FILE not readable\"}"
+  exit 1
+fi
+
 emit "{\"action\":\"attestation_verify\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"status\":\"running\",\"lineage\":\"$LINEAGE_FILE\",\"attest\":\"$ATTEST_FILE\"}"
 
 # Extract fields using python
@@ -165,12 +175,16 @@ if [ -n "$POLICY_FILE" ]; then
   # policy JSON is { "sha256": { "0": "HEX", ... } }
   for k in $(python3 - <<PY
 import json,sys
-p=json.load(open('$POLICY_FILE'))
-out=[]
-for bank,vals in p.items():
-  for idx,val in vals.items():
-    out.append(f"{bank}:{idx}:{val}")
-print('\n'.join(out))
+try:
+  p=json.load(open('$POLICY_FILE'))
+  out=[]
+  for bank,vals in p.items():
+    for idx,val in vals.items():
+      out.append(f"{bank}:{idx}:{val}")
+  print('\n'.join(out))
+except Exception:
+  # on any parse error or unexpected structure, emit nothing
+  sys.exit(0)
 PY
 ); do
     bank=${k%%:*}

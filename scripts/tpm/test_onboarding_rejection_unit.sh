@@ -40,6 +40,8 @@ EOF
 cat > "$LINEAGE" <<EOF
 {"action":"identity_registered_full","device_id":"unit-device-$TS","ak_pub_b64":"$AK_PEM_B64"}
 EOF
+# ensure lineage file is readable by the verifier (avoid CI umask surprises)
+chmod 644 "$LINEAGE"
 
 # request file pointing to our attestation & lineage
 cat > "$REQ" <<EOF
