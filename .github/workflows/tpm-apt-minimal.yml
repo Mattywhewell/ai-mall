@@ -1,0 +1,34 @@
+name: TPM Apt Minimal Diagnostic
+
+on:
+  push:
+    branches:
+      - run-tpm-apt-minimal
+
+jobs:
+  diag:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Quick apt diagnostics
+        run: |
+          set -euo pipefail
+          echo "RUNNER: $RUNNER_NAME $(hostname)"
+          echo "DATE: $(date -u)"
+          sudo apt-get update -y
+          echo "--- apt-cache policy libtss2-tcti-libtpms0t64 libtss2-tcti-swtpm0t64 libtpms0t64 ---"
+          apt-cache policy libtss2-tcti-libtpms0t64 libtss2-tcti-swtpm0t64 libtpms0t64 || true
+          echo "--- apt-cache search libtss2 ---"
+          apt-cache search libtss2 | sed -n '1,200p' || true
+          echo "--- apt-cache search libtpms ---"
+          apt-cache search libtpms | sed -n '1,200p' || true
+          echo "Attempting non-fatal install (captures output)"
+          if sudo apt-get install -y libtss2-tcti-libtpms0t64 libtss2-tcti-swtpm0t64 libtpms0t64 > /tmp/apt-install.out 2>&1; then
+            echo "install succeeded"
+            sed -n '1,200p' /tmp/apt-install.out || true
+          else
+            echo "install failed; showing output (partial)"
+            sed -n '1,200p' /tmp/apt-install.out || true
+          fi
