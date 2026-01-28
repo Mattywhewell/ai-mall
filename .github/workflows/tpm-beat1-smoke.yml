@@ -13,11 +13,15 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update -y
-          sudo apt-get install -y -qq swtpm swtpm-tools tpm2-tools \
+          # Run apt install verbosely so failures are visible in logs
+          sudo apt-get install -y swtpm swtpm-tools tpm2-tools \
             libtss2-tcti-libtpms0t64 libtss2-tcti-swtpm0t64 libtss2-tcti-libtpms libtss2-tcti-swtpm \
-            libtpms0t64 libtpms0 jq python3 openssl > tmp/apt-install.out 2>&1 || true
-          echo "--- apt-install (head) ---" > tmp/apt-diagnostic.txt
-          sed -n '1,200p' tmp/apt-install.out >> tmp/apt-diagnostic.txt || true
+            libtpms0t64 libtpms0 jq python3 openssl
+          # Guard chown: only change owner if user/group exists
+          if id -u swtpm >/dev/null 2>&1 && getent group swtpm >/dev/null 2>&1; then
+            sudo mkdir -p /var/lib/swtpm || true
+            sudo chown swtpm:swtpm /var/lib/swtpm || true
+          fi
           python3 -m pip install --upgrade pip pyyaml || true
 
       - name: Make scripts executable
