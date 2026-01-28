@@ -18,6 +18,11 @@ EOF
 # make lineage unreadable
 chmod 000 "$LINEAGE"
 
+# debug diagnostics: show file mode and owner, and the user running the test
+ls -la "$LINEAGE" || true
+stat -c '%a %U %G' "$LINEAGE" || true
+echo "DBG: running as uid=$(id -u) user=$(whoami)" || true
+
 # run verifier and capture output
 set +e
 OUTPUT=$(./scripts/tpm/beat5_verify_attestation.sh --lineage "$LINEAGE" --attest "$ATTEST" 2>&1 || true)

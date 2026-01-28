@@ -54,6 +54,16 @@ if [ -z "$LINEAGE_FILE" ] || [ -z "$ATTEST_FILE" ]; then
   exit 1
 fi
 
+# Debug: emit filesystem diagnostics for readability troubleshooting
+if [ -e "$LINEAGE_FILE" ]; then
+  echo "DBG: lineage exists at $LINEAGE_FILE; stat: $(stat -c '%a %U %G' \"$LINEAGE_FILE\")" >&2
+  echo "DBG: lineage read check: $( [ -r \"$LINEAGE_FILE\" ] && echo 'readable' || echo 'not-readable' )" >&2
+fi
+if [ -e "$ATTEST_FILE" ]; then
+  echo "DBG: attest exists at $ATTEST_FILE; stat: $(stat -c '%a %U %G' \"$ATTEST_FILE\")" >&2
+  echo "DBG: attest read check: $( [ -r \"$ATTEST_FILE\" ] && echo 'readable' || echo 'not-readable' )" >&2
+fi
+
 # Ensure logs are readable before proceeding to avoid executing filenames by mistake
 if [ ! -r "$LINEAGE_FILE" ]; then
   emit "{\"action\":\"attestation_verify\",\"status\":\"failed\",\"step\":\"lineage_unreadable\",\"error\":\"$LINEAGE_FILE not readable\"}"
