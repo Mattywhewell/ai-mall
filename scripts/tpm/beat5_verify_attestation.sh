@@ -56,12 +56,12 @@ fi
 
 # Debug: emit filesystem diagnostics for readability troubleshooting
 if [ -e "$LINEAGE_FILE" ]; then
-  echo "DBG: lineage exists at $LINEAGE_FILE; stat: $(stat -c '%a %U %G' \"$LINEAGE_FILE\")" >&2
-  echo "DBG: lineage read check: $( [ -r \"$LINEAGE_FILE\" ] && echo 'readable' || echo 'not-readable' )" >&2
+  echo "DBG: lineage exists at $LINEAGE_FILE; stat: $(stat -c '%a %U %G' "$LINEAGE_FILE")" >&2
+  echo "DBG: lineage read check: $( [ -r "$LINEAGE_FILE" ] && echo 'readable' || echo 'not-readable' )" >&2
 fi
 if [ -e "$ATTEST_FILE" ]; then
-  echo "DBG: attest exists at $ATTEST_FILE; stat: $(stat -c '%a %U %G' \"$ATTEST_FILE\")" >&2
-  echo "DBG: attest read check: $( [ -r \"$ATTEST_FILE\" ] && echo 'readable' || echo 'not-readable' )" >&2
+  echo "DBG: attest exists at $ATTEST_FILE; stat: $(stat -c '%a %U %G' "$ATTEST_FILE")" >&2
+  echo "DBG: attest read check: $( [ -r "$ATTEST_FILE" ] && echo 'readable' || echo 'not-readable' )" >&2
 fi
 
 # Ensure logs are readable before proceeding to avoid executing filenames by mistake
@@ -76,25 +76,35 @@ fi
 
 emit "{\"action\":\"attestation_verify\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"status\":\"running\",\"lineage\":\"$LINEAGE_FILE\",\"attest\":\"$ATTEST_FILE\"}"
 
-# Extract fields using python
+# Extract fields using python (robust to missing args and can simulate IndexError)
 extract_first_field(){
   local file="$1"; local key="$2"; local match_key="$3"; local match_val="$4"
-  python3 - <<PY
-import json,sys
-f=sys.argv[1]; key=sys.argv[2]; mk=sys.argv[3]; mv=sys.argv[4]
-with open(f) as fh:
-  for line in fh:
-    try:
-      o=json.loads(line)
-    except Exception:
-      continue
-    if mk=="" or (mk in o and (str(o[mk])==mv if mv else True)):
-      if key in o:
-        print(o[key])
-        sys.exit(0)
+  python3 - "$file" "$key" "$match_key" "$match_val" <<'PY'
+import os, json, sys
+# Optional test hook: simulate a Python IndexError when env var set
+if os.environ.get('SIMULATE_PY_INDEXERROR') == '1':
+    raise IndexError('simulated')
+# safe access to argv with defaults
+f = sys.argv[1] if len(sys.argv) > 1 else ''
+key = sys.argv[2] if len(sys.argv) > 2 else ''
+mk = sys.argv[3] if len(sys.argv) > 3 else ''
+mv = sys.argv[4] if len(sys.argv) > 4 else ''
+try:
+    with open(f) as fh:
+        for line in fh:
+            try:
+                o = json.loads(line)
+            except Exception:
+                continue
+            if mk == '' or (mk in o and (str(o.get(mk)) == mv if mv else True)):
+                if key in o:
+                    print(o[key])
+                    sys.exit(0)
+except Exception as e:
+    # Don't let Python exceptions abort the shell; emit debug and return empty
+    print(f"DBG: extract_first_field exception: {e}", file=sys.stderr)
 print("")
 PY
-"$file" "$key" "$match_key" "$match_val"
 }
 
 # Get ak_pub base64 from lineage full or attestation
@@ -183,18 +193,23 @@ if [ -n "$POLICY_FILE" ]; then
   fi
   # read policy JSON
   # policy JSON is { "sha256": { "0": "HEX", ... } }
-  for k in $(python3 - <<PY
+  for k in $(python3 - "$POLICY_FILE" <<'PY'
 import json,sys
+f = sys.argv[1] if len(sys.argv) > 1 else ''
 try:
-  p=json.load(open('$POLICY_FILE'))
-  out=[]
-  for bank,vals in p.items():
-    for idx,val in vals.items():
-      out.append(f"{bank}:{idx}:{val}")
-  print('\n'.join(out))
+  with open(f) as fh:
+    p = json.load(fh)
 except Exception:
-  # on any parse error or unexpected structure, emit nothing
   sys.exit(0)
+out=[]
+try:
+  for bank, vals in p.items():
+    if isinstance(vals, dict):
+      for idx, val in vals.items():
+        out.append(f"{bank}:{idx}:{val}")
+except Exception:
+  sys.exit(0)
+print('\n'.join(out))
 PY
 ); do
     bank=${k%%:*}

@@ -43,6 +43,14 @@ jobs:
         env:
           OUTDIR: tmp
 
+      - name: Run beat5 python-indexerror simulation test
+        run: |
+          set -euo pipefail
+          echo "Running beat5 python IndexError simulation test"
+          SIMULATE_PY_INDEXERROR=1 ./scripts/tpm/test_beat5_python_indexerror.sh
+        env:
+          OUTDIR: tmp
+
       - name: Run unit negative onboarding test
         run: |
           set -euo pipefail
