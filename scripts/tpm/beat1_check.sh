@@ -48,8 +48,14 @@ fi
 
 emit "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"step\":\"tpm_heartbeat\",\"action\":\"start\",\"msg\":\"Running Beat 1 checks\"}"
 
+# Allow an optional TCTI override (useful for CI diagnostics or unusual environments)
+TCTI_ARGS=()
+if [ -n "${TCTI_OVERRIDE:-}" ]; then
+  TCTI_ARGS=( -T "$TCTI_OVERRIDE" )
+fi
+
 # 1) tpm2_getrandom 8
-run_check "tpm2_getrandom" tpm2_getrandom 8
+run_check "tpm2_getrandom" tpm2_getrandom "${TCTI_ARGS[@]}" 8
 
 # 2) properties-fixed (firmware-ish properties)
 run_check "properties-fixed" tpm2_getcap properties-fixed

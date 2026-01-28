@@ -83,12 +83,19 @@ for attempt in $(seq 1 $max_attempts); do
     exit 1
   fi
 
-  if tpm2_getrandom 8 >/dev/null 2>&1; then
+  OUTFILE="$OUTDIR/tpm2_getrandom_attempt_${attempt}.out"
+  # Run tpm2_getrandom explicitly against the swtpm socket and capture output for diagnostics
+  tpm2_getrandom -T "swtpm:socket=$SOCK" 8 >"$OUTFILE" 2>&1
+  rc=$?
+  if [ $rc -eq 0 ]; then
     echo "swtpm responsive (tpm2_getrandom succeeded on attempt $attempt)"
     responsive=1
+    echo "tpm2_getrandom output (first 200 lines):"
+    sed -n '1,200p' "$OUTFILE" || true
     break
   else
-    echo "tpm2_getrandom failed (attempt $attempt/$max_attempts), sleeping 1s..."
+    echo "tpm2_getrandom failed (attempt $attempt/$max_attempts), rc=$rc; captured $OUTFILE"
+    sed -n '1,200p' "$OUTFILE" || true
     sleep 1
   fi
 done
