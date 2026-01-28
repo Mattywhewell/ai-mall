@@ -2,9 +2,9 @@
 # Fast unit test: ensure beat5 fails when lineage file is unreadable
 set -euo pipefail
 OUTDIR=${OUTDIR:-./tmp}
+TS=$(date -u +"%Y%m%dT%H%M%SZ")
 POUTDIR="$OUTDIR/perm_$TS"
 mkdir -p "$POUTDIR" "$POUTDIR/lineage"
-TS=$(date -u +"%Y%m%dT%H%M%SZ")
 LINEAGE="$POUTDIR/lineage/device_unit_$TS.full.ndjson"
 ATTEST="$POUTDIR/tpm_attest_$TS.ndjson"
 
