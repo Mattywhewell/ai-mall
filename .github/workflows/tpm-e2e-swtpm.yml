@@ -26,6 +26,11 @@ jobs:
 
       - name: Run Beats 1-5 under swtpm
         run: |
+          echo "PWD: $(pwd)"
+          echo "Listing scripts/tpm:"
+          ls -la scripts/tpm || true
+          echo "Listing scripts:"
+          ls -la scripts || true
           ./scripts/tpm/ci_run_beats_1_to_5.sh
         env:
           OUTDIR: tmp
