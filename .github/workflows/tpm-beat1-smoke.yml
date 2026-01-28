@@ -64,6 +64,26 @@ jobs:
           export TPM2TOOLS_TCTI="swtpm:socket=$SOCK"
           export TCTI="swtpm:socket=$SOCK"
 
+          # Wait for swtpm responsiveness before running Beat 1 (up to 12 attempts)
+          responsive=0
+          for attempt in $(seq 1 12); do
+            if tpm2_getrandom -T "swtpm:socket=$SOCK" 8 >/tmp/tpm2_getrandom_attempt_${attempt}.out 2>&1; then
+              echo "swtpm responsive (tpm2_getrandom succeeded on attempt $attempt)"
+              responsive=1
+              break
+            else
+              echo "tpm2_getrandom attempt $attempt failed; sleeping and retrying"
+              sleep 1
+            fi
+          done
+          if [ "$responsive" -ne 1 ]; then
+            echo "swtpm did not become responsive" >&2
+            echo "Dumping swtpm log:"
+            sed -n '1,200p' "$OUTDIR/swtpm.log" || true
+            kill $SWTPM_PID || true
+            exit 1
+          fi
+
           ./scripts/tpm/beat1_check.sh || { echo 'Beat1 failed' >&2; sed -n '1,200p' "$OUTDIR/swtpm.log" || true; kill $SWTPM_PID || true; exit 1; }
 
           echo "Stopping swtpm..."
