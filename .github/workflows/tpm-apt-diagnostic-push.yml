@@ -1,7 +1,9 @@
-name: TPM Apt Diagnostic (manual)
+name: TPM Apt Diagnostic (push-trigger)
 
 on:
-  workflow_dispatch: {}
+  push:
+    branches:
+      - run-tpm-apt-diagnostic-now
 
 jobs:
   apt-diagnostic:
