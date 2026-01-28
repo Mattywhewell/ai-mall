@@ -31,6 +31,21 @@ set -e
 
 if [ $RC -eq 0 ]; then
   echo "beat5 unexpectedly succeeded on unreadable lineage file" >&2
+  echo "DEBUG: listing $OUTDIR and lineage directory:" >&2
+  ls -la "$OUTDIR" || true
+  ls -la "$OUTDIR"/lineage || true
+  echo "DEBUG: tpm_verify logs if any:" >&2
+  ls -la "$OUTDIR"/tpm_verify_* 2>/dev/null || true
+  for f in "$OUTDIR"/tpm_verify_*; do
+    if [ -f "$f" ]; then
+      echo "=== $f ===" >&2
+      sed -n '1,200p' "$f" >&2 || true
+    fi
+  done
+  echo "DEBUG: re-running under bash -x to capture trace" >&2
+  set +e
+  bash -x ./scripts/tpm/beat5_verify_attestation.sh --lineage "$LINEAGE" --attest "$ATTEST" 2>&1 || true
+  set -e
   exit 2
 fi
 
