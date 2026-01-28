@@ -52,8 +52,8 @@ jobs:
           # Capture loader messages
           LD_DEBUG=files tpm2_getrandom 8 -T "swtpm:socket=/tmp/swtpm-sock" > tmp/tpm2_getrandom.lddebug 2>&1 || true
           # Use strace to capture open/connect/syscalls (do NOT try to trace 'dlopen' as it's not a syscall)
-          strace -ff -o tmp/tpm2_getrandom.strace -s 200 -e trace=connect,open,openat,stat,statx,read,write,recvmsg,sendmsg,close TSS2_LOG=all tpm2_getrandom 8 -T "swtpm:socket=/tmp/swtpm-sock" > tmp/tpm2_getrandom.out 2>&1 || true
-          TSS2_LOG=all tpm2_getcap -T "swtpm:socket=/tmp/swtpm-sock" properties-fixed > tmp/tpm2_getcap.out 2>&1 || true
+          strace -ff -o tmp/tpm2_getrandom.strace -s 200 -e trace=connect,open,openat,stat,statx,read,write,recvmsg,sendmsg,close -- env TSS2_LOG=all tpm2_getrandom 8 -T "swtpm:socket=/tmp/swtpm-sock" > tmp/tpm2_getrandom.out 2>&1 || true
+          env TSS2_LOG=all tpm2_getcap -T "swtpm:socket=/tmp/swtpm-sock" properties-fixed > tmp/tpm2_getcap.out 2>&1 || true
 
       - name: Collect diagnostics
         run: |
