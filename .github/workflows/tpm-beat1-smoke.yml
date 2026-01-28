@@ -13,15 +13,14 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update -y
-          # Show candidate policies for Jammy and Noble variants
-          apt-cache policy libtss2-tcti-swtpm0 libtss2-tcti-libtpms0 libtpms0 libtss2-tcti-libtpms0t64 libtss2-tcti-swtpm0t64 || true
+          # Show candidate policies for Jammy-provided packages
+          apt-cache policy libtss2-tcti-swtpm0 libtpms0 || true
           apt-cache search libtss2 | sed -n '1,200p' || true
           apt-cache search libtpms | sed -n '1,200p' || true
 
-          # Install Jammy (22.04) names and fallbacks
+          # Install Jammy (22.04) package names only
           sudo apt-get install -y swtpm swtpm-tools tpm2-tools \
-            libtss2-tcti-swtpm0 libtss2-tcti-libtpms0 libtpms0 \
-            libtss2-tcti-libtpms0t64 libtss2-tcti-swtpm0t64 jq python3 openssl
+            libtss2-tcti-swtpm0 libtpms0 jq python3 openssl
 
           # Guard chown: only change owner if user/group exists
           if id -u swtpm >/dev/null 2>&1 && getent group swtpm >/dev/null 2>&1; then
