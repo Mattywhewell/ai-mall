@@ -25,7 +25,7 @@ echo "DBG: running as uid=$(id -u) user=$(whoami)" || true
 
 # run verifier and capture output
 set +e
-OUTPUT=$(./scripts/tpm/beat5_verify_attestation.sh --lineage "$LINEAGE" --attest "$ATTEST" 2>&1 || true)
+OUTPUT=$(./scripts/tpm/beat5_verify_attestation.sh --lineage "$LINEAGE" --attest "$ATTEST" 2>&1)
 RC=$?
 set -e
 
