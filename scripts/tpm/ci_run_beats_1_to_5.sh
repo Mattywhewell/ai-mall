@@ -13,18 +13,43 @@ CTRL="/tmp/swtpm-ctrl"
 rm -rf "$STATE_DIR"
 mkdir -p "$STATE_DIR"
 
-# Start swtpm socket
+# Start swtpm socket (redirect logs)
 echo "Starting swtpm socket (state dir=$STATE_DIR)"
-swtpm socket --tpmstate dir="$STATE_DIR" --ctrl type=unixio,path=$CTRL --server type=unixio,path=$SOCK --log level=20 &
+mkdir -p "$OUTDIR"
+swtpm socket --tpmstate dir="$STATE_DIR" --ctrl type=unixio,path=$CTRL --server type=unixio,path=$SOCK --log level=20 > "$OUTDIR/swtpm.log" 2>&1 &
 SWTPM_PID=$!
 
-# Wait for socket
+# Wait for socket file to appear (up to ~15s)
 for i in {1..30}; do
   if [ -e "$SOCK" ]; then break; fi
   sleep 0.5
 done
 if [ ! -e "$SOCK" ]; then
   echo "swtpm socket did not create socket at $SOCK" >&2
+  echo "Dumping swtpm log ($OUTDIR/swtpm.log):" >&2
+  sed -n '1,200p' "$OUTDIR/swtpm.log" >&2 || true
+  kill $SWTPM_PID || true
+  exit 1
+fi
+
+# Verify swtpm is responsive by running tpm2_getrandom in a retry loop
+echo "Checking swtpm responsiveness with tpm2_getrandom..."
+responsive=0
+max_attempts=6
+for attempt in $(seq 1 $max_attempts); do
+  if tpm2_getrandom 8 >/dev/null 2>&1; then
+    echo "swtpm responsive (tpm2_getrandom succeeded on attempt $attempt)"
+    responsive=1
+    break
+  else
+    echo "tpm2_getrandom failed (attempt $attempt/$max_attempts), sleeping 1s..."
+    sleep 1
+  fi
+done
+if [ "$responsive" -ne 1 ]; then
+  echo "swtpm did not become responsive after $max_attempts attempts" >&2
+  echo "Dumping swtpm log ($OUTDIR/swtpm.log):" >&2
+  sed -n '1,200p' "$OUTDIR/swtpm.log" >&2 || true
   kill $SWTPM_PID || true
   exit 1
 fi
