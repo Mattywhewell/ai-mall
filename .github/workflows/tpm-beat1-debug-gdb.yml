@@ -1,0 +1,90 @@
+name: TPM Beat1 debug (gdb backtrace)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  debug-gdb:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y swtpm swtpm-tools tpm2-tools libtss2-tcti-swtpm0 libtpms0 gdb build-essential jq python3 || true
+
+      - name: Prepare directories
+        run: |
+          mkdir -p tmp/swtpm-state
+          rm -f /tmp/swtpm-sock /tmp/swtpm-ctrl || true
+          chmod +x scripts/tpm/*.sh || true
+
+      - name: Start swtpm
+        run: |
+          set -eu
+          STRACE_OUT=tmp/swtpm.strace
+          SWTPM_LOG=tmp/swtpm.log
+          SOCK=/tmp/swtpm-sock
+          CTRL=/tmp/swtpm-ctrl
+          STATE_DIR=tmp/swtpm-state
+
+          echo "Starting swtpm"
+          swtpm socket --tpmstate dir="$STATE_DIR" --ctrl type=unixio,path="$CTRL" --server type=unixio,path="$SOCK" --log level=20 > "$SWTPM_LOG" 2>&1 &
+          SWTPM_PID=$!
+          echo "$SWTPM_PID" > tmp/swtpm.pid
+
+          # Wait for socket
+          for i in {1..30}; do
+            if [ -e "$SOCK" ]; then break; fi
+            sleep 1
+          done
+
+          echo "swtpm pid:$SWTPM_PID socket_exists: $( [ -e "$SOCK" ] && echo yes || echo no )"
+          ss -lx | sed -n '1,200p' || true
+
+      - name: Run tpm2_getrandom under gdb and capture backtrace
+        run: |
+          set -eu
+          export TPM2TOOLS_TCTI="swtpm:socket=/tmp/swtpm-sock"
+
+          # Run gdb in batch mode, breakpoint on TCTI init functions and capture backtrace + threads
+          gdb --batch -nx \
+            -ex "set pagination off" \
+            -ex "set logging file tmp/gdb.out" \
+            -ex "set logging on" \
+            -ex "break Tss2_TctiLdr_Initialize_Ex" \
+            -ex "break tcti_from_file" \
+            -ex "run 8 -T 'swtpm:socket=/tmp/swtpm-sock'" \
+            -ex "bt full" \
+            -ex "info threads" \
+            -ex "thread apply all bt full" \
+            -ex "quit" \
+            --args tpm2_getrandom 8 -T "swtpm:socket=/tmp/swtpm-sock" || true
+
+          # Also run a normal tpm2_getrandom to capture TSS logs
+          TSS2_LOG=all tpm2_getrandom 8 -T "swtpm:socket=/tmp/swtpm-sock" > tmp/tpm2_getrandom.out 2>&1 || true
+          TSS2_LOG=all tpm2_getcap -T "swtpm:socket=/tmp/swtpm-sock" properties-fixed > tmp/tpm2_getcap.out 2>&1 || true
+
+      - name: Collect diagnostics
+        run: |
+          ls -l tmp > tmp/ls.txt || true
+          ss -lx > tmp/ss.txt || true
+          lsof -U > tmp/lsof-uds.txt || true
+          ps aux > tmp/ps.txt || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tpm-gdb-debug
+          path: |
+            tmp/gdb.out
+            tmp/tpm2_getrandom.out
+            tmp/tpm2_getcap.out
+            tmp/ls.txt
+            tmp/ss.txt
+            tmp/lsof-uds.txt
+            tmp/ps.txt
+            tmp/swtpm.log
+            tmp/swtpm.pid
