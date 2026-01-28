@@ -30,6 +30,11 @@ jobs:
       - name: Run unit negative onboarding test
         run: |
           set -euo pipefail
+          echo "PWD: $(pwd)"
+          echo "Listing scripts/tpm:"
+          ls -la scripts/tpm || true
+          echo "Listing scripts:"
+          ls -la scripts || true
           ./scripts/tpm/test_onboarding_rejection_unit.sh
         env:
           OUTDIR: tmp
