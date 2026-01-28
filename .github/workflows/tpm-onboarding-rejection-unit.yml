@@ -27,6 +27,14 @@ jobs:
           chmod +x scripts/tpm/*.sh
           chmod +x scripts/tpm/*.py
 
+      - name: Beats preflight check
+        run: |
+          set -euo pipefail
+          echo "Running TPM beats preflight guard"
+          ./scripts/tpm/test_beats_preflight.sh
+        env:
+          OUTDIR: tmp
+
       - name: Run unit negative onboarding test
         run: |
           set -euo pipefail
