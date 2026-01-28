@@ -7,6 +7,9 @@ TS=$(date -u +"%Y%m%dT%H%M%SZ")
 LINEAGE="$OUTDIR/lineage/device_unit_$TS.full.ndjson"
 ATTEST="$OUTDIR/tpm_attest_$TS.ndjson"
 
+# ensure we clean up the unreadable artifact on exit so other tests are not affected
+trap 'chmod 644 "$LINEAGE" 2>/dev/null || true; rm -f "$LINEAGE" 2>/dev/null || true; rm -f "$ATTEST" 2>/dev/null || true' EXIT
+
 # create minimal files
 cat > "$LINEAGE" <<EOF
 {"action":"identity_registered_full","device_id":"unit-device-$TS","ak_pub_b64":"AAA"}
