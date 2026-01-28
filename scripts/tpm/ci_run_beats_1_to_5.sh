@@ -59,6 +59,9 @@ fi
 
 # Verify swtpm is responsive by running tpm2_getrandom in a retry loop
 # Enhanced: check PID liveliness each attempt; longer window (12 attempts)
+# Ensure tpm2-tools talks to this swtpm instance via socket for the responsive check
+export TPM2TOOLS_TCTI="swtpm:socket=$SOCK"
+export TCTI="swtpm:socket=$SOCK"
 echo "Checking swtpm responsiveness with tpm2_getrandom (up to 12 attempts)..."
 responsive=0
 max_attempts=12
