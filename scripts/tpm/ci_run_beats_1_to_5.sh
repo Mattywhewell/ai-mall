@@ -85,8 +85,11 @@ for attempt in $(seq 1 $max_attempts); do
 
   OUTFILE="$OUTDIR/tpm2_getrandom_attempt_${attempt}.out"
   # Run tpm2_getrandom explicitly against the swtpm socket and capture output for diagnostics
-  tpm2_getrandom -T "swtpm:socket=$SOCK" 8 >"$OUTFILE" 2>&1
-  rc=$?
+  if tpm2_getrandom -T "swtpm:socket=$SOCK" 8 >"$OUTFILE" 2>&1; then
+    rc=0
+  else
+    rc=$?
+  fi
   if [ $rc -eq 0 ]; then
     echo "swtpm responsive (tpm2_getrandom succeeded on attempt $attempt)"
     responsive=1
