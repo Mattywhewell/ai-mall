@@ -30,3 +30,32 @@ jobs:
         with:
           name: e2e-precheck
           path: precheck.txt
+
+      - name: TPM apt diagnostic (quick runner check) 🔧
+        run: |
+          set -euo pipefail
+          mkdir -p tmp
+          echo "RUNNER: $RUNNER_NAME $(hostname)" > tmp/apt-diagnostic.txt
+          echo "DATE: $(date -u)" >> tmp/apt-diagnostic.txt
+          echo "--- apt-get update (head) ---" >> tmp/apt-diagnostic.txt
+          sudo apt-get update -y > tmp/apt-update.out 2>&1 || true
+          sed -n '1,200p' tmp/apt-update.out >> tmp/apt-diagnostic.txt || true
+          echo "--- apt-cache policy libtss2-tcti-libtpms ---" >> tmp/apt-diagnostic.txt
+          apt-cache policy libtss2-tcti-libtpms >> tmp/apt-diagnostic.txt || true
+          echo "--- apt-cache policy libtpms ---" >> tmp/apt-diagnostic.txt
+          apt-cache policy libtpms >> tmp/apt-diagnostic.txt || true
+          echo "--- apt-cache search libtss2-tcti ---" >> tmp/apt-diagnostic.txt
+          apt-cache search libtss2-tcti | sed -n '1,200p' >> tmp/apt-diagnostic.txt || true
+          echo "Attempting to install packages (capturing output)" >> tmp/apt-diagnostic.txt
+          if sudo apt-get install -y libtss2-tcti-libtpms libtpms > tmp/apt-install.out 2>&1; then
+            echo "install succeeded" >> tmp/apt-diagnostic.txt
+          else
+            echo "install failed" >> tmp/apt-diagnostic.txt
+          fi
+          sed -n '1,200p' tmp/apt-install.out >> tmp/apt-diagnostic.txt || true
+
+      - name: Upload TPM apt diagnostic artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tpm-apt-diagnostic
+          path: tmp/apt-diagnostic.txt
