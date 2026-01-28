@@ -59,6 +59,13 @@ fi
 
 # Verify swtpm is responsive by running tpm2_getrandom in a retry loop
 # Enhanced: check PID liveliness each attempt; longer window (12 attempts)
+# Ensure tpm2-tools talks to this swtpm instance via socket for the responsive check
+# Primary preferred TCTI and a safe fallback if plugin is not available
+TCTI_PRIMARY="swtpm:socket=$SOCK"
+TCTI_FALLBACK="libtpms:socket=$SOCK"
+TCTI_CURRENT="$TCTI_PRIMARY"
+export TPM2TOOLS_TCTI="$TCTI_CURRENT"
+export TCTI="$TCTI_CURRENT"
 echo "Checking swtpm responsiveness with tpm2_getrandom (up to 12 attempts)..."
 responsive=0
 max_attempts=12
@@ -80,12 +87,33 @@ for attempt in $(seq 1 $max_attempts); do
     exit 1
   fi
 
-  if tpm2_getrandom 8 >/dev/null 2>&1; then
+  OUTFILE="$OUTDIR/tpm2_getrandom_attempt_${attempt}.out"
+  # Run tpm2_getrandom explicitly against the swtpm socket and capture output for diagnostics
+  if tpm2_getrandom -T "swtpm:socket=$SOCK" 8 >"$OUTFILE" 2>&1; then
+    rc=0
+  else
+    rc=$?
+  fi
+  if [ $rc -eq 0 ]; then
     echo "swtpm responsive (tpm2_getrandom succeeded on attempt $attempt)"
     responsive=1
+    echo "tpm2_getrandom output (first 200 lines):"
+    sed -n '1,200p' "$OUTFILE" || true
     break
   else
-    echo "tpm2_getrandom failed (attempt $attempt/$max_attempts), sleeping 1s..."
+    echo "tpm2_getrandom failed (attempt $attempt/$max_attempts), rc=$rc; captured $OUTFILE"
+    sed -n '1,200p' "$OUTFILE" || true
+
+    # If failure indicates missing TCTI plugin, try fallback TCTI and retry the same attempt
+    if grep -q "Could not load tcti" "$OUTFILE" && [ "$TCTI_CURRENT" != "$TCTI_FALLBACK" ]; then
+      echo "Detected missing TCTI plugin for '$TCTI_CURRENT' — switching to fallback '$TCTI_FALLBACK' and retrying"
+      TCTI_CURRENT="$TCTI_FALLBACK"
+      export TPM2TOOLS_TCTI="$TCTI_CURRENT"
+      export TCTI="$TCTI_CURRENT"
+      # retry immediately (do not sleep) by continuing the loop
+      continue
+    fi
+
     sleep 1
   fi
 done

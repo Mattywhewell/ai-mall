@@ -1,0 +1,60 @@
+name: TPM Apt Diagnostic
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  apt-diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Gather runner & apt sources
+        run: |
+          set -euo pipefail
+          mkdir -p tmp
+          echo "RUNNER: $RUNNER_NAME $(hostname)" > tmp/apt-diagnostic.txt
+          echo "DATE: $(date -u)" >> tmp/apt-diagnostic.txt
+          echo "LSB Release:" >> tmp/apt-diagnostic.txt
+          lsb_release -a 2>&1 | sed -n '1,200p' >> tmp/apt-diagnostic.txt || true
+          echo "uname -a:" >> tmp/apt-diagnostic.txt
+          uname -a >> tmp/apt-diagnostic.txt
+          echo "--- /etc/apt/sources.list ---" >> tmp/apt-diagnostic.txt
+          sed -n '1,200p' /etc/apt/sources.list >> tmp/apt-diagnostic.txt || true
+          echo "--- /etc/apt/sources.list.d/ ---" >> tmp/apt-diagnostic.txt
+          ls -la /etc/apt/sources.list.d >> tmp/apt-diagnostic.txt || true
+
+      - name: apt update & search for packages
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y > tmp/apt-update.out 2>&1 || true
+          echo "--- apt-get update (head) ---" >> tmp/apt-diagnostic.txt
+          sed -n '1,200p' tmp/apt-update.out >> tmp/apt-diagnostic.txt || true
+          echo "--- apt-cache policy libtss2-tcti-libtpms ---" >> tmp/apt-diagnostic.txt
+          apt-cache policy libtss2-tcti-libtpms >> tmp/apt-diagnostic.txt || true
+          echo "--- apt-cache policy libtpms ---" >> tmp/apt-diagnostic.txt
+          apt-cache policy libtpms >> tmp/apt-diagnostic.txt || true
+          echo "--- apt-cache search libtss2-tcti ---" >> tmp/apt-diagnostic.txt
+          apt-cache search libtss2-tcti | sed -n '1,200p' >> tmp/apt-diagnostic.txt || true
+
+      - name: Try install packages (verbose)
+        run: |
+          set -euo pipefail
+          echo "Attempting to install packages (capturing output)" >> tmp/apt-diagnostic.txt
+          if sudo apt-get install -y libtss2-tcti-libtpms libtpms > tmp/apt-install.out 2>&1; then
+            echo "install succeeded" >> tmp/apt-diagnostic.txt
+          else
+            echo "install failed" >> tmp/apt-diagnostic.txt
+          fi
+          sed -n '1,200p' tmp/apt-install.out >> tmp/apt-diagnostic.txt || true
+          echo "--- dpkg -l | egrep 'libtss2|libtpms' ---" >> tmp/apt-diagnostic.txt
+          dpkg -l | egrep 'libtss2|libtpms' >> tmp/apt-diagnostic.txt || true
+
+      - name: Upload diagnostic artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tpm-apt-diagnostic
+          path: tmp/apt-diagnostic.txt
+
+      - name: Finish
+        run: echo "Diagnostic complete; artifact uploaded: tpm-apt-diagnostic"
