@@ -1,0 +1,86 @@
+name: TPM SWTpm Debug (strace)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  swtpm-debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare environment
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends swtpm swtpm-tools tpm2-tools strace jq
+          python3 -m pip install --upgrade pip || true
+
+      - name: Run swtpm under strace for diagnostics
+        run: |
+          set -euo pipefail
+          OUTDIR="tmp"
+          mkdir -p "$OUTDIR"
+          STATE_DIR="$OUTDIR/swtpm-state"
+          SOCK="/tmp/swtpm-sock"
+          CTRL="/tmp/swtpm-ctrl"
+
+          echo "Ensuring /var/lib/swtpm exists and owned by swtpm"
+          sudo mkdir -p /var/lib/swtpm || true
+          sudo chown swtpm:swtpm /var/lib/swtpm || true
+
+          echo "Starting swtpm under strace (stdout/stderr -> $OUTDIR/swtpm.log)"
+          # run strace, follow forks (-ff), output files prefixed
+          strace -ff -o "$OUTDIR/swtpm.strace" swtpm socket --tpmstate dir="$STATE_DIR" --ctrl type=unixio,path=$CTRL --server type=unixio,path=$SOCK --log level=20 > "$OUTDIR/swtpm.log" 2>&1 &
+          SWTPM_PID=$!
+          echo "swtpm pid=$SWTPM_PID"
+
+          # wait briefly for process to initialize
+          sleep 5
+
+          # check if alive
+          if ps -p $SWTPM_PID >/dev/null 2>&1; then
+            echo "swtpm (pid $SWTPM_PID) still running after 5s"
+            # give it a moment for socket
+            for i in 1 2 3; do
+              if [ -e "$SOCK" ]; then
+                echo "Socket present: $SOCK"
+                break
+              fi
+              sleep 1
+            done
+            if [ ! -e "$SOCK" ]; then
+              echo "Socket still missing after wait"
+            fi
+            # capture ps and ss
+            echo "PS output:"; ps -ef | sed -n '1,200p'
+            echo "SS unix sockets:"; ss -lx | sed -n '1,200p'
+            # kill it cleanly
+            kill $SWTPM_PID || true
+            sleep 1
+            if ps -p $SWTPM_PID >/dev/null 2>&1; then
+              echo "swtpm did not die from kill; killing -9"; kill -9 $SWTPM_PID || true
+            fi
+          else
+            echo "swtpm (pid $SWTPM_PID) is not running; capturing exit status if available"
+            # try to get exit code
+            if wait $SWTPM_PID 2>/dev/null; then
+              echo "swtpm exit code: $?"
+            else
+              echo "swtpm exit code not available (may have been reaped)"
+            fi
+            echo "Dumping ps and ss for diagnostics"; ps -ef | sed -n '1,200p'; ss -lx | sed -n '1,200p'
+          fi
+
+          echo "Dumping swtpm.log (first 200 lines)"
+          sed -n '1,200p' "$OUTDIR/swtpm.log" || true
+          echo "Listing strace files:"; ls -la "$OUTDIR"/swtpm.strace* || true
+          for f in "$OUTDIR"/swtpm.strace*; do
+            echo "--- strace file: $f (head 200 lines) ---" || true
+            sed -n '1,200p' "$f" || true
+          done
+
+      - name: Upload diagnostics artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: swtpm-debug-artifacts
+          path: tmp/**
