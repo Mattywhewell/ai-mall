@@ -13,10 +13,13 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update -y
-          # Run apt install verbosely so failures are visible in logs
-          sudo apt-get install -y swtpm swtpm-tools tpm2-tools \
-            libtss2-tcti-libtpms0t64 libtss2-tcti-swtpm0t64 libtss2-tcti-libtpms libtss2-tcti-swtpm \
-            libtpms0t64 libtpms0 jq python3 openssl
+          # Show candidate policies for target packages
+          apt-cache policy libtss2-tcti-libtpms0t64 libtss2-tcti-swtpm0t64 libtpms0 libtpms0t64 || true
+          apt-cache search libtpms | sed -n '1,200p' || true
+
+          # Install the exact 0t64 TCTI packages (these were present on runner)
+          sudo apt-get install -y swtpm swtpm-tools tpm2-tools libtss2-tcti-libtpms0t64 libtss2-tcti-swtpm0t64 jq python3 openssl
+
           # Guard chown: only change owner if user/group exists
           if id -u swtpm >/dev/null 2>&1 && getent group swtpm >/dev/null 2>&1; then
             sudo mkdir -p /var/lib/swtpm || true
