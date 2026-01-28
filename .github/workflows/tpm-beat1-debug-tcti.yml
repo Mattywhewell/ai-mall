@@ -1,0 +1,80 @@
+name: TPM Beat1 debug (tcti-strace)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  debug-tcti:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y swtpm swtpm-tools tpm2-tools libtss2-tcti-swtpm0 libtpms0 strace jq python3 || true
+
+      - name: Prepare directories
+        run: |
+          mkdir -p tmp/swtpm-state
+          rm -f /tmp/swtpm-sock /tmp/swtpm-ctrl || true
+
+      - name: Start swtpm (no strace)
+        run: |
+          set -eu
+          SWTPM_LOG=tmp/swtpm.log
+          SOCK=/tmp/swtpm-sock
+          CTRL=/tmp/swtpm-ctrl
+          STATE_DIR=tmp/swtpm-state
+
+          swtpm socket --tpmstate dir="$STATE_DIR" --ctrl type=unixio,path="$CTRL" --server type=unixio,path="$SOCK" --log level=20 > "$SWTPM_LOG" 2>&1 &
+          SWTPM_PID=$!
+          echo "$SWTPM_PID" > tmp/swtpm.pid
+
+          for i in {1..20}; do
+            if [ -e "$SOCK" ]; then break; fi
+            sleep 1
+          done
+
+          echo "swtpm pid:$SWTPM_PID socket_exists: $( [ -e "$SOCK" ] && echo yes || echo no )"
+          ss -lx | sed -n '1,200p' || true
+
+      - name: Inspect TSS2 libs and binary deps
+        run: |
+          ldconfig -p | grep tss2 || true > tmp/ldconfig-tss2.txt
+          ls -l /usr/lib/*/libtss2* /usr/lib/*/tcti* 2>/dev/null || true > tmp/libtss2-list.txt
+          which tpm2_getrandom || true > tmp/which-tpm2_getrandom.txt
+          ldd $(which tpm2_getrandom) || true > tmp/tpm2_getrandom.ldd || true
+
+      - name: Strace tpm2_getrandom to capture dlopen/connect
+        run: |
+          set -eu
+          export TPM2TOOLS_TCTI="swtpm:socket=/tmp/swtpm-sock"
+          strace -ff -o tmp/tpm2_getrandom.strace -s 200 -e trace=connect,open,openat,stat,statx,read,write,recvmsg,sendmsg,dlopen,close TSS2_LOG=all tpm2_getrandom 8 -T "swtpm:socket=/tmp/swtpm-sock" > tmp/tpm2_getrandom.out 2>&1 || true
+          TSS2_LOG=all tpm2_getcap -T "swtpm:socket=/tmp/swtpm-sock" properties-fixed > tmp/tpm2_getcap.out 2>&1 || true
+
+      - name: Collect diagnostics
+        run: |
+          ls -l tmp > tmp/ls.txt || true
+          ss -lx > tmp/ss.txt || true
+          lsof -U > tmp/lsof-uds.txt || true
+          ps aux > tmp/ps.txt || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tpm-tcti-debug
+          path: |
+            tmp/tpm2_getrandom.strace*
+            tmp/tpm2_getrandom.out
+            tmp/tpm2_getcap.out
+            tmp/ldconfig-tss2.txt
+            tmp/libtss2-list.txt
+            tmp/tpm2_getrandom.ldd
+            tmp/ls.txt
+            tmp/ss.txt
+            tmp/lsof-uds.txt
+            tmp/ps.txt
+            tmp/swtpm.log
+            tmp/swtpm.pid
