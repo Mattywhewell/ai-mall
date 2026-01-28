@@ -1,0 +1,82 @@
+name: TPM Beat1 debug (strace)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  debug-beat1:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y swtpm swtpm-tools tpm2-tools libtss2-tcti-swtpm0 libtpms0 strace jq python3 || true
+
+      - name: Prepare directories
+        run: |
+          mkdir -p tmp/swtpm-state
+          rm -f /tmp/swtpm-sock /tmp/swtpm-ctrl || true
+          chmod +x scripts/tpm/*.sh || true
+
+      - name: Start swtpm under strace
+        run: |
+          set -eu
+          STRACE_OUT=tmp/swtpm.strace
+          SWTPM_LOG=tmp/swtpm.log
+          SOCK=/tmp/swtpm-sock
+          CTRL=/tmp/swtpm-ctrl
+          STATE_DIR=tmp/swtpm-state
+
+          echo "Starting swtpm under strace (logging to $STRACE_OUT and $SWTPM_LOG)"
+          strace -ff -o "$STRACE_OUT" swtpm socket --tpmstate dir="$STATE_DIR" --ctrl type=unixio,path="$CTRL" --server type=unixio,path="$SOCK" --log level=20 > "$SWTPM_LOG" 2>&1 &
+          SWTPM_PID=$!
+          echo "$SWTPM_PID" > tmp/swtpm.pid
+
+          # Wait briefly then check for socket presence
+          sleep 1
+          for i in {1..30}; do
+            if [ -e "$SOCK" ]; then break; fi
+            sleep 1
+          done
+
+          echo "swtpm pid:$SWTPM_PID socket_exists: $( [ -e "$SOCK" ] && echo yes || echo no )"
+          ps -ef | grep swtpm || true
+          ss -lx | sed -n '1,200p' || true
+
+      - name: Run tpm2_getrandom (verbose) and capture attempts
+        run: |
+          set -eu
+          export TPM2TOOLS_TCTI="swtpm:socket=/tmp/swtpm-sock"
+          for attempt in $(seq 1 5); do
+            echo "=== attempt $attempt ===" > tmp/tpm2_getrandom_attempt_${attempt}.out
+            TSS2_LOG=all tpm2_getrandom 8 -T "swtpm:socket=/tmp/swtpm-sock" >> tmp/tpm2_getrandom_attempt_${attempt}.out 2>&1 || true
+            sleep 1
+          done
+          TSS2_LOG=all tpm2_getcap -T "swtpm:socket=/tmp/swtpm-sock" properties-fixed >> tmp/tpm2_getcap.out 2>&1 || true
+          echo "--- swtpm.log (head) ---"
+          sed -n '1,200p' tmp/swtpm.log || true
+
+      - name: Collect diagnostics
+        run: |
+          ls -l tmp > tmp/ls.txt || true
+          ss -lx > tmp/ss.txt || true
+          lsof -U > tmp/lsof-uds.txt || true
+          ps aux > tmp/ps.txt || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tpm-strace-debug
+          path: |
+            tmp/swtpm.strace*
+            tmp/swtpm.log
+            tmp/tpm2_getrandom_attempt_*.out
+            tmp/tpm2_getcap.out
+            tmp/ls.txt
+            tmp/ss.txt
+            tmp/lsof-uds.txt
+            tmp/ps.txt
+            tmp/swtpm.pid
