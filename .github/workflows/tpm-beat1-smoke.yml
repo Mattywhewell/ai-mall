@@ -1,0 +1,70 @@
+name: TPM Beat 1 Smoke Test
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  beat1-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare environment (quick)
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y
+          sudo apt-get install -y -qq swtpm swtpm-tools tpm2-tools \
+            libtss2-tcti-libtpms0t64 libtss2-tcti-swtpm0t64 libtss2-tcti-libtpms libtss2-tcti-swtpm \
+            libtpms0t64 libtpms0 jq python3 openssl > tmp/apt-install.out 2>&1 || true
+          echo "--- apt-install (head) ---" > tmp/apt-diagnostic.txt
+          sed -n '1,200p' tmp/apt-install.out >> tmp/apt-diagnostic.txt || true
+          python3 -m pip install --upgrade pip pyyaml || true
+
+      - name: Make scripts executable
+        run: |
+          chmod +x scripts/tpm/*.sh
+
+      - name: Start swtpm and run Beat 1 check
+        run: |
+          set -euo pipefail
+          OUTDIR=tmp
+          mkdir -p "$OUTDIR"
+          STATE_DIR="$OUTDIR/swtpm-state"
+          SOCK="/tmp/swtpm-sock"
+          CTRL="/tmp/swtpm-ctrl"
+          rm -rf "$STATE_DIR" || true
+          mkdir -p "$STATE_DIR"
+
+          sudo mkdir -p /var/lib/swtpm || true
+          sudo chown swtpm:swtpm /var/lib/swtpm || true
+
+          swtpm socket --tpmstate dir="$STATE_DIR" --ctrl type=unixio,path=$CTRL --server type=unixio,path=$SOCK --log level=20 > "$OUTDIR/swtpm.log" 2>&1 &
+          SWTPM_PID=$!
+
+          # wait for socket
+          for i in {1..30}; do
+            if [ -e "$SOCK" ]; then break; fi
+            sleep 0.5
+          done
+          if [ ! -e "$SOCK" ]; then
+            echo "swtpm socket missing" >&2
+            sed -n '1,200p' "$OUTDIR/swtpm.log" || true
+            exit 1
+          fi
+
+          export TPM2TOOLS_TCTI="swtpm:socket=$SOCK"
+          export TCTI="swtpm:socket=$SOCK"
+
+          ./scripts/tpm/beat1_check.sh || { echo 'Beat1 failed' >&2; sed -n '1,200p' "$OUTDIR/swtpm.log" || true; kill $SWTPM_PID || true; exit 1; }
+
+          echo "Stopping swtpm..."
+          kill $SWTPM_PID || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tpm-beat1-smoke-artifacts
+          path: tmp/**
+
+      - name: Finish
+        run: echo "Beat 1 smoke run complete"
