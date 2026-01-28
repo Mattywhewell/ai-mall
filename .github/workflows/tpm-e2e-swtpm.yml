@@ -15,11 +15,9 @@ jobs:
       - name: Prepare environment
         run: |
           sudo apt-get update -y
-          # Install TPM packages: prefer Jammy (22.04) package names and include fallbacks for Noble (0t64) and older names
+          # Install Jammy (22.04) TPM packages (confirmed on runners)
           sudo apt-get install -y -qq swtpm swtpm-tools tpm2-tools \
-            libtss2-tcti-swtpm0 libtss2-tcti-libtpms0 libtpms0 \
-            libtss2-tcti-libtpms0t64 libtss2-tcti-swtpm0t64 libtss2-tcti-libtpms libtss2-tcti-swtpm \
-            libtpms0t64 libtpms0 jq python3 openssl
+            libtss2-tcti-swtpm0 libtpms0 jq python3 openssl
           sudo mkdir -p /usr/local/bin || true
           # Ensure Python deps needed by validator are present
           python3 -m pip install --upgrade pip pyyaml
