@@ -1,0 +1,63 @@
+name: TPM Beat1 loader debug (LD_DEBUG)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  loader-debug:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y swtpm swtpm-tools tpm2-tools libtss2-tcti-swtpm0 libtpms0 strace jq python3 || true
+
+      - name: Prepare directories
+        run: |
+          mkdir -p tmp/swtpm-state
+          rm -f /tmp/swtpm-sock /tmp/swtpm-ctrl || true
+
+      - name: Start swtpm
+        run: |
+          set -eu
+          SOCK=/tmp/swtpm-sock
+          CTRL=/tmp/swtpm-ctrl
+          STATE_DIR=tmp/swtpm-state
+          swtpm socket --tpmstate dir="$STATE_DIR" --ctrl type=unixio,path="$CTRL" --server type=unixio,path="$SOCK" --log level=20 > tmp/swtpm.log 2>&1 &
+          echo $! > tmp/swtpm.pid
+          for i in {1..30}; do if [ -e "$SOCK" ]; then break; fi; sleep 1; done
+          ss -lx > tmp/ss.txt || true
+
+      - name: Run tpm2_getrandom under LD_DEBUG and strace
+        run: |
+          set -eu
+          export TPM2TOOLS_TCTI="swtpm:socket=/tmp/swtpm-sock"
+          LD_DEBUG=all LD_DEBUG_OUTPUT=tmp/lddebug.out TSS2_LOG=all strace -ff -o tmp/tpm2_getrandom.strace tpm2_getrandom 8 -T "swtpm:socket=/tmp/swtpm-sock" > tmp/tpm2_getrandom.out 2>&1 || true
+          LD_DEBUG=all LD_DEBUG_OUTPUT=tmp/lddebug_getcap.out TSS2_LOG=all strace -ff -o tmp/tpm2_getcap.strace tpm2_getcap -T "swtpm:socket=/tmp/swtpm-sock" properties-fixed > tmp/tpm2_getcap.out 2>&1 || true
+
+      - name: Collect diagnostics
+        run: |
+          ls -l tmp > tmp/ls.txt || true
+          lsof -U > tmp/lsof-uds.txt || true
+          ps aux > tmp/ps.txt || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tpm-loader-debug
+          path: |
+            tmp/lddebug.out
+            tmp/lddebug_getcap.out
+            tmp/tpm2_getrandom.out
+            tmp/tpm2_getcap.out
+            tmp/tpm2_getrandom.strace*
+            tmp/tpm2_getcap.strace*
+            tmp/ls.txt
+            tmp/ss.txt
+            tmp/lsof-uds.txt
+            tmp/ps.txt
+            tmp/swtpm.log
+            tmp/swtpm.pid
