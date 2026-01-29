@@ -33,7 +33,7 @@ jobs:
         run: |
           echo "Running tcti_caller under gdb" > tmp/gdb_caller.txt
           # Set TPM2TOOLS_TCTI to match real usage when loader is used
-          TPM2TOOLS_TCTI="swtpm:socket=/tmp/swtpm-sock" gdb -batch -ex "set follow-fork-mode child" -ex "run -- 'swtpm:socket=/tmp/swtpm-sock'" -ex "bt full" -ex "info threads" -ex "thread apply all bt full" -ex "info sharedlibrary" -ex "info symbol \$pc" -ex "x/20i \$pc" --args tmp/tcti_caller 'swtpm:socket=/tmp/swtpm-sock' > tmp/gdb_caller.txt 2>&1 || true
+          TPM2TOOLS_TCTI="swtpm:socket=/tmp/swtpm-sock" gdb -batch -ex "set follow-fork-mode child" -ex "run" -ex "bt full" -ex "info threads" -ex "thread apply all bt full" -ex "info sharedlibrary" -ex "info symbol \$pc" -ex "x/20i \$pc" --args tmp/tcti_caller 'swtpm:socket=/tmp/swtpm-sock' > tmp/gdb_caller.txt 2>&1 || true
           tail -n +1 tmp/gdb_caller.txt | sed -n '1,200p' || true
 
       - name: Upload caller artifacts
