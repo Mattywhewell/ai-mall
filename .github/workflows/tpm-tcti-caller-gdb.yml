@@ -1,0 +1,48 @@
+name: TPM TCTI caller (gdb backtrace)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  caller-gdb:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y build-essential gdb libtss2-tcti-swtpm0 libtss2-dev swtpm swtpm-tools libtpms0 pkg-config || true
+
+      - name: Build caller with debug symbols
+        run: |
+          gcc -g -O0 -o tmp/tcti_caller scripts/tpm/tcti_caller.c -ldl || true
+          ls -l tmp/tcti_caller || true
+
+      - name: Start swtpm
+        run: |
+          mkdir -p tmp/swtpm-state
+          rm -f /tmp/swtpm-sock /tmp/swtpm-ctrl || true
+          swtpm socket --tpmstate dir=tmp/swtpm-state --ctrl type=unixio,path=/tmp/swtpm-ctrl --server type=unixio,path=/tmp/swtpm-sock --log level=20 > tmp/swtpm.log 2>&1 &
+          echo $! > tmp/swtpm.pid
+          for i in {1..30}; do if [ -e /tmp/swtpm-sock ]; then break; fi; sleep 1; done
+          ss -lx > tmp/ss.txt || true
+
+      - name: Run caller under gdb
+        run: |
+          echo "Running tcti_caller under gdb" > tmp/gdb_caller.txt
+          # Set TPM2TOOLS_TCTI to match real usage when loader is used
+          TPM2TOOLS_TCTI="swtpm:socket=/tmp/swtpm-sock" gdb -batch -ex "set follow-fork-mode child" -ex "run -- 'swtpm:socket=/tmp/swtpm-sock'" -ex "bt full" -ex "info threads" -ex "thread apply all bt full" -ex "info sharedlibrary" -ex "info symbol \$pc" -ex "x/20i \$pc" --args tmp/tcti_caller 'swtpm:socket=/tmp/swtpm-sock' > tmp/gdb_caller.txt 2>&1 || true
+          tail -n +1 tmp/gdb_caller.txt | sed -n '1,200p' || true
+
+      - name: Upload caller artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tpm-tcti-caller-gdb
+          path: |
+            tmp/gdb_caller.txt
+            tmp/tcti_caller
+            tmp/swtpm.log
+            tmp/swtpm.pid
+            tmp/ss.txt
