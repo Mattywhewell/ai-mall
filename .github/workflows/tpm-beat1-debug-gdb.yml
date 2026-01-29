@@ -55,6 +55,20 @@ jobs:
             -ex "set breakpoint pending on" \
             -ex "set logging file tmp/gdb.out" \
             -ex "set logging on" \
+            -ex "break __libc_dlopen_mode" \
+            -ex "commands" \
+            -ex "silent" \
+            -ex "printf \"__libc_dlopen_mode called filename=%s flags=%d\\n\", (char*)$rdi, (int)$rsi" \
+            -ex "bt full" \
+            -ex "continue" \
+            -ex "end" \
+            -ex "break dlsym" \
+            -ex "commands" \
+            -ex "silent" \
+            -ex "printf \"dlsym called handle=%p symbol=%s\\n\", (void*)$rdi, (char*)$rsi" \
+            -ex "bt full" \
+            -ex "continue" \
+            -ex "end" \
             -ex "break Tss2_TctiLdr_Initialize_Ex" \
             -ex "break tcti_from_file" \
             -ex "# Deeper breakpoints into likely swtpm TCTI init symbols; these are heuristics to capture the plugin's own initializer if it exists" \
