@@ -47,29 +47,40 @@ int main(int argc, char **argv) {
         }
         printf("dlsym(%s): ptr=%p\n", s, symptr);
 
-        // Call it in a child so any crash/UB doesn't kill the probe
-        pid_t pid = fork();
-        if (pid == 0) {
-            // child
+        // By default, call it in a child so any crash/UB doesn't kill the probe
+        // If PROBE_SINGLE_PROCESS is set, call inline so gdb (attached to this process) can capture a backtrace
+        char *single = getenv("PROBE_SINGLE_PROCESS");
+        if (single && strcmp(single, "1")==0) {
             typedef int (*initfn_t)(void);
             initfn_t f = (initfn_t)symptr;
             fflush(stdout);
             int rc = f();
             printf("CALL(%s) returned %d\n", s, rc);
             fflush(stdout);
-            _exit(rc & 0xff);
-        } else if (pid > 0) {
-            int status = 0;
-            waitpid(pid, &status, 0);
-            if (WIFEXITED(status)) {
-                printf("child exit status: %d\n", WEXITSTATUS(status));
-            } else if (WIFSIGNALED(status)) {
-                printf("child killed by signal: %d\n", WTERMSIG(status));
-            } else {
-                printf("child stopped/unknown status: %d\n", status);
-            }
         } else {
-            perror("fork");
+            pid_t pid = fork();
+            if (pid == 0) {
+                // child
+                typedef int (*initfn_t)(void);
+                initfn_t f = (initfn_t)symptr;
+                fflush(stdout);
+                int rc = f();
+                printf("CALL(%s) returned %d\n", s, rc);
+                fflush(stdout);
+                _exit(rc & 0xff);
+            } else if (pid > 0) {
+                int status = 0;
+                waitpid(pid, &status, 0);
+                if (WIFEXITED(status)) {
+                    printf("child exit status: %d\n", WEXITSTATUS(status));
+                } else if (WIFSIGNALED(status)) {
+                    printf("child killed by signal: %d\n", WTERMSIG(status));
+                } else {
+                    printf("child stopped/unknown status: %d\n", status);
+                }
+            } else {
+                perror("fork");
+            }
         }
     }
     pclose(p);
