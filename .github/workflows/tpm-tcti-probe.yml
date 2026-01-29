@@ -15,6 +15,14 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y build-essential gdb libtss2-tcti-swtpm0 libtss2-dev pkg-config swtpm swtpm-tools libtpms0 || true
 
+      - name: Enable core dumps
+        run: |
+          sudo sysctl -w kernel.core_pattern="tmp/core.%e.%p.%t" || true
+          sudo sysctl -w fs.suid_dumpable=2 || true
+          echo "core_pattern=$(cat /proc/sys/kernel/core_pattern)" > tmp/core_setup.txt
+          ulimit -c unlimited || true
+          echo "ulimit: $(ulimit -c)" >> tmp/core_setup.txt || true
+
       - name: Build probe
         run: |
           gcc -o scripts/tpm/tcti_probe scripts/tpm/tcti_probe.c -ldl || true
@@ -53,6 +61,19 @@ jobs:
           gdb -batch -ex "set follow-fork-mode child" -ex "run" -ex "bt full" -ex "thread apply all bt full" -ex "info sharedlibrary" -ex "info symbol $pc" -ex "x/20i $pc" --args tmp/tcti_probe_gdb > tmp/gdb_probe_with_swtpm.txt 2>&1 || true
           tail -n +1 tmp/gdb_probe_with_swtpm.txt | sed -n '1,200p'
 
+      - name: Collect core dumps (if any) and produce gdb backtraces
+        run: |
+          echo "Looking for core files..." > tmp/core_list.txt
+          ls -la tmp/core.* >> tmp/core_list.txt 2>&1 || true
+          for c in tmp/core.*; do
+            if [ -e "$c" ]; then
+              pfx=$(basename "$c")
+              echo "Processing $c" >> tmp/core_list.txt
+              # Attempt gdb backtrace against probe binary
+              gdb -batch -ex "thread apply all bt full" -ex "info sharedlibrary" -ex "info symbol \$pc" -ex "x/20i \$pc" tmp/tcti_probe_gdb "$c" > "tmp/core_bt_${pfx}.txt" 2>&1 || true
+            fi
+          done || true
+
       - name: Upload probe artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -62,5 +83,7 @@ jobs:
             tmp/probe_with_swtpm.txt
             tmp/gdb_probe_no_swtpm.txt
             tmp/gdb_probe_with_swtpm.txt
+            tmp/core_list.txt
+            tmp/core_bt_*
             tmp/swtpm.log
             tmp/swtpm.pid
