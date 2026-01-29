@@ -58,14 +58,14 @@ jobs:
             -ex "break __libc_dlopen_mode" \
             -ex "commands" \
             -ex "silent" \
-            -ex "printf \"__libc_dlopen_mode called filename=%s flags=%d\\n\", (char*)$rdi, (int)$rsi" \
+            -ex "printf \"__libc_dlopen_mode called filename=%s flags=%d\\n\", (char*)\$rdi, (int)\$rsi" \
             -ex "bt full" \
             -ex "continue" \
             -ex "end" \
             -ex "break dlsym" \
             -ex "commands" \
             -ex "silent" \
-            -ex "printf \"dlsym called handle=%p symbol=%s\\n\", (void*)$rdi, (char*)$rsi" \
+            -ex "printf \"dlsym called handle=%p symbol=%s\\n\", (void*)\$rdi, (char*)\$rsi" \
             -ex "bt full" \
             -ex "continue" \
             -ex "end" \
