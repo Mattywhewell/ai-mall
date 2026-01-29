@@ -1,0 +1,70 @@
+name: TPM TCTI probe matrix (swtpm present/absent × process model)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  probe-matrix:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        swtpm_present: ["present","absent"]
+        single_process: ["1","0"]
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y build-essential gdb libtss2-tcti-swtpm0 libtss2-dev pkg-config swtpm swtpm-tools libtpms0 || true
+
+      - name: Build probe binary
+        run: |
+          gcc -g -O0 -o tmp/tcti_probe_gdb scripts/tpm/tcti_probe.c -ldl || true
+          ls -l tmp/tcti_probe_gdb || true
+
+      - name: Prepare env
+        run: |
+          echo "matrix: swtpm=${{ matrix.swtpm_present }}, single_process=${{ matrix.single_process }}" > tmp/matrix_info.txt
+          if [ "${{ matrix.swtpm_present }}" = "present" ]; then
+            echo "starting swtpm" >> tmp/matrix_info.txt
+            mkdir -p tmp/swtpm-state
+            rm -f /tmp/swtpm-sock /tmp/swtpm-ctrl || true
+            swtpm socket --tpmstate dir=tmp/swtpm-state --ctrl type=unixio,path=/tmp/swtpm-ctrl --server type=unixio,path=/tmp/swtpm-sock --log level=20 > tmp/swtpm.log 2>&1 &
+            echo $! > tmp/swtpm.pid
+            for i in {1..30}; do if [ -e /tmp/swtpm-sock ]; then break; fi; sleep 1; done
+            ss -lx > tmp/ss.txt || true
+          else
+            echo "not starting swtpm (absent)" >> tmp/matrix_info.txt
+            rm -f /tmp/swtpm-sock /tmp/swtpm-ctrl || true
+          fi
+
+      - name: Run probe under gdb (capture backtrace)
+        run: |
+          out=tmp/gdb_probe_${{ matrix.swtpm_present }}_sp${{ matrix.single_process }}.txt
+          echo "Running probe matrix: swtpm=${{ matrix.swtpm_present }}, single=${{ matrix.single_process }}" > "$out"
+          if [ "${{ matrix.single_process }}" = "1" ]; then
+            PROBE_SINGLE_PROCESS=1 gdb -batch -ex "set follow-fork-mode child" -ex "run" -ex "bt full" -ex "info threads" -ex "thread apply all bt full" -ex "info sharedlibrary" -ex "info symbol \$pc" -ex "x/20i \$pc" --args tmp/tcti_probe_gdb > "$out" 2>&1 || true
+          else
+            PROBE_SINGLE_PROCESS=0 gdb -batch -ex "set follow-fork-mode child" -ex "run" -ex "bt full" -ex "info threads" -ex "thread apply all bt full" -ex "info sharedlibrary" -ex "info symbol \$pc" -ex "x/20i \$pc" --args tmp/tcti_probe_gdb > "$out" 2>&1 || true
+          fi
+          tail -n +1 "$out" | sed -n '1,200p' || true
+
+      - name: Collect diagnostics
+        run: |
+          ls -l tmp > tmp/ls.txt || true
+          ps aux > tmp/ps.txt || true
+
+      - name: Upload matrix artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tpm-tcti-probe-matrix_${{ matrix.swtpm_present }}_sp${{ matrix.single_process }}
+          path: |
+            tmp/gdb_probe_${{ matrix.swtpm_present }}_sp${{ matrix.single_process }}.txt
+            tmp/matrix_info.txt
+            tmp/ss.txt
+            tmp/swtpm.log
+            tmp/swtpm.pid
+            tmp/ls.txt
+            tmp/ps.txt
