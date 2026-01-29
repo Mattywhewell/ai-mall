@@ -31,7 +31,7 @@ jobs:
       - name: Run probe under gdb (no swtpm)
         run: |
           echo "Running probe under gdb without swtpm" > tmp/gdb_probe_no_swtpm.txt
-          gdb -batch -ex "set follow-fork-mode child" -ex "run" -ex "bt full" -ex "thread apply all bt full" --args tmp/tcti_probe_gdb > tmp/gdb_probe_no_swtpm.txt 2>&1 || true
+          PROBE_SINGLE_PROCESS=1 gdb -batch -ex "set follow-fork-mode child" -ex "run" -ex "bt full" -ex "thread apply all bt full" --args tmp/tcti_probe_gdb > tmp/gdb_probe_no_swtpm.txt 2>&1 || true
           tail -n +1 tmp/gdb_probe_no_swtpm.txt | sed -n '1,200p'
 
       - name: Start swtpm and run probe (with socket env)
