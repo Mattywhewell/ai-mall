@@ -38,6 +38,17 @@ jobs:
           LD_DEBUG=all LD_DEBUG_OUTPUT=tmp/lddebug.out TSS2_LOG=all strace -ff -o tmp/tpm2_getrandom.strace tpm2_getrandom 8 -T "swtpm:socket=/tmp/swtpm-sock" > tmp/tpm2_getrandom.out 2>&1 || true
           LD_DEBUG=all LD_DEBUG_OUTPUT=tmp/lddebug_getcap.out TSS2_LOG=all strace -ff -o tmp/tpm2_getcap.strace tpm2_getcap -T "swtpm:socket=/tmp/swtpm-sock" properties-fixed > tmp/tpm2_getcap.out 2>&1 || true
 
+      - name: Build and run tcti probe
+        run: |
+          set -eu
+          gcc -o tmp/tcti_probe scripts/tpm/tcti_probe.c -ldl || true
+          echo "Running probe without depending on swtpm" > tmp/probe_no_swtpm.txt
+          tmp/tcti_probe >> tmp/probe_no_swtpm.txt 2>&1 || true
+          echo "Running probe with swtpm already up" > tmp/probe_with_swtpm.txt
+          tmp/tcti_probe >> tmp/probe_with_swtpm.txt 2>&1 || true
+          echo "--- probe_no_swtpm (tail) ---"; tail -n 200 tmp/probe_no_swtpm.txt || true
+          echo "--- probe_with_swtpm (tail) ---"; tail -n 200 tmp/probe_with_swtpm.txt || true
+
       - name: Collect diagnostics
         run: |
           ls -l tmp > tmp/ls.txt || true
