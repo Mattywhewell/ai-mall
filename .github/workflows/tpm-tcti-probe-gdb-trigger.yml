@@ -1,0 +1,89 @@
+name: TPM TCTI probe (gdb backtrace) - trigger
+
+on:
+  push:
+    branches:
+      - 'ci/trigger-probe-gdb'
+
+jobs:
+  probe-gdb:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y build-essential gdb libtss2-tcti-swtpm0 libtss2-dev swtpm swtpm-tools libtpms0 pkg-config || true
+
+      - name: Build probe with debug symbols
+        run: |
+          gcc -g -O0 -o tmp/tcti_probe_gdb scripts/tpm/tcti_probe.c -ldl || true
+          ls -l tmp/tcti_probe_gdb || true
+
+      - name: Run probe under gdb (no swtpm)
+        run: |
+          echo "Running gdb probe without swtpm" > tmp/gdb_probe_no_swtpm.txt
+          cat > tmp/gdb_cmds_no <<'GDB'
+set pagination off
+set follow-fork-mode child
+set logging file tmp/gdb_probe_no_swtpm.txt
+set logging on
+run
+bt full
+info threads
+thread apply all bt full
+set logging off
+GDB
+          gdb -q -ex "set height 0" -x tmp/gdb_cmds_no --args tmp/tcti_probe_gdb || true
+          tail -n +1 tmp/gdb_probe_no_swtpm.txt | sed -n '1,200p' || true
+
+      - name: Start swtpm
+        run: |
+          mkdir -p tmp/swtpm-state
+          rm -f /tmp/swtpm-sock /tmp/swtpm-ctrl || true
+          swtpm socket --tpmstate dir=tmp/swtpm-state --ctrl type=unixio,path=/tmp/swtpm-ctrl --server type=unixio,path=/tmp/swtpm-sock --log level=20 > tmp/swtpm.log 2>&1 &
+          SWTPM_PID=$!
+          echo $SWTPM_PID > tmp/swtpm.pid
+          for i in {1..30}; do if [ -e /tmp/swtpm-sock ]; then break; fi; sleep 1; done
+          ss -lx > tmp/ss.txt || true
+
+      - name: Run probe under gdb (with swtpm)
+        run: |
+          echo "Running gdb probe with swtpm" > tmp/gdb_probe_with_swtpm.txt
+          cat > tmp/gdb_cmds_with <<'GDB'
+set pagination off
+set follow-fork-mode child
+set logging file tmp/gdb_probe_with_swtpm.txt
+set logging on
+run
+bt full
+info threads
+thread apply all bt full
+set logging off
+GDB
+          gdb -q -ex "set height 0" -x tmp/gdb_cmds_with --args tmp/tcti_probe_gdb || true
+          tail -n +1 tmp/gdb_probe_with_swtpm.txt | sed -n '1,200p' || true
+
+      - name: Collect diagnostics
+        run: |
+          ls -l tmp > tmp/ls.txt || true
+          lsof -U > tmp/lsof-uds.txt || true
+          ps aux > tmp/ps.txt || true
+
+      - name: Upload gdb probe artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tpm-tcti-probe-gdb
+          path: |
+            tmp/gdb_probe_no_swtpm.txt
+            tmp/gdb_probe_with_swtpm.txt
+            tmp/gdb_cmds_no
+            tmp/gdb_cmds_with
+            tmp/tcti_probe_gdb
+            tmp/swtpm.log
+            tmp/swtpm.pid
+            tmp/ls.txt
+            tmp/lsof-uds.txt
+            tmp/ps.txt
