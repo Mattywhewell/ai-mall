@@ -1,0 +1,50 @@
+name: TPM TCTI probe (dlopen/dlsym)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  probe:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y build-essential libtss2-tcti-swtpm0 libtss2-dev pkg-config || true
+
+      - name: Build probe
+        run: |
+          gcc -o scripts/tpm/tcti_probe scripts/tpm/tcti_probe.c -ldl || true
+          ls -l scripts/tpm/tcti_probe || true
+
+      - name: Run probe (no swtpm)
+        run: |
+          echo "Running probe without swtpm (should show dlopen/dlsym results)" > tmp/probe_no_swtpm.txt
+          scripts/tpm/tcti_probe >> tmp/probe_no_swtpm.txt 2>&1 || true
+          tail -n +1 tmp/probe_no_swtpm.txt | sed -n '1,200p'
+
+      - name: Start swtpm and run probe (with socket env)
+        run: |
+          mkdir -p tmp/swtpm-state
+          rm -f /tmp/swtpm-sock /tmp/swtpm-ctrl || true
+          swtpm socket --tpmstate dir=tmp/swtpm-state --ctrl type=unixio,path=/tmp/swtpm-ctrl --server type=unixio,path=/tmp/swtpm-sock --log level=20 > tmp/swtpm.log 2>&1 &
+          SWTPM_PID=$!
+          echo $SWTPM_PID > tmp/swtpm.pid
+          for i in {1..30}; do if [ -e /tmp/swtpm-sock ]; then break; fi; sleep 1; done
+          echo "Socket exists: $( [ -e /tmp/swtpm-sock ] && echo yes || echo no )"
+          echo "Running probe with swtpm up" > tmp/probe_with_swtpm.txt
+          scripts/tpm/tcti_probe >> tmp/probe_with_swtpm.txt 2>&1 || true
+          tail -n +1 tmp/probe_with_swtpm.txt | sed -n '1,200p'
+
+      - name: Upload probe artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tpm-tcti-probe
+          path: |
+            tmp/probe_no_swtpm.txt
+            tmp/probe_with_swtpm.txt
+            tmp/swtpm.log
+            tmp/swtpm.pid
