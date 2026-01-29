@@ -18,13 +18,21 @@ jobs:
       - name: Build probe
         run: |
           gcc -o scripts/tpm/tcti_probe scripts/tpm/tcti_probe.c -ldl || true
+          gcc -g -O0 -o tmp/tcti_probe_gdb scripts/tpm/tcti_probe.c -ldl || true
           ls -l scripts/tpm/tcti_probe || true
+          ls -l tmp/tcti_probe_gdb || true
 
       - name: Run probe (no swtpm)
         run: |
           echo "Running probe without swtpm (should show dlopen/dlsym results)" > tmp/probe_no_swtpm.txt
           scripts/tpm/tcti_probe >> tmp/probe_no_swtpm.txt 2>&1 || true
           tail -n +1 tmp/probe_no_swtpm.txt | sed -n '1,200p'
+
+      - name: Run probe under gdb (no swtpm)
+        run: |
+          echo "Running probe under gdb without swtpm" > tmp/gdb_probe_no_swtpm.txt
+          gdb -batch -ex "set follow-fork-mode child" -ex "run" -ex "bt full" -ex "thread apply all bt full" --args tmp/tcti_probe_gdb > tmp/gdb_probe_no_swtpm.txt 2>&1 || true
+          tail -n +1 tmp/gdb_probe_no_swtpm.txt | sed -n '1,200p'
 
       - name: Start swtpm and run probe (with socket env)
         run: |
@@ -39,6 +47,12 @@ jobs:
           scripts/tpm/tcti_probe >> tmp/probe_with_swtpm.txt 2>&1 || true
           tail -n +1 tmp/probe_with_swtpm.txt | sed -n '1,200p'
 
+      - name: Run probe under gdb (with swtpm)
+        run: |
+          echo "Running probe under gdb with swtpm" > tmp/gdb_probe_with_swtpm.txt
+          gdb -batch -ex "set follow-fork-mode child" -ex "run" -ex "bt full" -ex "thread apply all bt full" --args tmp/tcti_probe_gdb > tmp/gdb_probe_with_swtpm.txt 2>&1 || true
+          tail -n +1 tmp/gdb_probe_with_swtpm.txt | sed -n '1,200p'
+
       - name: Upload probe artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -46,5 +60,7 @@ jobs:
           path: |
             tmp/probe_no_swtpm.txt
             tmp/probe_with_swtpm.txt
+            tmp/gdb_probe_no_swtpm.txt
+            tmp/gdb_probe_with_swtpm.txt
             tmp/swtpm.log
             tmp/swtpm.pid
