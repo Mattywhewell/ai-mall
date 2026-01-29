@@ -52,6 +52,7 @@ jobs:
           # Run gdb in batch mode, breakpoint on TCTI init functions and capture backtrace + threads
           gdb --batch -nx \
             -ex "set pagination off" \
+            -ex "set breakpoint pending on" \
             -ex "set logging file tmp/gdb.out" \
             -ex "set logging on" \
             -ex "break Tss2_TctiLdr_Initialize_Ex" \
