@@ -72,3 +72,7 @@ jobs:
             tmp/ps.txt
             tmp/swtpm.log
             tmp/swtpm.pid
+            tmp/probe_no_swtpm.txt
+            tmp/probe_with_swtpm.txt
+            tmp/tcti_probe
+
